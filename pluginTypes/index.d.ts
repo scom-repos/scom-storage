@@ -174,6 +174,11 @@ declare module "@scom/scom-storage/components/home.tsx" {
         render(): any;
     }
 }
+/// <amd-module name="@scom/scom-storage/index.css.ts" />
+declare module "@scom/scom-storage/index.css.ts" {
+    const _default_1: string;
+    export default _default_1;
+}
 /// <amd-module name="@scom/scom-storage" />
 declare module "@scom/scom-storage" {
     import { Module, ControlElement, IDataSchema } from '@ijstech/components';
@@ -193,7 +198,6 @@ declare module "@scom/scom-storage" {
         private uploadedFileTree;
         private mobileHome;
         tag: any;
-        private _theme;
         private _data;
         private fileTable;
         private filesColumns;

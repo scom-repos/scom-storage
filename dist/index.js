@@ -485,11 +485,29 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
     ], ScomIPFSMobileHome);
     exports.ScomIPFSMobileHome = ScomIPFSMobileHome;
 });
-define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/assets.ts", "@scom/scom-storage/data.ts"], function (require, exports, components_6, assets_2, data_3) {
+define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_6) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const Theme = components_6.Styles.Theme.ThemeVars;
+    exports.default = components_6.Styles.style({
+        $nest: {
+            '.storage-meter-uploaded': {
+                backgroundSize: '410%',
+                backgroundPosition: '0% 0px',
+                transition: '.25s ease-out',
+                filter: 'drop-shadow(0 2px 8px rgba(33,15,85,.33))',
+            },
+            'i-table .i-table-cell': {
+                background: Theme.background.main
+            }
+        }
+    });
+});
+define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_7, data_3, index_css_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomStorage = void 0;
-    const Theme = components_6.Styles.Theme.ThemeVars;
+    const Theme = components_7.Styles.Theme.ThemeVars;
     const defaultColors = {
         light: {
             primaryColor: '#3f51b5',
@@ -501,20 +519,34 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             backgroundColor: '#fbfbfb',
             secondaryLight: '#dee2e6',
             secondaryMain: 'rgba(255, 255, 255, .15)',
-            hover: '#0b3a53',
-            hoverBackground: '#fff',
+            hover: '#69c4cd',
+            hoverBackground: 'rgba(0, 0, 0, 0.04)',
             selected: '#fff',
-            selectedBackground: '#69c4cd'
+            selectedBackground: '#0b3a53'
+        },
+        dark: {
+            primaryColor: '#3f51b5',
+            primaryLightColor: '#69c4cd',
+            primaryDarkColor: '#0b3a53',
+            secondaryColor: '#666666',
+            borderColor: '#ffffff1f',
+            fontColor: '#fff',
+            backgroundColor: '#121212',
+            secondaryLight: '#aaaaaa',
+            secondaryMain: 'rgba(255, 255, 255, .15)',
+            hover: '#69c4cd',
+            hoverBackground: '#222222',
+            selected: '#fff',
+            selectedBackground: '#0b3a53'
         }
     };
-    let ScomStorage = class ScomStorage extends components_6.Module {
+    let ScomStorage = class ScomStorage extends components_7.Module {
         constructor() {
             super(...arguments);
             this.tag = {
                 light: {},
                 dark: {}
             };
-            this._theme = 'light';
             this._data = { cid: '' };
             this.filesColumns = [
                 {
@@ -671,7 +703,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.style.removeProperty(name);
         }
         updateTheme() {
-            const themeVar = this._theme || document.body.style.getPropertyValue('--theme');
+            const themeVar = document.body.style.getPropertyValue('--theme') || 'light';
             this.updateStyle('--text-primary', this.tag[themeVar]?.fontColor);
             this.updateStyle('--text-secondary', this.tag[themeVar]?.secondaryColor);
             this.updateStyle('--background-main', this.tag[themeVar]?.backgroundColor);
@@ -693,7 +725,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             // this._storedFileData = null;
             if (ipfsData) {
                 const parentNode = (({ links, ...o }) => o)(ipfsData);
-                parentNode.name = parentNode.name ? parentNode.name : components_6.FormatUtils.truncateWalletAddress(parentNode.cid);
+                parentNode.name = parentNode.name ? parentNode.name : components_7.FormatUtils.truncateWalletAddress(parentNode.cid);
                 parentNode.path = parentNode.name;
                 parentNode.root = true;
                 if (ipfsData.links)
@@ -737,7 +769,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                         node.height = '2.125rem';
                         node.icon.margin = { left: '0.388rem' };
                         node.icon.name = 'chevron-circle-right';
-                        node.icon.fill = Theme.colors.primary.dark;
+                        node.icon.fill = Theme.colors.primary.light;
                         node.icon.visible = true;
                         node.icon.display = 'inline-flex';
                         if (nodeData.root)
@@ -778,7 +810,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.pnlPath.setData(node);
         }
         onOpenUploadModal() {
-            components_6.application.showUploadModal();
+            components_7.application.showUploadModal();
         }
         async onActiveChange(parent, prevNode) {
             const ipfsData = parent.activeItem?.tag;
@@ -828,6 +860,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         init() {
             super.init();
+            this.classList.add(index_css_3.default);
             this.setTag(defaultColors);
             const cid = this.getAttribute('cid', true);
             if (cid)
@@ -851,12 +884,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                             }
                         }
                     ] },
-                    this.$render("i-hstack", { stack: { grow: '0', shrink: '0', basis: '5.625rem' }, padding: { top: '1rem', left: '1rem', bottom: '1rem', right: '1rem' }, verticalAlignment: 'center', horizontalAlignment: "space-between", background: { color: Theme.colors.primary.dark }, border: { bottom: { width: '0.5rem', style: 'solid', color: Theme.colors.primary.light } } },
-                        this.$render("i-label", { id: "lblCustomTitle", visible: false, font: { size: '1.5rem', weight: 600, color: Theme.colors.primary.contrastText } }),
-                        this.$render("i-image", { url: `${assets_2.default.fullPath('img/ipfs-logo.svg')}`, height: '3.125rem', width: 'auto', cursor: 'pointer' }),
-                        this.$render("i-label", { caption: 'IPFS EXPLORER', font: { size: '1.5rem', color: Theme.colors.primary.light, transform: 'uppercase', weight: 200 } })),
                     this.$render("i-panel", { stack: { grow: '1', basis: '0%' }, overflow: 'hidden' },
-                        this.$render("i-grid-layout", { id: 'pnlExplorer', height: '100%', overflow: 'hidden', border: { top: { width: '.0625rem', style: 'solid', color: Theme.divider } }, templateColumns: ['15rem', '1px', '1fr'], background: { color: Theme.background.main }, mediaQueries: [
+                        this.$render("i-grid-layout", { id: 'pnlExplorer', height: '100%', overflow: 'hidden', templateColumns: ['15rem', '1px', '1fr'], background: { color: Theme.background.main }, mediaQueries: [
                                 {
                                     maxWidth: '767px',
                                     properties: {
@@ -928,7 +957,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
     };
     ScomStorage = __decorate([
-        (0, components_6.customElements)('i-scom-storage')
+        (0, components_7.customElements)('i-scom-storage')
     ], ScomStorage);
     exports.ScomStorage = ScomStorage;
 });

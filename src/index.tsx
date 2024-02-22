@@ -16,6 +16,7 @@ import { IIPFSData, IStorageConfig, ITableData } from './inteface';
 import { autoRetryGetContent, fetchData, formatBytes } from './data';
 import { ScomIPFSMobileHome } from './components/home';
 import { ScomIPFSPath } from './components/path';
+import customStyles from './index.css';
 
 const Theme = Styles.Theme.ThemeVars;
 
@@ -30,10 +31,25 @@ const defaultColors = {
         backgroundColor: '#fbfbfb',
         secondaryLight: '#dee2e6',
         secondaryMain: 'rgba(255, 255, 255, .15)',
-        hover: '#0b3a53',
-        hoverBackground: '#fff',
+        hover: '#69c4cd',
+        hoverBackground: 'rgba(0, 0, 0, 0.04)',
         selected: '#fff',
-        selectedBackground: '#69c4cd'
+        selectedBackground: '#0b3a53'
+    },
+    dark: {
+        primaryColor: '#3f51b5',
+        primaryLightColor: '#69c4cd',
+        primaryDarkColor: '#0b3a53',
+        secondaryColor: '#666666',
+        borderColor: '#ffffff1f',
+        fontColor: '#fff',
+        backgroundColor: '#121212',
+        secondaryLight: '#aaaaaa',
+        secondaryMain: 'rgba(255, 255, 255, .15)',
+        hover: '#69c4cd',
+        hoverBackground: '#222222',
+        selected: '#fff',
+        selectedBackground: '#0b3a53'
     }
 }
 
@@ -59,7 +75,6 @@ export class ScomStorage extends Module {
         light: {},
         dark: {}
     }
-    private _theme: string = 'light';
     private _data: IStorageConfig = { cid: '' }; 
     private fileTable: Table;
     private filesColumns = [
@@ -231,7 +246,7 @@ export class ScomStorage extends Module {
     }
 
     private updateTheme() {
-        const themeVar = this._theme || document.body.style.getPropertyValue('--theme');
+        const themeVar = document.body.style.getPropertyValue('--theme') || 'light';
         this.updateStyle('--text-primary', this.tag[themeVar]?.fontColor);
         this.updateStyle('--text-secondary', this.tag[themeVar]?.secondaryColor);
         this.updateStyle('--background-main', this.tag[themeVar]?.backgroundColor);
@@ -302,7 +317,7 @@ export class ScomStorage extends Module {
                     node.height = '2.125rem';
                     node.icon.margin = { left: '0.388rem' };
                     node.icon.name = 'chevron-circle-right';
-                    node.icon.fill = Theme.colors.primary.dark;
+                    node.icon.fill = Theme.colors.primary.light;
                     node.icon.visible = true;
                     node.icon.display = 'inline-flex';
                     if (nodeData.root) node.active = true;
@@ -405,6 +420,7 @@ export class ScomStorage extends Module {
 
     init() {
         super.init();
+        this.classList.add(customStyles);
         this.setTag(defaultColors);
         const cid = this.getAttribute('cid', true);
         if (cid) this.setData({ cid });
@@ -444,27 +460,11 @@ export class ScomStorage extends Module {
                         }
                     ]}
                 >
-                    <i-hstack
-                        stack={{ grow: '0', shrink: '0', basis: '5.625rem' }}
-                        padding={{ top: '1rem', left: '1rem', bottom: '1rem', right: '1rem' }}
-                        verticalAlignment='center' horizontalAlignment="space-between"
-                        background={{ color: Theme.colors.primary.dark }}
-                        border={{ bottom: { width: '0.5rem', style: 'solid', color: Theme.colors.primary.light } }}
-                    >
-                        <i-label
-                            id="lblCustomTitle"
-                            visible={false}
-                            font={{ size: '1.5rem', weight: 600, color: Theme.colors.primary.contrastText }}
-                        ></i-label>
-                        <i-image url={`${Assets.fullPath('img/ipfs-logo.svg')}`} height={'3.125rem'} width={'auto'} cursor='pointer'></i-image>
-                        <i-label caption='IPFS EXPLORER' font={{ size: '1.5rem', color: Theme.colors.primary.light, transform: 'uppercase', weight: 200 }}></i-label>
-                    </i-hstack>
                     <i-panel stack={{ grow: '1', basis: '0%' }} overflow={'hidden'}>
                         <i-grid-layout
                             id={'pnlExplorer'}
                             height={'100%'}
                             overflow={'hidden'}
-                            border={{ top: { width: '.0625rem', style: 'solid', color: Theme.divider } }}
                             templateColumns={['15rem', '1px', '1fr']}
                             background={{ color: Theme.background.main }}
                             mediaQueries={[

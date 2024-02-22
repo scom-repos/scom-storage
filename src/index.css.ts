@@ -8,6 +8,9 @@ export default Styles.style({
             backgroundPosition: '0% 0px',
             transition: '.25s ease-out',
             filter: 'drop-shadow(0 2px 8px rgba(33,15,85,.33))',
+        },
+        'i-table .i-table-cell': {
+            background: Theme.background.main
         }
     }
 })
