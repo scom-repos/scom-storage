@@ -190,6 +190,7 @@ export class ScomIPFSFolder extends Module {
     private async onFolderClick(data: IIPFSData) {
         if (data.type === 'file') return;
         let childData = await this.onFetchData(data);
+        if (!childData.name && data.name) childData.name = data.name;
         this.updatePath(childData);
         this.setData({ list: childData?.links ?? [], type: 'dir' });
     }

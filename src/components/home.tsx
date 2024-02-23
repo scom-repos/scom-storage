@@ -115,6 +115,7 @@ export class ScomIPFSMobileHome extends Module {
             })
         }
         this.foldersSlider.items = items;
+        this.foldersSlider.activeSlide = 0;
     }
 
     private renderRecent() {

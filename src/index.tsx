@@ -246,7 +246,7 @@ export class ScomStorage extends Module {
     }
 
     private updateTheme() {
-        const themeVar = document.body.style.getPropertyValue('--theme') || 'light';
+        const themeVar = document.body.style.getPropertyValue('--theme') || 'dark';
         this.updateStyle('--text-primary', this.tag[themeVar]?.fontColor);
         this.updateStyle('--text-secondary', this.tag[themeVar]?.secondaryColor);
         this.updateStyle('--background-main', this.tag[themeVar]?.backgroundColor);

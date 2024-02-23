@@ -299,6 +299,8 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             if (data.type === 'file')
                 return;
             let childData = await this.onFetchData(data);
+            if (!childData.name && data.name)
+                childData.name = data.name;
             this.updatePath(childData);
             this.setData({ list: childData?.links ?? [], type: 'dir' });
         }
@@ -425,6 +427,7 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
                 });
             }
             this.foldersSlider.items = items;
+            this.foldersSlider.activeSlide = 0;
         }
         renderRecent() {
             this.pnlRecent.clearInnerHTML();
@@ -732,7 +735,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.style.removeProperty(name);
         }
         updateTheme() {
-            const themeVar = document.body.style.getPropertyValue('--theme') || 'light';
+            const themeVar = document.body.style.getPropertyValue('--theme') || 'dark';
             this.updateStyle('--text-primary', this.tag[themeVar]?.fontColor);
             this.updateStyle('--text-secondary', this.tag[themeVar]?.secondaryColor);
             this.updateStyle('--background-main', this.tag[themeVar]?.backgroundColor);
