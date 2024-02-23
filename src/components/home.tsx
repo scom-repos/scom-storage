@@ -85,6 +85,8 @@ export class ScomIPFSMobileHome extends Module {
                     background={{ color: Theme.divider }}
                     margin={{ right: '0.5rem' }}
                     class={backgroundStyle}
+                    cursor="pointer"
+                    onClick={() => this.onFolderClick(folder)}
                 >
                     <i-icon
                         stack={{ grow: '0', shrink: '0' }}
@@ -142,6 +144,16 @@ export class ScomIPFSMobileHome extends Module {
                 this.pnlRecent.append(nodeEl);
             }
         }
+    }
+
+    private async onFolderClick(data: IIPFSData) {
+        if (data.type === 'file') return;
+        let childData = await this.onFetchData(data);
+        this.mobileMain.visible = false;
+        if (!childData.name && data.name) childData.name = data.name;
+        this.mobileFolder.updatePath(childData);
+        this.mobileFolder.setData({ list: childData?.links ?? [], type: 'dir' });
+        this.mobileFolder.visible = true;
     }
 
     private onViewFiles() {

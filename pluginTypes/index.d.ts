@@ -119,6 +119,7 @@ declare module "@scom/scom-storage/components/folder.tsx" {
         get filteredList(): any[];
         get isGridMode(): boolean;
         setData(data: IFolderData): void;
+        updatePath(data: IIPFSData): void;
         private renderUI;
         private onBreadcrumbClick;
         private renderList;
@@ -166,6 +167,7 @@ declare module "@scom/scom-storage/components/home.tsx" {
         setData(data: IHomeData): void;
         private renderFolders;
         private renderRecent;
+        private onFolderClick;
         private onViewFiles;
         private onViewFolders;
         private onBack;

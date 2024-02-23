@@ -121,6 +121,10 @@ export class ScomIPFSFolder extends Module {
         this.renderUI();
     }
 
+    updatePath(data: IIPFSData) {
+        this.pnlPath.setData(data);
+    }
+
     private renderUI() {
         this.inputSearch.width = '0%';
         this.pnlSearch.width = '2rem';
@@ -132,7 +136,7 @@ export class ScomIPFSFolder extends Module {
 
     private async onBreadcrumbClick({ cid, path }: { cid: string; path: string }) {
         let childData = await this.onFetchData({ cid, path });
-        this.pnlPath.setData(childData);
+        this.updatePath(childData);
         this.setData({ list: childData?.links ?? [], type: 'dir' });
     }
 
@@ -186,7 +190,7 @@ export class ScomIPFSFolder extends Module {
     private async onFolderClick(data: IIPFSData) {
         if (data.type === 'file') return;
         let childData = await this.onFetchData(data);
-        this.pnlPath.setData(childData);
+        this.updatePath(childData);
         this.setData({ list: childData?.links ?? [], type: 'dir' });
     }
 

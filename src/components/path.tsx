@@ -2,6 +2,7 @@ import {
     Container,
     ControlElement,
     customElements,
+    FormatUtils,
     Module,
     Panel,
     Styles
@@ -76,18 +77,19 @@ export class ScomIPFSPath extends Module {
                 for (let nodePath of nodePaths) {
                     const data = this.breadcrumb[nodePath];
                     if (data) {
+                        const folderName = data.name || FormatUtils.truncateWalletAddress(data.cid) || '';
                         const item = (
                             <i-hstack verticalAlignment="center" gap="0.25rem">
                                 {nodePath != node.path ? (
                                     <i-button
-                                        caption={data.name || data.cid || ''}
+                                        caption={folderName}
                                         font={{ size: '0.75rem' }}
                                         boxShadow='none'
                                         background={{ color: 'transparent' }}
                                         onClick={() => this.onBreadcrumbClick({ cid: data.cid, path: nodePath })}
                                     ></i-button>
                                 ) : (
-                                    <i-label caption={data.name || data.cid || ''} font={{ size: '0.75rem' }}></i-label>
+                                    <i-label caption={folderName} font={{ size: '0.75rem' }}></i-label>
                                 )}
                                 <i-icon name="chevron-right" width="0.675rem" height="0.675rem" fill={Theme.text.primary}></i-icon>
                             </i-hstack>

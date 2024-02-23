@@ -112,8 +112,9 @@ define("@scom/scom-storage/components/path.tsx", ["require", "exports", "@ijstec
                     for (let nodePath of nodePaths) {
                         const data = this.breadcrumb[nodePath];
                         if (data) {
+                            const folderName = data.name || components_2.FormatUtils.truncateWalletAddress(data.cid) || '';
                             const item = (this.$render("i-hstack", { verticalAlignment: "center", gap: "0.25rem" },
-                                nodePath != node.path ? (this.$render("i-button", { caption: data.name || data.cid || '', font: { size: '0.75rem' }, boxShadow: 'none', background: { color: 'transparent' }, onClick: () => this.onBreadcrumbClick({ cid: data.cid, path: nodePath }) })) : (this.$render("i-label", { caption: data.name || data.cid || '', font: { size: '0.75rem' } })),
+                                nodePath != node.path ? (this.$render("i-button", { caption: folderName, font: { size: '0.75rem' }, boxShadow: 'none', background: { color: 'transparent' }, onClick: () => this.onBreadcrumbClick({ cid: data.cid, path: nodePath }) })) : (this.$render("i-label", { caption: folderName, font: { size: '0.75rem' } })),
                                 this.$render("i-icon", { name: "chevron-right", width: "0.675rem", height: "0.675rem", fill: Theme.text.primary })));
                             elmPath.push(item);
                         }
@@ -240,6 +241,9 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             }
             this.renderUI();
         }
+        updatePath(data) {
+            this.pnlPath.setData(data);
+        }
         renderUI() {
             this.inputSearch.width = '0%';
             this.pnlSearch.width = '2rem';
@@ -250,7 +254,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
         }
         async onBreadcrumbClick({ cid, path }) {
             let childData = await this.onFetchData({ cid, path });
-            this.pnlPath.setData(childData);
+            this.updatePath(childData);
             this.setData({ list: childData?.links ?? [], type: 'dir' });
         }
         renderList() {
@@ -282,7 +286,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             if (data.type === 'file')
                 return;
             let childData = await this.onFetchData(data);
-            this.pnlPath.setData(childData);
+            this.updatePath(childData);
             this.setData({ list: childData?.links ?? [], type: 'dir' });
         }
         onSort(target) {
@@ -391,7 +395,7 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
             let items = [];
             for (let folder of this.folders) {
                 const isDir = folder.type === 'dir';
-                const itemEl = (this.$render("i-vstack", { verticalAlignment: 'center', gap: '0.5rem', padding: { top: '2rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, border: { radius: '0.5rem' }, background: { color: Theme.divider }, margin: { right: '0.5rem' }, class: index_css_2.backgroundStyle },
+                const itemEl = (this.$render("i-vstack", { verticalAlignment: 'center', gap: '0.5rem', padding: { top: '2rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, border: { radius: '0.5rem' }, background: { color: Theme.divider }, margin: { right: '0.5rem' }, class: index_css_2.backgroundStyle, cursor: "pointer", onClick: () => this.onFolderClick(folder) },
                     this.$render("i-icon", { stack: { grow: '0', shrink: '0' }, name: isDir ? 'folder' : 'file', fill: isDir ? Theme.colors.warning.main : Theme.colors.info.main, width: '1.25rem', height: '1.25rem' }),
                     this.$render("i-vstack", { gap: '0.5rem' },
                         this.$render("i-label", { caption: folder.name, font: { weight: 600, size: '0.875rem' }, textOverflow: 'ellipsis' }),
@@ -421,6 +425,17 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
                     this.pnlRecent.append(nodeEl);
                 }
             }
+        }
+        async onFolderClick(data) {
+            if (data.type === 'file')
+                return;
+            let childData = await this.onFetchData(data);
+            this.mobileMain.visible = false;
+            if (!childData.name && data.name)
+                childData.name = data.name;
+            this.mobileFolder.updatePath(childData);
+            this.mobileFolder.setData({ list: childData?.links ?? [], type: 'dir' });
+            this.mobileFolder.visible = true;
         }
         onViewFiles() {
             this.mobileMain.visible = false;
