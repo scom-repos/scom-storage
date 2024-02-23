@@ -835,6 +835,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             if (ipfsData && ipfsData.cid) {
                 this.currentParentDir = ipfsData;
                 const childrenData = await this.onFetchData(ipfsData);
+                if (!childrenData.name && ipfsData.name)
+                    childrenData.name = ipfsData.name;
                 this.onUpdateContent({ data: { ...childrenData }, toggle });
                 if (childrenData.links)
                     childrenData.links.map((child) => (child.path = `${ipfsData.path}/${child.name}`));
