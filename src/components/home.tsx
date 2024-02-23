@@ -254,7 +254,7 @@ export class ScomIPFSMobileHome extends Module {
                             <i-label caption='All folders' font={{ size: '0.875rem', transform: 'uppercase', weight: 600 }}></i-label>
                             <i-label
                                 caption='See All'
-                                font={{ size: '0.875rem', weight: 500 }}
+                                font={{ size: '0.875rem', color: Theme.colors.primary.main, weight: 500 }}
                                 cursor='pointer'
                                 onClick={this.onViewFolders}
                             ></i-label>
@@ -275,7 +275,7 @@ export class ScomIPFSMobileHome extends Module {
                             <i-label caption='Recent file' font={{ size: '0.875rem', transform: 'uppercase', weight: 600 }}></i-label>
                             <i-label
                                 caption='See All'
-                                font={{ size: '0.875rem', weight: 500 }}
+                                font={{ size: '0.875rem', color: Theme.colors.primary.main, weight: 500 }}
                                 cursor='pointer'
                                 onClick={this.onViewFiles}
                             ></i-label>

@@ -16,3 +16,16 @@ export const transitionStyle = Styles.style({
     '-webkit-transition': 'width 0.4s ease-in-out',
     transition: 'width 0.4s ease-in-out'
 })
+
+export const addressPanelStyle = Styles.style({
+    '-ms-overflow-style': 'none',
+    scrollbarWidth: 'none',
+    $nest: {
+        '&::-webkit-scrollbar': {
+            display: 'none'
+        },
+        'i-button': {
+            whiteSpace: 'nowrap'
+        }
+    }
+})

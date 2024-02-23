@@ -222,6 +222,7 @@ export class ScomIPFSFolder extends Module {
         } else {
             this.pnlSearch.width = '100%';
             this.inputSearch.width = '100%';
+            this.inputSearch.focus();
         }
     }
 
@@ -229,7 +230,7 @@ export class ScomIPFSFolder extends Module {
         if (this.searchTimer) clearTimeout(this.searchTimer);
         this.searchTimer = setTimeout(() => {
             this.renderList();
-        }, 1000);
+        }, 500);
     }
 
     init() {

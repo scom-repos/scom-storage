@@ -34,6 +34,12 @@ declare module "@scom/scom-storage/data.ts" {
     export const fetchData: (data: IStorageConfig) => Promise<IIPFSData>;
     export const formatBytes: (bytes: any, decimals?: number) => string;
 }
+/// <amd-module name="@scom/scom-storage/components/index.css.ts" />
+declare module "@scom/scom-storage/components/index.css.ts" {
+    export const backgroundStyle: string;
+    export const transitionStyle: string;
+    export const addressPanelStyle: string;
+}
 /// <amd-module name="@scom/scom-storage/components/path.tsx" />
 declare module "@scom/scom-storage/components/path.tsx" {
     import { Container, ControlElement, Module } from '@ijstech/components';
@@ -66,11 +72,6 @@ declare module "@scom/scom-storage/components/path.tsx" {
         init(): void;
         render(): any;
     }
-}
-/// <amd-module name="@scom/scom-storage/components/index.css.ts" />
-declare module "@scom/scom-storage/components/index.css.ts" {
-    export const backgroundStyle: string;
-    export const transitionStyle: string;
 }
 /// <amd-module name="@scom/scom-storage/components/folder.tsx" />
 declare module "@scom/scom-storage/components/folder.tsx" {

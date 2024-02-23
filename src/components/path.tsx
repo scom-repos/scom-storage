@@ -8,6 +8,7 @@ import {
     Styles
 } from '@ijstech/components';
 import { IIPFSData } from '../inteface';
+import { addressPanelStyle } from './index.css';
 const Theme = Styles.Theme.ThemeVars;
 
 interface ScomIPFSPathElement extends ControlElement {
@@ -89,7 +90,7 @@ export class ScomIPFSPath extends Module {
                                         onClick={() => this.onBreadcrumbClick({ cid: data.cid, path: nodePath })}
                                     ></i-button>
                                 ) : (
-                                    <i-label caption={folderName} font={{ size: '0.75rem' }}></i-label>
+                                    <i-label caption={folderName} font={{ size: '0.75rem' }} textOverflow="ellipsis"></i-label>
                                 )}
                                 <i-icon name="chevron-right" width="0.675rem" height="0.675rem" fill={Theme.text.primary}></i-icon>
                             </i-hstack>
@@ -101,6 +102,7 @@ export class ScomIPFSPath extends Module {
                 this.pnlAddress.clearInnerHTML();
                 this.pnlAddress.visible = !!elmPath.length;
                 this.pnlAddress.append(...elmPath);
+                this.pnlAddress.scrollLeft = this.pnlAddress.scrollWidth;
             }
         }
     }
@@ -137,10 +139,12 @@ export class ScomIPFSPath extends Module {
         return (
             <i-hstack
                 id={'pnlAddress'}
+                class={addressPanelStyle}
                 verticalAlignment="center"
                 padding={{ top: '0.5rem', bottom: '0.5rem' }}
                 height={'2.188rem'}
                 gap={'0.25rem'}
+                overflow={{ x: 'auto', y: 'hidden' }}
                 visible={false}
             ></i-hstack>
         )

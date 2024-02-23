@@ -65,12 +65,42 @@ define("@scom/scom-storage/data.ts", ["require", "exports"], function (require, 
     };
     exports.formatBytes = formatBytes;
 });
-define("@scom/scom-storage/components/path.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
+define("@scom/scom-storage/components/index.css.ts", ["require", "exports", "@ijstech/components", "@scom/scom-storage/assets.ts"], function (require, exports, components_2, assets_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.addressPanelStyle = exports.transitionStyle = exports.backgroundStyle = void 0;
+    const Theme = components_2.Styles.Theme.ThemeVars;
+    exports.backgroundStyle = components_2.Styles.style({
+        backgroundColor: Theme.divider,
+        aspectRatio: '3 / 2',
+        '-webkit-mask': `url(${assets_1.default.fullPath('img/bg.svg')}) no-repeat 100% 100%`,
+        mask: `url(${assets_1.default.fullPath('img/bg.svg')}) no-repeat 100% 100%`,
+        '-webkit-mask-size': 'cover',
+        maskSize: 'cover'
+    });
+    exports.transitionStyle = components_2.Styles.style({
+        '-webkit-transition': 'width 0.4s ease-in-out',
+        transition: 'width 0.4s ease-in-out'
+    });
+    exports.addressPanelStyle = components_2.Styles.style({
+        '-ms-overflow-style': 'none',
+        scrollbarWidth: 'none',
+        $nest: {
+            '&::-webkit-scrollbar': {
+                display: 'none'
+            },
+            'i-button': {
+                whiteSpace: 'nowrap'
+            }
+        }
+    });
+});
+define("@scom/scom-storage/components/path.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts"], function (require, exports, components_3, index_css_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSPath = void 0;
-    const Theme = components_2.Styles.Theme.ThemeVars;
-    let ScomIPFSPath = class ScomIPFSPath extends components_2.Module {
+    const Theme = components_3.Styles.Theme.ThemeVars;
+    let ScomIPFSPath = class ScomIPFSPath extends components_3.Module {
         constructor(parent, options) {
             super(parent, options);
             this.breadcrumb = {};
@@ -112,9 +142,9 @@ define("@scom/scom-storage/components/path.tsx", ["require", "exports", "@ijstec
                     for (let nodePath of nodePaths) {
                         const data = this.breadcrumb[nodePath];
                         if (data) {
-                            const folderName = data.name || components_2.FormatUtils.truncateWalletAddress(data.cid) || '';
+                            const folderName = data.name || components_3.FormatUtils.truncateWalletAddress(data.cid) || '';
                             const item = (this.$render("i-hstack", { verticalAlignment: "center", gap: "0.25rem" },
-                                nodePath != node.path ? (this.$render("i-button", { caption: folderName, font: { size: '0.75rem' }, boxShadow: 'none', background: { color: 'transparent' }, onClick: () => this.onBreadcrumbClick({ cid: data.cid, path: nodePath }) })) : (this.$render("i-label", { caption: folderName, font: { size: '0.75rem' } })),
+                                nodePath != node.path ? (this.$render("i-button", { caption: folderName, font: { size: '0.75rem' }, boxShadow: 'none', background: { color: 'transparent' }, onClick: () => this.onBreadcrumbClick({ cid: data.cid, path: nodePath }) })) : (this.$render("i-label", { caption: folderName, font: { size: '0.75rem' }, textOverflow: "ellipsis" })),
                                 this.$render("i-icon", { name: "chevron-right", width: "0.675rem", height: "0.675rem", fill: Theme.text.primary })));
                             elmPath.push(item);
                         }
@@ -122,6 +152,7 @@ define("@scom/scom-storage/components/path.tsx", ["require", "exports", "@ijstec
                     this.pnlAddress.clearInnerHTML();
                     this.pnlAddress.visible = !!elmPath.length;
                     this.pnlAddress.append(...elmPath);
+                    this.pnlAddress.scrollLeft = this.pnlAddress.scrollWidth;
                 }
             }
         }
@@ -150,33 +181,15 @@ define("@scom/scom-storage/components/path.tsx", ["require", "exports", "@ijstec
                 this.setData(data);
         }
         render() {
-            return (this.$render("i-hstack", { id: 'pnlAddress', verticalAlignment: "center", padding: { top: '0.5rem', bottom: '0.5rem' }, height: '2.188rem', gap: '0.25rem', visible: false }));
+            return (this.$render("i-hstack", { id: 'pnlAddress', class: index_css_1.addressPanelStyle, verticalAlignment: "center", padding: { top: '0.5rem', bottom: '0.5rem' }, height: '2.188rem', gap: '0.25rem', overflow: { x: 'auto', y: 'hidden' }, visible: false }));
         }
     };
     ScomIPFSPath = __decorate([
-        (0, components_2.customElements)('i-scom-ipfs--path')
+        (0, components_3.customElements)('i-scom-ipfs--path')
     ], ScomIPFSPath);
     exports.ScomIPFSPath = ScomIPFSPath;
 });
-define("@scom/scom-storage/components/index.css.ts", ["require", "exports", "@ijstech/components", "@scom/scom-storage/assets.ts"], function (require, exports, components_3, assets_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.transitionStyle = exports.backgroundStyle = void 0;
-    const Theme = components_3.Styles.Theme.ThemeVars;
-    exports.backgroundStyle = components_3.Styles.style({
-        backgroundColor: Theme.divider,
-        aspectRatio: '3 / 2',
-        '-webkit-mask': `url(${assets_1.default.fullPath('img/bg.svg')}) no-repeat 100% 100%`,
-        mask: `url(${assets_1.default.fullPath('img/bg.svg')}) no-repeat 100% 100%`,
-        '-webkit-mask-size': 'cover',
-        maskSize: 'cover'
-    });
-    exports.transitionStyle = components_3.Styles.style({
-        '-webkit-transition': 'width 0.4s ease-in-out',
-        transition: 'width 0.4s ease-in-out'
-    });
-});
-define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.css.ts"], function (require, exports, components_4, data_1, index_css_1) {
+define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.css.ts"], function (require, exports, components_4, data_1, index_css_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSFolder = void 0;
@@ -270,7 +283,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
                     { top: '0px', bottom: '0px', right: '0px', left: '0px' };
                 for (let nodeData of this.filteredList) {
                     const isDir = nodeData.type === 'dir';
-                    const nodeEl = (this.$render("i-stack", { direction: direction, alignItems: align, gap: gap, padding: padding, cursor: 'pointer', class: this.isGridMode ? index_css_1.backgroundStyle : '', onClick: () => this.onFolderClick(nodeData) },
+                    const nodeEl = (this.$render("i-stack", { direction: direction, alignItems: align, gap: gap, padding: padding, cursor: 'pointer', class: this.isGridMode ? index_css_2.backgroundStyle : '', onClick: () => this.onFolderClick(nodeData) },
                         this.$render("i-icon", { stack: { grow: '0', shrink: '0' }, name: isDir ? 'folder' : 'file', fill: isDir ? Theme.colors.warning.main : Theme.colors.info.main, width: '2.5rem', height: '2.5rem' }),
                         this.$render("i-vstack", { width: "100%", minWidth: 0, gap: '0.5rem' },
                             this.$render("i-label", { caption: nodeData.name, font: { weight: 600, size: '1.125rem' }, textOverflow: 'ellipsis' }),
@@ -316,6 +329,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             else {
                 this.pnlSearch.width = '100%';
                 this.inputSearch.width = '100%';
+                this.inputSearch.focus();
             }
         }
         onHandleSearch() {
@@ -323,7 +337,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
                 clearTimeout(this.searchTimer);
             this.searchTimer = setTimeout(() => {
                 this.renderList();
-            }, 1000);
+            }, 500);
         }
         init() {
             super.init();
@@ -337,7 +351,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             return (this.$render("i-vstack", { gap: "1.25rem", width: '100%', minHeight: 'inherit', background: { color: Theme.colors.primary.main }, padding: { top: '1.25rem' } },
                 this.$render("i-hstack", { verticalAlignment: 'center', horizontalAlignment: 'space-between', padding: { left: '1.25rem', right: '1.25rem' }, gap: "1rem" },
                     this.$render("i-icon", { width: '1.25rem', height: '1.25rem', name: "arrow-left", fill: Theme.colors.primary.contrastText, cursor: 'pointer', onClick: this.goBack.bind(this) }),
-                    this.$render("i-hstack", { id: "pnlSearch", verticalAlignment: 'center', horizontalAlignment: 'end', gap: "0.5rem", border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, padding: { left: '0.5rem', right: '0.5rem' }, height: '2rem', width: '2rem', position: 'relative', overflow: 'hidden', class: index_css_1.transitionStyle, cursor: 'pointer', background: { color: Theme.input.background } },
+                    this.$render("i-hstack", { id: "pnlSearch", verticalAlignment: 'center', horizontalAlignment: 'end', gap: "0.5rem", border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, padding: { left: '0.5rem', right: '0.5rem' }, height: '2rem', width: '2rem', position: 'relative', overflow: 'hidden', class: index_css_2.transitionStyle, cursor: 'pointer', background: { color: Theme.input.background } },
                         this.$render("i-input", { id: "inputSearch", height: "100%", width: '0px', background: { color: 'transparent' }, border: { style: 'none', radius: '0.5rem 0 0.5rem 0' }, onKeyUp: this.onHandleSearch, margin: { right: '2rem' } }),
                         this.$render("i-icon", { width: '2rem', height: '2rem', position: 'absolute', right: '0px', name: "search", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, stack: { grow: '0', shrink: '0' }, fill: Theme.colors.primary.contrastText, onClick: this.onSearchClicked }))),
                 this.$render("i-panel", { padding: { left: '1.25rem', right: '1.25rem' } },
@@ -358,7 +372,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
     ], ScomIPFSFolder);
     exports.ScomIPFSFolder = ScomIPFSFolder;
 });
-define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.css.ts"], function (require, exports, components_5, data_2, index_css_2) {
+define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.css.ts"], function (require, exports, components_5, data_2, index_css_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSMobileHome = void 0;
@@ -395,7 +409,7 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
             let items = [];
             for (let folder of this.folders) {
                 const isDir = folder.type === 'dir';
-                const itemEl = (this.$render("i-vstack", { verticalAlignment: 'center', gap: '0.5rem', padding: { top: '2rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, border: { radius: '0.5rem' }, background: { color: Theme.divider }, margin: { right: '0.5rem' }, class: index_css_2.backgroundStyle, cursor: "pointer", onClick: () => this.onFolderClick(folder) },
+                const itemEl = (this.$render("i-vstack", { verticalAlignment: 'center', gap: '0.5rem', padding: { top: '2rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, border: { radius: '0.5rem' }, background: { color: Theme.divider }, margin: { right: '0.5rem' }, class: index_css_3.backgroundStyle, cursor: "pointer", onClick: () => this.onFolderClick(folder) },
                     this.$render("i-icon", { stack: { grow: '0', shrink: '0' }, name: isDir ? 'folder' : 'file', fill: isDir ? Theme.colors.warning.main : Theme.colors.info.main, width: '1.25rem', height: '1.25rem' }),
                     this.$render("i-vstack", { gap: '0.5rem' },
                         this.$render("i-label", { caption: folder.name, font: { weight: 600, size: '0.875rem' }, textOverflow: 'ellipsis' }),
@@ -485,12 +499,12 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
                     this.$render("i-panel", null,
                         this.$render("i-hstack", { verticalAlignment: 'center', horizontalAlignment: 'space-between', gap: "0.5rem", margin: { bottom: '1.25rem' } },
                             this.$render("i-label", { caption: 'All folders', font: { size: '0.875rem', transform: 'uppercase', weight: 600 } }),
-                            this.$render("i-label", { caption: 'See All', font: { size: '0.875rem', weight: 500 }, cursor: 'pointer', onClick: this.onViewFolders })),
+                            this.$render("i-label", { caption: 'See All', font: { size: '0.875rem', color: Theme.colors.primary.main, weight: 500 }, cursor: 'pointer', onClick: this.onViewFolders })),
                         this.$render("i-carousel-slider", { id: "foldersSlider", width: '100%', slidesToShow: 2, indicators: false, swipe: true })),
                     this.$render("i-panel", null,
                         this.$render("i-hstack", { verticalAlignment: 'center', horizontalAlignment: 'space-between', gap: "0.5rem", margin: { bottom: '0.75rem' } },
                             this.$render("i-label", { caption: 'Recent file', font: { size: '0.875rem', transform: 'uppercase', weight: 600 } }),
-                            this.$render("i-label", { caption: 'See All', font: { size: '0.875rem', weight: 500 }, cursor: 'pointer', onClick: this.onViewFiles })),
+                            this.$render("i-label", { caption: 'See All', font: { size: '0.875rem', color: Theme.colors.primary.main, weight: 500 }, cursor: 'pointer', onClick: this.onViewFiles })),
                         this.$render("i-vstack", { id: "pnlRecent", gap: "0.5rem", width: '100%' }))),
                 this.$render("i-scom-ipfs--mobile-folder", { id: "mobileFolder", width: '100%', minHeight: '100%', display: 'block', visible: false, onFetchData: this.onFetchData.bind(this), onClose: this.onBack.bind(this) })));
         }
@@ -518,7 +532,7 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
         }
     });
 });
-define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_7, data_3, index_css_3) {
+define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_7, data_3, index_css_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomStorage = void 0;
@@ -877,7 +891,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         init() {
             super.init();
-            this.classList.add(index_css_3.default);
+            this.classList.add(index_css_4.default);
             this.setTag(defaultColors);
             const cid = this.getAttribute('cid', true);
             if (cid)
