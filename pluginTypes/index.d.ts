@@ -152,6 +152,7 @@ declare module "@scom/scom-storage/components/home.tsx" {
     interface IHomeData {
         recents?: IIPFSData[];
         folders?: IIPFSData[];
+        parentNode?: IIPFSData;
     }
     export class ScomIPFSMobileHome extends Module {
         private pnlRecent;

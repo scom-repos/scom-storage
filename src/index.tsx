@@ -282,6 +282,7 @@ export class ScomStorage extends Module {
             this.mobileHome.setData({
                 recents: [...ipfsData.links].filter(item => item.type === 'file'),
                 folders: ipfsData.links ?? [],
+                parentNode: parentNode
             })
 
             if (parentNode.name)

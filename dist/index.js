@@ -446,6 +446,8 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
         async onFolderClick(data) {
             if (data.type === 'file')
                 return;
+            if (this._data.parentNode)
+                this.mobileFolder.updatePath(this._data.parentNode);
             let childData = await this.onFetchData(data);
             this.mobileMain.visible = false;
             if (!childData.name && data.name)
@@ -461,6 +463,8 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
         }
         onViewFolders() {
             this.mobileMain.visible = false;
+            if (this._data.parentNode)
+                this.mobileFolder.updatePath(this._data.parentNode);
             this.mobileFolder.setData({ list: [...this.folders], type: 'dir' });
             this.mobileFolder.visible = true;
         }
@@ -771,6 +775,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.mobileHome.setData({
                     recents: [...ipfsData.links].filter(item => item.type === 'file'),
                     folders: ipfsData.links ?? [],
+                    parentNode: parentNode
                 });
                 if (parentNode.name)
                     this.pnlPath.setData(parentNode);

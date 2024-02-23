@@ -29,6 +29,7 @@ declare global {
 interface IHomeData {
     recents?: IIPFSData[];
     folders?: IIPFSData[];
+    parentNode?: IIPFSData;
 }
 
 @customElements('i-scom-ipfs--mobile-home')
@@ -149,6 +150,7 @@ export class ScomIPFSMobileHome extends Module {
 
     private async onFolderClick(data: IIPFSData) {
         if (data.type === 'file') return;
+        if (this._data.parentNode) this.mobileFolder.updatePath(this._data.parentNode);
         let childData = await this.onFetchData(data);
         this.mobileMain.visible = false;
         if (!childData.name && data.name) childData.name = data.name;
@@ -165,6 +167,7 @@ export class ScomIPFSMobileHome extends Module {
 
     private onViewFolders() {
         this.mobileMain.visible = false;
+        if (this._data.parentNode) this.mobileFolder.updatePath(this._data.parentNode);
         this.mobileFolder.setData({ list: [...this.folders], type: 'dir' });
         this.mobileFolder.visible = true;
     }
