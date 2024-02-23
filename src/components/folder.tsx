@@ -141,7 +141,7 @@ export class ScomIPFSFolder extends Module {
     }
 
     private renderList() {
-        this.pnlFolders.templateColumns = this.isGridMode ? ['repeat(2, 1fr)'] : ['1fr'];
+        this.pnlFolders.templateColumns = this.isGridMode ? ['repeat(2, 1fr)'] : ['minmax(0, 1fr)'];
         this.pnlFolders.gap = this.isGridMode ? { column: '1rem', row: '1.5rem' } : { row: '1.5rem', column: '0px' };
         this.pnlFolders.clearInnerHTML();
         if (this.filteredList?.length) {
@@ -169,7 +169,7 @@ export class ScomIPFSFolder extends Module {
                             fill={isDir ? Theme.colors.warning.main : Theme.colors.info.main}
                             width={'2.5rem'} height={'2.5rem'}
                         ></i-icon>
-                        <i-vstack gap={'0.5rem'}>
+                        <i-vstack minWidth={0} gap={'0.5rem'}>
                             <i-label caption={nodeData.name} font={{ weight: 600, size: '1.125rem' }} textOverflow='ellipsis'></i-label>
                             <i-hstack
                                 verticalAlignment='center'
@@ -355,7 +355,7 @@ export class ScomIPFSFolder extends Module {
                         id="pnlFolders"
                         width={'100%'}
                         stack={{ grow: '1' }}
-                        templateColumns={['1fr']}
+                        templateColumns={['minmax(0, 1fr)']}
                     ></i-grid-layout>
                 </i-vstack>
             </i-vstack>

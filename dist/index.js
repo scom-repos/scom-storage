@@ -258,7 +258,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             this.setData({ list: childData?.links ?? [], type: 'dir' });
         }
         renderList() {
-            this.pnlFolders.templateColumns = this.isGridMode ? ['repeat(2, 1fr)'] : ['1fr'];
+            this.pnlFolders.templateColumns = this.isGridMode ? ['repeat(2, 1fr)'] : ['minmax(0, 1fr)'];
             this.pnlFolders.gap = this.isGridMode ? { column: '1rem', row: '1.5rem' } : { row: '1.5rem', column: '0px' };
             this.pnlFolders.clearInnerHTML();
             if (this.filteredList?.length) {
@@ -272,7 +272,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
                     const isDir = nodeData.type === 'dir';
                     const nodeEl = (this.$render("i-stack", { direction: direction, alignItems: align, gap: gap, padding: padding, cursor: 'pointer', class: this.isGridMode ? index_css_1.backgroundStyle : '', onClick: () => this.onFolderClick(nodeData) },
                         this.$render("i-icon", { stack: { grow: '0', shrink: '0' }, name: isDir ? 'folder' : 'file', fill: isDir ? Theme.colors.warning.main : Theme.colors.info.main, width: '2.5rem', height: '2.5rem' }),
-                        this.$render("i-vstack", { gap: '0.5rem' },
+                        this.$render("i-vstack", { minWidth: 0, gap: '0.5rem' },
                             this.$render("i-label", { caption: nodeData.name, font: { weight: 600, size: '1.125rem' }, textOverflow: 'ellipsis' }),
                             this.$render("i-hstack", { verticalAlignment: 'center', gap: '0.5rem' },
                                 this.$render("i-label", { caption: `${nodeData.links?.length || 0} files`, opacity: 0.5, font: { size: '0.675rem' }, visible: isDir }),
@@ -350,7 +350,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
                         this.$render("i-panel", { cursor: 'pointer', opacity: 0.5, hover: { opacity: 1 }, onClick: this.onChangeMode },
                             this.$render("i-icon", { id: "iconList", name: "th-large", width: '1rem', height: '1rem', fill: Theme.text.primary }))),
                     this.$render("i-scom-ipfs--path", { id: "pnlPath", display: 'flex', width: '100%', margin: { bottom: 10 }, onItemClicked: this.onBreadcrumbClick }),
-                    this.$render("i-grid-layout", { id: "pnlFolders", width: '100%', stack: { grow: '1' }, templateColumns: ['1fr'] }))));
+                    this.$render("i-grid-layout", { id: "pnlFolders", width: '100%', stack: { grow: '1' }, templateColumns: ['minmax(0, 1fr)'] }))));
         }
     };
     ScomIPFSFolder = __decorate([
