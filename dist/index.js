@@ -199,6 +199,8 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             super(parent, options);
             this.mode = 'list';
             this.sortMapping = {};
+            this.cidMapping = {};
+            this.pathMapping = {};
             this.onSort = this.onSort.bind(this);
             this.onChangeMode = this.onChangeMode.bind(this);
             this.onBreadcrumbClick = this.onBreadcrumbClick.bind(this);
@@ -240,6 +242,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
         setData(data) {
             this._data = data;
             const path = this.pnlPath.data.path || 'main';
+            this.currentPath = path;
             const sortData = this.sortMapping[path] ?? 'desc';
             const isDown = sortData === 'desc';
             this.iconSort.name = isDown ? 'angle-up' : 'angle-down';
@@ -255,6 +258,8 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             this.renderUI();
         }
         updatePath(data) {
+            if (data.path)
+                this.pathMapping[data.path] = data;
             this.pnlPath.setData(data);
         }
         renderUI() {
@@ -266,7 +271,14 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             this.renderList();
         }
         async onBreadcrumbClick({ cid, path }) {
-            let childData = await this.onFetchData({ cid, path });
+            let childData;
+            if (this.cidMapping[cid]) {
+                childData = this.cidMapping[cid];
+            }
+            else {
+                childData = await this.onFetchData({ cid, path });
+                this.cidMapping[cid] = childData;
+            }
             this.updatePath(childData);
             this.setData({ list: childData?.links ?? [], type: 'dir' });
         }
@@ -295,14 +307,24 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
                 }
             }
         }
-        async onFolderClick(data) {
-            if (data.type === 'file')
-                return;
-            let childData = await this.onFetchData(data);
+        async handleFolderClick(data) {
+            let childData;
+            if (this.cidMapping[data.cid]) {
+                childData = this.cidMapping[data.cid];
+            }
+            else {
+                childData = await this.onFetchData(data);
+                this.cidMapping[data.cid] = childData;
+            }
             if (!childData.name && data.name)
                 childData.name = data.name;
             this.updatePath(childData);
             this.setData({ list: childData?.links ?? [], type: 'dir' });
+        }
+        async onFolderClick(data) {
+            if (data.type === 'file')
+                return;
+            await this.handleFolderClick(data);
         }
         onSort(target) {
             const path = this.pnlPath.data.path || 'main';
@@ -319,9 +341,20 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             this.renderList();
         }
         goBack() {
-            if (this.onClose)
-                this.onClose();
-            this.pnlPath.clear();
+            const paths = this.currentPath?.split('/');
+            paths.pop();
+            const prevPath = paths?.join('/');
+            if (prevPath && this.pathMapping[prevPath]) {
+                const data = this.pathMapping[prevPath];
+                this.updatePath(data);
+                this.setData({ list: data?.links ?? [], type: 'dir' });
+            }
+            else {
+                if (this.onClose)
+                    this.onClose();
+                this.pnlPath.clear();
+                this.pathMapping = {};
+            }
         }
         onSearchClicked() {
             if (Number(this.pnlSearch.width) > 32) {
@@ -446,14 +479,9 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
         async onFolderClick(data) {
             if (data.type === 'file')
                 return;
-            if (this._data.parentNode)
-                this.mobileFolder.updatePath(this._data.parentNode);
-            let childData = await this.onFetchData(data);
+            // if (this._data.parentNode) this.mobileFolder.updatePath(this._data.parentNode);
+            await this.mobileFolder.handleFolderClick(data);
             this.mobileMain.visible = false;
-            if (!childData.name && data.name)
-                childData.name = data.name;
-            this.mobileFolder.updatePath(childData);
-            this.mobileFolder.setData({ list: childData?.links ?? [], type: 'dir' });
             this.mobileFolder.visible = true;
         }
         onViewFiles() {
@@ -463,9 +491,10 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
         }
         onViewFolders() {
             this.mobileMain.visible = false;
+            const list = [...this.folders];
             if (this._data.parentNode)
-                this.mobileFolder.updatePath(this._data.parentNode);
-            this.mobileFolder.setData({ list: [...this.folders], type: 'dir' });
+                this.mobileFolder.updatePath({ ...this._data.parentNode, links: list });
+            this.mobileFolder.setData({ list: list, type: 'dir' });
             this.mobileFolder.visible = true;
         }
         onBack() {

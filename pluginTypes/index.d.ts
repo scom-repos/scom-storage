@@ -107,6 +107,9 @@ declare module "@scom/scom-storage/components/folder.tsx" {
         private mode;
         private searchTimer;
         private sortMapping;
+        private cidMapping;
+        private pathMapping;
+        private currentPath;
         onFetchData: callbackType;
         onClose: () => void;
         constructor(parent?: Container, options?: any);
@@ -124,6 +127,7 @@ declare module "@scom/scom-storage/components/folder.tsx" {
         private renderUI;
         private onBreadcrumbClick;
         private renderList;
+        handleFolderClick(data: IIPFSData): Promise<void>;
         private onFolderClick;
         private onSort;
         private onChangeMode;

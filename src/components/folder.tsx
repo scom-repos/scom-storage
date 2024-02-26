@@ -54,6 +54,9 @@ export class ScomIPFSFolder extends Module {
     private mode: IMode = 'list';
     private searchTimer: any;
     private sortMapping: { [idx: string]: 'asc' | 'desc' } = {};
+    private cidMapping: Record<string, IIPFSData> = {};
+    private pathMapping: Record<string, IIPFSData> = {};
+    private currentPath: string;
 
     onFetchData: callbackType;
     onClose: () => void;
@@ -107,6 +110,7 @@ export class ScomIPFSFolder extends Module {
     setData(data: IFolderData) {
         this._data = data;
         const path = this.pnlPath.data.path || 'main';
+        this.currentPath = path;
         const sortData = this.sortMapping[path] ?? 'desc';
         const isDown = sortData === 'desc';
         this.iconSort.name = isDown ? 'angle-up' : 'angle-down';
@@ -122,6 +126,7 @@ export class ScomIPFSFolder extends Module {
     }
 
     updatePath(data: IIPFSData) {
+        if (data.path) this.pathMapping[data.path] = data;
         this.pnlPath.setData(data);
     }
 
@@ -135,7 +140,13 @@ export class ScomIPFSFolder extends Module {
     }
 
     private async onBreadcrumbClick({ cid, path }: { cid: string; path: string }) {
-        let childData = await this.onFetchData({ cid, path });
+        let childData;
+        if (this.cidMapping[cid]) {
+            childData = this.cidMapping[cid];
+        } else {
+            childData = await this.onFetchData({ cid, path });
+            this.cidMapping[cid] = childData;
+        }
         this.updatePath(childData);
         this.setData({ list: childData?.links ?? [], type: 'dir' });
     }
@@ -187,12 +198,22 @@ export class ScomIPFSFolder extends Module {
         }
     }
 
-    private async onFolderClick(data: IIPFSData) {
-        if (data.type === 'file') return;
-        let childData = await this.onFetchData(data);
+    async handleFolderClick(data: IIPFSData) {
+        let childData;
+        if (this.cidMapping[data.cid]) {
+            childData = this.cidMapping[data.cid];
+        } else {
+            childData = await this.onFetchData(data);
+            this.cidMapping[data.cid] = childData;
+        }
         if (!childData.name && data.name) childData.name = data.name;
         this.updatePath(childData);
         this.setData({ list: childData?.links ?? [], type: 'dir' });
+    }
+
+    private async onFolderClick(data: IIPFSData) {
+        if (data.type === 'file') return;
+        await this.handleFolderClick(data);
     }
 
     private onSort(target: Control) {
@@ -212,8 +233,18 @@ export class ScomIPFSFolder extends Module {
     }
 
     private goBack() {
-        if (this.onClose) this.onClose();
-        this.pnlPath.clear();
+        const paths: string[] = this.currentPath?.split('/');
+        paths.pop();
+        const prevPath = paths?.join('/');
+        if (prevPath && this.pathMapping[prevPath]) {
+            const data = this.pathMapping[prevPath];
+            this.updatePath(data);
+            this.setData({ list: data?.links ?? [], type: 'dir' });
+        } else {
+            if (this.onClose) this.onClose();
+            this.pnlPath.clear();
+            this.pathMapping = {};
+        }
     }
 
     private onSearchClicked() {

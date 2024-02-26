@@ -150,12 +150,8 @@ export class ScomIPFSMobileHome extends Module {
 
     private async onFolderClick(data: IIPFSData) {
         if (data.type === 'file') return;
-        if (this._data.parentNode) this.mobileFolder.updatePath(this._data.parentNode);
-        let childData = await this.onFetchData(data);
+        await this.mobileFolder.handleFolderClick(data);
         this.mobileMain.visible = false;
-        if (!childData.name && data.name) childData.name = data.name;
-        this.mobileFolder.updatePath(childData);
-        this.mobileFolder.setData({ list: childData?.links ?? [], type: 'dir' });
         this.mobileFolder.visible = true;
     }
 
@@ -167,8 +163,9 @@ export class ScomIPFSMobileHome extends Module {
 
     private onViewFolders() {
         this.mobileMain.visible = false;
-        if (this._data.parentNode) this.mobileFolder.updatePath(this._data.parentNode);
-        this.mobileFolder.setData({ list: [...this.folders], type: 'dir' });
+        const list = [...this.folders];
+        if (this._data.parentNode) this.mobileFolder.updatePath({ ...this._data.parentNode, links: list });
+        this.mobileFolder.setData({ list: list, type: 'dir' });
         this.mobileFolder.visible = true;
     }
 
