@@ -391,6 +391,7 @@ export class ScomIPFSFolder extends Module {
                         display='flex'
                         width={'100%'}
                         margin={{ bottom: 10 }}
+                        isMobileView={true}
                         onItemClicked={this.onBreadcrumbClick}
                     />
                     <i-grid-layout

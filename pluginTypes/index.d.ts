@@ -47,6 +47,7 @@ declare module "@scom/scom-storage/components/path.tsx" {
     interface ScomIPFSPathElement extends ControlElement {
         data?: IIPFSData;
         onItemClicked?: (data: IIPFSData) => void;
+        isMobileView?: boolean;
     }
     global {
         namespace JSX {
@@ -59,11 +60,14 @@ declare module "@scom/scom-storage/components/path.tsx" {
         private pnlAddress;
         private breadcrumb;
         private _data;
+        private _isMobileView;
         onItemClicked: (data: IIPFSData) => void;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomIPFSPathElement, parent?: Container): Promise<ScomIPFSPath>;
         get data(): IIPFSData;
         set data(value: IIPFSData);
+        get isMobileView(): boolean;
+        set isMobileView(value: boolean);
         setData(value: IIPFSData): void;
         clear(): void;
         private onUpdateBreadcumbs;

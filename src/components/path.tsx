@@ -14,6 +14,7 @@ const Theme = Styles.Theme.ThemeVars;
 interface ScomIPFSPathElement extends ControlElement {
     data?: IIPFSData;
     onItemClicked?: (data: IIPFSData) => void;
+    isMobileView?: boolean;
 }
 
 declare global {
@@ -32,6 +33,7 @@ export class ScomIPFSPath extends Module {
     private _data: IIPFSData = {
         cid: ''
     };
+    private _isMobileView: boolean = false;
     onItemClicked: (data: IIPFSData) => void;
 
     constructor(parent?: Container, options?: any) {
@@ -49,6 +51,13 @@ export class ScomIPFSPath extends Module {
     }
     set data(value: IIPFSData) {
         this._data = value;
+    }
+    
+    get isMobileView() {
+        return this._isMobileView;
+    }
+    set isMobileView(value: boolean) {
+        this._isMobileView = value;
     }
 
     setData(value: IIPFSData) {
@@ -84,13 +93,13 @@ export class ScomIPFSPath extends Module {
                                 {nodePath != node.path ? (
                                     <i-button
                                         caption={folderName}
-                                        font={{ size: '0.75rem' }}
+                                        font={{ size: this.isMobileView ? '0.875rem' : '0.75rem' }}
                                         boxShadow='none'
                                         background={{ color: 'transparent' }}
                                         onClick={() => this.onBreadcrumbClick({ cid: data.cid, path: nodePath })}
                                     ></i-button>
                                 ) : (
-                                    <i-label caption={folderName} font={{ size: '0.75rem' }} textOverflow="ellipsis"></i-label>
+                                    <i-label caption={folderName} font={{ size: this.isMobileView ? '0.875rem' : '0.75rem' }} textOverflow="ellipsis"></i-label>
                                 )}
                                 <i-icon name="chevron-right" width="0.675rem" height="0.675rem" fill={Theme.text.primary}></i-icon>
                             </i-hstack>
@@ -131,6 +140,7 @@ export class ScomIPFSPath extends Module {
     init() {
         super.init();
         this.onItemClicked = this.getAttribute('onItemClicked', true) || this.onItemClicked;
+        this.isMobileView = this.getAttribute('isMobileView', true, false);
         const data = this.getAttribute('data', true);
         if (data) this.setData(data);
     }

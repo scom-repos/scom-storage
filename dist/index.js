@@ -107,6 +107,7 @@ define("@scom/scom-storage/components/path.tsx", ["require", "exports", "@ijstec
             this._data = {
                 cid: ''
             };
+            this._isMobileView = false;
         }
         static async create(options, parent) {
             let self = new this(parent, options);
@@ -118,6 +119,12 @@ define("@scom/scom-storage/components/path.tsx", ["require", "exports", "@ijstec
         }
         set data(value) {
             this._data = value;
+        }
+        get isMobileView() {
+            return this._isMobileView;
+        }
+        set isMobileView(value) {
+            this._isMobileView = value;
         }
         setData(value) {
             this._data = value;
@@ -144,7 +151,7 @@ define("@scom/scom-storage/components/path.tsx", ["require", "exports", "@ijstec
                         if (data) {
                             const folderName = data.name || components_3.FormatUtils.truncateWalletAddress(data.cid) || '';
                             const item = (this.$render("i-hstack", { verticalAlignment: "center", gap: "0.25rem" },
-                                nodePath != node.path ? (this.$render("i-button", { caption: folderName, font: { size: '0.75rem' }, boxShadow: 'none', background: { color: 'transparent' }, onClick: () => this.onBreadcrumbClick({ cid: data.cid, path: nodePath }) })) : (this.$render("i-label", { caption: folderName, font: { size: '0.75rem' }, textOverflow: "ellipsis" })),
+                                nodePath != node.path ? (this.$render("i-button", { caption: folderName, font: { size: this.isMobileView ? '0.875rem' : '0.75rem' }, boxShadow: 'none', background: { color: 'transparent' }, onClick: () => this.onBreadcrumbClick({ cid: data.cid, path: nodePath }) })) : (this.$render("i-label", { caption: folderName, font: { size: this.isMobileView ? '0.875rem' : '0.75rem' }, textOverflow: "ellipsis" })),
                                 this.$render("i-icon", { name: "chevron-right", width: "0.675rem", height: "0.675rem", fill: Theme.text.primary })));
                             elmPath.push(item);
                         }
@@ -176,6 +183,7 @@ define("@scom/scom-storage/components/path.tsx", ["require", "exports", "@ijstec
         init() {
             super.init();
             this.onItemClicked = this.getAttribute('onItemClicked', true) || this.onItemClicked;
+            this.isMobileView = this.getAttribute('isMobileView', true, false);
             const data = this.getAttribute('data', true);
             if (data)
                 this.setData(data);
@@ -399,7 +407,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
                             this.$render("i-icon", { id: "iconSort", name: "angle-up", width: '0.75rem', height: '0.75rem', fill: Theme.text.primary })),
                         this.$render("i-panel", { cursor: 'pointer', opacity: 0.5, hover: { opacity: 1 }, onClick: this.onChangeMode },
                             this.$render("i-icon", { id: "iconList", name: "th-large", width: '1rem', height: '1rem', fill: Theme.text.primary }))),
-                    this.$render("i-scom-ipfs--path", { id: "pnlPath", display: 'flex', width: '100%', margin: { bottom: 10 }, onItemClicked: this.onBreadcrumbClick }),
+                    this.$render("i-scom-ipfs--path", { id: "pnlPath", display: 'flex', width: '100%', margin: { bottom: 10 }, isMobileView: true, onItemClicked: this.onBreadcrumbClick }),
                     this.$render("i-grid-layout", { id: "pnlFolders", width: '100%', stack: { grow: '1' }, templateColumns: ['minmax(0, 1fr)'] }))));
         }
     };
