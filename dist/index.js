@@ -479,7 +479,6 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
         async onFolderClick(data) {
             if (data.type === 'file')
                 return;
-            // if (this._data.parentNode) this.mobileFolder.updatePath(this._data.parentNode);
             await this.mobileFolder.handleFolderClick(data);
             this.mobileMain.visible = false;
             this.mobileFolder.visible = true;
@@ -522,16 +521,7 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
             return (this.$render("i-panel", { width: '100%', minHeight: 'inherit' },
                 this.$render("i-vstack", { id: "mobileMain", gap: "1.5rem", width: '100%', padding: { top: '1.25rem', bottom: '1.25rem', left: '1.25rem', right: '1.25rem' } },
                     this.$render("i-vstack", { gap: "1.25rem" },
-                        this.$render("i-label", { caption: 'Your storage', font: { size: '1.5rem', weight: 600 } }),
-                        this.$render("i-vstack", { id: 'storageBar', padding: { top: '0.75rem', right: '0.75rem', left: '0.75rem', bottom: '0.75rem' }, background: { color: Theme.colors.primary.main }, border: { radius: '1rem' }, gap: '0.5rem', width: '100%' },
-                            this.$render("i-label", { caption: "Avaliable space", font: { color: Theme.colors.primary.contrastText, size: '1rem', weight: 700 } }),
-                            this.$render("i-hstack", { position: "relative", verticalAlignment: "center", border: { radius: '1rem' }, height: '1.5rem', overflow: 'hidden', zIndex: 1, background: { color: Theme.colors.secondary.main } },
-                                this.$render("i-panel", { id: 'pnlMeter', class: "storage-meter-uploaded", position: "absolute", left: '-2rem', top: 0, background: { color: Theme.colors.primary.light }, border: { radius: '1rem' }, width: `calc(max(7.29%, 0.25rem) + 2rem)`, height: '100%', zIndex: 10 })),
-                            this.$render("i-hstack", { class: "storage-used", verticalAlignment: "center", gap: "0.125rem", margin: { bottom: '0.75rem' } },
-                                this.$render("i-label", { id: 'lblUsed', caption: "0", font: { color: Theme.colors.primary.contrastText, size: '0.75rem', italic: true } }),
-                                this.$render("i-label", { caption: "of", font: { color: Theme.colors.primary.contrastText, size: '0.75rem' } }),
-                                this.$render("i-label", { caption: "5 GiB", font: { color: Theme.colors.primary.contrastText, size: '0.75rem', italic: true } }),
-                                this.$render("i-label", { caption: "used", font: { color: Theme.colors.primary.contrastText, size: '0.75rem' } })))),
+                        this.$render("i-label", { caption: 'Your storage', font: { size: '1.5rem', weight: 600 } })),
                     this.$render("i-panel", null,
                         this.$render("i-hstack", { verticalAlignment: 'center', horizontalAlignment: 'space-between', gap: "0.5rem", margin: { bottom: '1.25rem' } },
                             this.$render("i-label", { caption: 'All folders', font: { size: '0.875rem', transform: 'uppercase', weight: 600 } }),
@@ -963,30 +953,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                 }
                             ] },
                             this.$render("i-vstack", { id: 'ieSidebar', height: '100%', overflow: { y: 'auto' } },
-                                this.$render("i-tree-view", { id: "uploadedFileTree", class: "file-manager-tree uploaded", onActiveChange: this.onActiveChange, stack: { grow: '1' }, maxHeight: '100%', overflow: 'auto' }),
-                                this.$render("i-vstack", { id: 'storageBar', mediaQueries: [
-                                        {
-                                            maxWidth: '767px',
-                                            properties: {
-                                                position: 'fixed',
-                                                bottom: 0,
-                                                left: 0,
-                                                zIndex: 999,
-                                                width: '100%'
-                                            }
-                                        }
-                                    ] },
-                                    this.$render("i-panel", { padding: { top: '0.5rem', right: '0.5rem', left: '0.5rem', bottom: '0.5rem' }, background: { color: Theme.colors.primary.dark }, border: { bottom: { style: 'solid', width: '1px', color: Theme.background.main } } },
-                                        this.$render("i-label", { caption: "Editable Part", font: { color: Theme.colors.primary.contrastText, size: '0.875rem' } })),
-                                    this.$render("i-vstack", { class: "storage-container", padding: { top: '0.75rem', right: '0.75rem', left: '0.75rem', bottom: '1.5rem' }, background: { color: Theme.colors.primary.dark } },
-                                        this.$render("i-hstack", { class: "storage-used", verticalAlignment: "center", gap: "0.125rem", margin: { bottom: '0.75rem' } },
-                                            this.$render("i-label", { caption: "Storage: ", font: { color: Theme.colors.primary.contrastText, size: '0.75rem', weight: 700 } }),
-                                            this.$render("i-label", { id: 'lblUsed', caption: "0", font: { color: Theme.colors.primary.contrastText, size: '0.75rem', italic: true } }),
-                                            this.$render("i-label", { caption: "of", font: { color: Theme.colors.primary.contrastText, size: '0.75rem' } }),
-                                            this.$render("i-label", { caption: "5 GiB", font: { color: Theme.colors.primary.contrastText, size: '0.75rem', italic: true } }),
-                                            this.$render("i-label", { caption: "used", font: { color: Theme.colors.primary.contrastText, size: '0.75rem' } })),
-                                        this.$render("i-hstack", { position: "relative", verticalAlignment: "center", border: { radius: '1rem' }, height: '1.5rem', overflow: 'hidden', zIndex: 1, background: { color: Theme.colors.secondary.main } },
-                                            this.$render("i-panel", { id: 'pnlMeter', class: "storage-meter-uploaded", position: "absolute", left: '-2rem', top: 0, background: { color: Theme.colors.primary.light }, border: { radius: '1rem' }, width: `calc(max(7.29%, 0.25rem) + 2rem)`, height: '100%', zIndex: 10 }))))),
+                                this.$render("i-tree-view", { id: "uploadedFileTree", class: "file-manager-tree uploaded", onActiveChange: this.onActiveChange, stack: { grow: '1' }, maxHeight: '100%', overflow: 'auto' })),
                             this.$render("i-panel", { width: 1, cursor: 'col-resize', zIndex: 15, background: { color: Theme.colors.secondary.light }, mediaQueries: [
                                     {
                                         maxWidth: '767px',

@@ -207,45 +207,6 @@ export class ScomIPFSMobileHome extends Module {
                 >
                     <i-vstack gap="1.25rem">
                         <i-label caption='Your storage' font={{ size: '1.5rem', weight: 600 }}></i-label>
-                        <i-vstack
-                            id={'storageBar'}
-                            padding={{ top: '0.75rem', right: '0.75rem', left: '0.75rem', bottom: '0.75rem' }}
-                            background={{ color: Theme.colors.primary.main }}
-                            border={{ radius: '1rem' }}
-                            gap={'0.5rem'}
-                            width={'100%'}
-                        >
-                            <i-label caption="Avaliable space" font={{ color: Theme.colors.primary.contrastText, size: '1rem', weight: 700 }}></i-label>
-                            <i-hstack
-                                position="relative" verticalAlignment="center"
-                                border={{ radius: '1rem' }}
-                                height={'1.5rem'}
-                                overflow={'hidden'}
-                                zIndex={1}
-                                background={{ color: Theme.colors.secondary.main }}
-                            >
-                                <i-panel
-                                    id={'pnlMeter'}
-                                    class="storage-meter-uploaded"
-                                    position="absolute" left={'-2rem'} top={0}
-                                    background={{ color: Theme.colors.primary.light }}
-                                    border={{ radius: '1rem' }}
-                                    width={`calc(max(7.29%, 0.25rem) + 2rem)`}
-                                    height={'100%'} zIndex={10}
-                                ></i-panel>
-                            </i-hstack>
-                            <i-hstack
-                                class="storage-used"
-                                verticalAlignment="center"
-                                gap="0.125rem"
-                                margin={{ bottom: '0.75rem' }}
-                            >
-                                <i-label id={'lblUsed'} caption="0" font={{ color: Theme.colors.primary.contrastText, size: '0.75rem', italic: true }}></i-label>
-                                <i-label caption="of" font={{ color: Theme.colors.primary.contrastText, size: '0.75rem' }}></i-label>
-                                <i-label caption="5 GiB" font={{ color: Theme.colors.primary.contrastText, size: '0.75rem', italic: true }}></i-label>
-                                <i-label caption="used" font={{ color: Theme.colors.primary.contrastText, size: '0.75rem' }}></i-label>
-                            </i-hstack>
-                        </i-vstack>
                     </i-vstack>
                     <i-panel>
                         <i-hstack

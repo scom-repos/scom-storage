@@ -487,65 +487,6 @@ export class ScomStorage extends Module {
                                     stack={{ grow: '1' }}
                                     maxHeight={'100%'} overflow={'auto'}
                                 ></i-tree-view>
-                                <i-vstack
-                                    id={'storageBar'}
-                                    mediaQueries={[
-                                        {
-                                            maxWidth: '767px',
-                                            properties: {
-                                                position: 'fixed',
-                                                bottom: 0,
-                                                left: 0,
-                                                zIndex: 999,
-                                                width: '100%'
-                                            }
-                                        }
-                                    ]}
-                                >
-                                    <i-panel
-                                        padding={{ top: '0.5rem', right: '0.5rem', left: '0.5rem', bottom: '0.5rem' }}
-                                        background={{ color: Theme.colors.primary.dark }}
-                                        border={{ bottom: { style: 'solid', width: '1px', color: Theme.background.main } }}
-                                    >
-                                        <i-label caption="Editable Part" font={{ color: Theme.colors.primary.contrastText, size: '0.875rem' }}></i-label>
-                                    </i-panel>
-                                    <i-vstack
-                                        class="storage-container"
-                                        padding={{ top: '0.75rem', right: '0.75rem', left: '0.75rem', bottom: '1.5rem' }}
-                                        background={{ color: Theme.colors.primary.dark }}
-                                    >
-                                        <i-hstack
-                                            class="storage-used"
-                                            verticalAlignment="center"
-                                            gap="0.125rem"
-                                            margin={{ bottom: '0.75rem' }}
-                                        >
-                                            <i-label caption="Storage: " font={{ color: Theme.colors.primary.contrastText, size: '0.75rem', weight: 700 }}></i-label>
-                                            <i-label id={'lblUsed'} caption="0" font={{ color: Theme.colors.primary.contrastText, size: '0.75rem', italic: true }}></i-label>
-                                            <i-label caption="of" font={{ color: Theme.colors.primary.contrastText, size: '0.75rem' }}></i-label>
-                                            <i-label caption="5 GiB" font={{ color: Theme.colors.primary.contrastText, size: '0.75rem', italic: true }}></i-label>
-                                            <i-label caption="used" font={{ color: Theme.colors.primary.contrastText, size: '0.75rem' }}></i-label>
-                                        </i-hstack>
-                                        <i-hstack
-                                            position="relative" verticalAlignment="center"
-                                            border={{ radius: '1rem' }}
-                                            height={'1.5rem'}
-                                            overflow={'hidden'}
-                                            zIndex={1}
-                                            background={{ color: Theme.colors.secondary.main }}
-                                        >
-                                            <i-panel
-                                                id={'pnlMeter'}
-                                                class="storage-meter-uploaded"
-                                                position="absolute" left={'-2rem'} top={0}
-                                                background={{ color: Theme.colors.primary.light }}
-                                                border={{ radius: '1rem' }}
-                                                width={`calc(max(7.29%, 0.25rem) + 2rem)`}
-                                                height={'100%'} zIndex={10}
-                                            ></i-panel>
-                                        </i-hstack>
-                                    </i-vstack>
-                                </i-vstack>
                             </i-vstack>
                             <i-panel
                                 width={1} cursor='col-resize'
