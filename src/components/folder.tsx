@@ -46,6 +46,7 @@ export class ScomIPFSFolder extends Module {
     private iconSort: Icon;
     private lblTitle: Label;
     private pnlPath: ScomIPFSPath;
+    private iconBack: Icon;
     private inputSearch: Input;
     private pnlSearch: Panel;
     private iconList: Icon;
@@ -147,6 +148,8 @@ export class ScomIPFSFolder extends Module {
             childData = await this.onFetchData({ cid, path });
             this.cidMapping[cid] = childData;
         }
+        const paths: string[] = path.split('/');
+        this.iconBack.visible = paths.length > 1;
         this.updatePath(childData);
         this.setData({ list: childData?.links ?? [], type: 'dir' });
     }
@@ -186,8 +189,8 @@ export class ScomIPFSFolder extends Module {
                                 verticalAlignment='center'
                                 gap={'0.5rem'}
                             >
-                                <i-label caption={`${nodeData.links?.length || 0} files`} opacity={0.5} font={{ size: '0.675rem' }} visible={isDir}></i-label>
-                                <i-panel width={1} height={'0.75rem'} background={{ color: Theme.divider }} visible={isDir}></i-panel>
+                                {/* <i-label caption={`${nodeData.links?.length || 0} files`} opacity={0.5} font={{ size: '0.675rem' }} visible={isDir}></i-label>
+                                <i-panel width={1} height={'0.75rem'} background={{ color: Theme.divider }} visible={isDir}></i-panel> */}
                                 <i-label caption={`${formatBytes(nodeData.size)}`} opacity={0.5} font={{ size: '0.675rem' }}></i-label>
                             </i-hstack>
                         </i-vstack>
@@ -209,6 +212,7 @@ export class ScomIPFSFolder extends Module {
         if (!childData.name && data.name) childData.name = data.name;
         this.updatePath(childData);
         this.setData({ list: childData?.links ?? [], type: 'dir' });
+        this.iconBack.visible = true;
     }
 
     private async onFolderClick(data: IIPFSData) {
@@ -241,10 +245,11 @@ export class ScomIPFSFolder extends Module {
             this.updatePath(data);
             this.setData({ list: data?.links ?? [], type: 'dir' });
         } else {
-            if (this.onClose) this.onClose();
-            this.pnlPath.clear();
-            this.pathMapping = {};
+            // if (this.onClose) this.onClose();
+            // this.pnlPath.clear();
+            // this.pathMapping = {};
         }
+        this.iconBack.visible = paths.length > 1;
     }
 
     private onSearchClicked() {
@@ -288,11 +293,13 @@ export class ScomIPFSFolder extends Module {
                     gap="1rem"
                 >
                     <i-icon
+                        id="iconBack"
                         width={'1.25rem'} height={'1.25rem'}
                         name="arrow-left"
                         fill={Theme.colors.primary.contrastText}
                         cursor='pointer'
                         onClick={this.goBack.bind(this)}
+                        visible={false}
                     ></i-icon>
                     <i-hstack
                         id="pnlSearch"
@@ -301,6 +308,7 @@ export class ScomIPFSFolder extends Module {
                         gap="0.5rem"
                         border={{ radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }}
                         padding={{ left: '0.5rem', right: '0.5rem' }}
+                        margin={{ left: 'auto' }}
                         height={'2rem'}
                         width={'2rem'}
                         position='relative'
@@ -332,6 +340,7 @@ export class ScomIPFSFolder extends Module {
                 </i-hstack>
                 <i-panel
                     padding={{ left: '1.25rem', right: '1.25rem' }}
+                    visible={false}
                 >
                     <i-label
                         id="lblTitle"

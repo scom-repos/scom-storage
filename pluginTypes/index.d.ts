@@ -100,6 +100,7 @@ declare module "@scom/scom-storage/components/folder.tsx" {
         private iconSort;
         private lblTitle;
         private pnlPath;
+        private iconBack;
         private inputSearch;
         private pnlSearch;
         private iconList;
@@ -159,10 +160,7 @@ declare module "@scom/scom-storage/components/home.tsx" {
         parentNode?: IIPFSData;
     }
     export class ScomIPFSMobileHome extends Module {
-        private pnlRecent;
-        private foldersSlider;
         private mobileFolder;
-        private mobileMain;
         private _data;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomIPFSMobileHomeElement, parent?: Container): Promise<ScomIPFSMobileHome>;
@@ -171,12 +169,6 @@ declare module "@scom/scom-storage/components/home.tsx" {
         get folders(): any[];
         set folders(value: any[]);
         setData(data: IHomeData): void;
-        private renderFolders;
-        private renderRecent;
-        private onFolderClick;
-        private onViewFiles;
-        private onViewFolders;
-        private onBack;
         private onFetchData;
         init(): void;
         render(): any;

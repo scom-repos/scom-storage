@@ -279,6 +279,8 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
                 childData = await this.onFetchData({ cid, path });
                 this.cidMapping[cid] = childData;
             }
+            const paths = path.split('/');
+            this.iconBack.visible = paths.length > 1;
             this.updatePath(childData);
             this.setData({ list: childData?.links ?? [], type: 'dir' });
         }
@@ -300,8 +302,6 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
                         this.$render("i-vstack", { width: "100%", minWidth: 0, gap: '0.5rem' },
                             this.$render("i-label", { caption: nodeData.name, font: { weight: 600, size: '1.125rem' }, textOverflow: 'ellipsis' }),
                             this.$render("i-hstack", { verticalAlignment: 'center', gap: '0.5rem' },
-                                this.$render("i-label", { caption: `${nodeData.links?.length || 0} files`, opacity: 0.5, font: { size: '0.675rem' }, visible: isDir }),
-                                this.$render("i-panel", { width: 1, height: '0.75rem', background: { color: Theme.divider }, visible: isDir }),
                                 this.$render("i-label", { caption: `${(0, data_1.formatBytes)(nodeData.size)}`, opacity: 0.5, font: { size: '0.675rem' } })))));
                     this.pnlFolders.append(nodeEl);
                 }
@@ -320,6 +320,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
                 childData.name = data.name;
             this.updatePath(childData);
             this.setData({ list: childData?.links ?? [], type: 'dir' });
+            this.iconBack.visible = true;
         }
         async onFolderClick(data) {
             if (data.type === 'file')
@@ -350,11 +351,11 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
                 this.setData({ list: data?.links ?? [], type: 'dir' });
             }
             else {
-                if (this.onClose)
-                    this.onClose();
-                this.pnlPath.clear();
-                this.pathMapping = {};
+                // if (this.onClose) this.onClose();
+                // this.pnlPath.clear();
+                // this.pathMapping = {};
             }
+            this.iconBack.visible = paths.length > 1;
         }
         onSearchClicked() {
             if (Number(this.pnlSearch.width) > 32) {
@@ -385,11 +386,11 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
         render() {
             return (this.$render("i-vstack", { gap: "1.25rem", width: '100%', minHeight: 'inherit', background: { color: Theme.colors.primary.main }, padding: { top: '1.25rem' } },
                 this.$render("i-hstack", { verticalAlignment: 'center', horizontalAlignment: 'space-between', padding: { left: '1.25rem', right: '1.25rem' }, gap: "1rem" },
-                    this.$render("i-icon", { width: '1.25rem', height: '1.25rem', name: "arrow-left", fill: Theme.colors.primary.contrastText, cursor: 'pointer', onClick: this.goBack.bind(this) }),
-                    this.$render("i-hstack", { id: "pnlSearch", verticalAlignment: 'center', horizontalAlignment: 'end', gap: "0.5rem", border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, padding: { left: '0.5rem', right: '0.5rem' }, height: '2rem', width: '2rem', position: 'relative', overflow: 'hidden', class: index_css_2.transitionStyle, cursor: 'pointer', background: { color: Theme.input.background } },
+                    this.$render("i-icon", { id: "iconBack", width: '1.25rem', height: '1.25rem', name: "arrow-left", fill: Theme.colors.primary.contrastText, cursor: 'pointer', onClick: this.goBack.bind(this), visible: false }),
+                    this.$render("i-hstack", { id: "pnlSearch", verticalAlignment: 'center', horizontalAlignment: 'end', gap: "0.5rem", border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, padding: { left: '0.5rem', right: '0.5rem' }, margin: { left: 'auto' }, height: '2rem', width: '2rem', position: 'relative', overflow: 'hidden', class: index_css_2.transitionStyle, cursor: 'pointer', background: { color: Theme.input.background } },
                         this.$render("i-input", { id: "inputSearch", height: "100%", width: '0px', background: { color: 'transparent' }, border: { style: 'none', radius: '0.5rem 0 0.5rem 0' }, onKeyUp: this.onHandleSearch, margin: { right: '2rem' } }),
                         this.$render("i-icon", { width: '2rem', height: '2rem', position: 'absolute', right: '0px', name: "search", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, stack: { grow: '0', shrink: '0' }, fill: Theme.colors.primary.contrastText, onClick: this.onSearchClicked }))),
-                this.$render("i-panel", { padding: { left: '1.25rem', right: '1.25rem' } },
+                this.$render("i-panel", { padding: { left: '1.25rem', right: '1.25rem' }, visible: false },
                     this.$render("i-label", { id: "lblTitle", caption: 'All Folders', font: { weight: 600, size: '1.25rem', color: Theme.colors.primary.contrastText } })),
                 this.$render("i-vstack", { width: '100%', border: { radius: '1.25rem 1.25rem 0 0' }, padding: { top: '1.25rem', bottom: '1.25rem', left: '1.25rem', right: '1.25rem' }, margin: { bottom: '-1px' }, background: { color: Theme.background.main }, stack: { grow: '1' } },
                     this.$render("i-hstack", { verticalAlignment: 'center', horizontalAlignment: 'space-between', gap: '0.5rem', margin: { bottom: '1rem' } },
@@ -407,7 +408,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
     ], ScomIPFSFolder);
     exports.ScomIPFSFolder = ScomIPFSFolder;
 });
-define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.css.ts"], function (require, exports, components_5, data_2, index_css_3) {
+define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts"], function (require, exports, components_5, data_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSMobileHome = void 0;
@@ -435,71 +436,110 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
         }
         setData(data) {
             this._data = data;
-            this.mobileMain.visible = true;
-            this.mobileFolder.visible = false;
-            this.renderRecent();
-            this.renderFolders();
-        }
-        renderFolders() {
-            let items = [];
-            for (let folder of this.folders) {
-                const isDir = folder.type === 'dir';
-                const itemEl = (this.$render("i-vstack", { verticalAlignment: 'center', gap: '0.5rem', padding: { top: '2rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, border: { radius: '0.5rem' }, background: { color: Theme.divider }, margin: { right: '0.5rem' }, class: index_css_3.backgroundStyle, cursor: "pointer", onClick: () => this.onFolderClick(folder) },
-                    this.$render("i-icon", { stack: { grow: '0', shrink: '0' }, name: isDir ? 'folder' : 'file', fill: isDir ? Theme.colors.warning.main : Theme.colors.info.main, width: '1.25rem', height: '1.25rem' }),
-                    this.$render("i-vstack", { gap: '0.5rem' },
-                        this.$render("i-label", { caption: folder.name, font: { weight: 600, size: '0.875rem' }, textOverflow: 'ellipsis' }),
-                        this.$render("i-hstack", { verticalAlignment: 'center', gap: '0.5rem' },
-                            this.$render("i-label", { caption: `${folder.links?.length || 0} files`, opacity: 0.5, font: { size: '0.675rem' }, visible: isDir }),
-                            this.$render("i-panel", { width: 1, height: '0.75rem', background: { color: Theme.divider }, visible: isDir }),
-                            this.$render("i-label", { caption: `${(0, data_2.formatBytes)(folder.size)}`, opacity: 0.5, font: { size: '0.675rem' } })))));
-                items.push({
-                    name: '',
-                    controls: [
-                        itemEl
-                    ]
-                });
-            }
-            this.foldersSlider.items = items;
-            this.foldersSlider.activeSlide = 0;
-        }
-        renderRecent() {
-            this.pnlRecent.clearInnerHTML();
-            const recentList = [...this.recents].slice(0, 3);
-            if (recentList?.length) {
-                for (let nodeData of recentList) {
-                    const nodeEl = (this.$render("i-hstack", { verticalAlignment: 'center', gap: '1.5rem', padding: { top: '0.5rem', bottom: '0.5rem' } },
-                        this.$render("i-icon", { stack: { grow: '0', shrink: '0' }, name: 'file', fill: Theme.colors.info.main, border: { radius: '0.25rem' }, width: '2.5rem', height: '2.5rem' }),
-                        this.$render("i-vstack", { gap: '0.5rem' },
-                            this.$render("i-label", { caption: nodeData.name, font: { weight: 600, size: '0.875rem' }, textOverflow: 'ellipsis' }),
-                            this.$render("i-label", { caption: `${(0, data_2.formatBytes)(nodeData.size)}`, opacity: 0.5, font: { size: '0.675rem' } }))));
-                    this.pnlRecent.append(nodeEl);
-                }
-            }
-        }
-        async onFolderClick(data) {
-            if (data.type === 'file')
-                return;
-            await this.mobileFolder.handleFolderClick(data);
-            this.mobileMain.visible = false;
-            this.mobileFolder.visible = true;
-        }
-        onViewFiles() {
-            this.mobileMain.visible = false;
-            this.mobileFolder.setData({ list: [...this.recents], type: 'file' });
-            this.mobileFolder.visible = true;
-        }
-        onViewFolders() {
-            this.mobileMain.visible = false;
+            // this.mobileMain.visible = true;
+            // this.mobileFolder.visible = false;
+            // this.renderRecent();
+            // this.renderFolders();
             const list = [...this.folders];
             if (this._data.parentNode)
                 this.mobileFolder.updatePath({ ...this._data.parentNode, links: list });
             this.mobileFolder.setData({ list: list, type: 'dir' });
-            this.mobileFolder.visible = true;
         }
-        onBack() {
-            this.mobileMain.visible = true;
-            this.mobileFolder.visible = false;
-        }
+        // private renderFolders() {
+        //     let items = [];
+        //     for (let folder of this.folders) {
+        //         const isDir = folder.type === 'dir';
+        //         const itemEl = (
+        //             <i-vstack
+        //                 verticalAlignment='center'
+        //                 gap='0.5rem'
+        //                 padding={{ top: '2rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
+        //                 border={{ radius: '0.5rem' }}
+        //                 background={{ color: Theme.divider }}
+        //                 margin={{ right: '0.5rem' }}
+        //                 class={backgroundStyle}
+        //                 cursor="pointer"
+        //                 onClick={() => this.onFolderClick(folder)}
+        //             >
+        //                 <i-icon
+        //                     stack={{ grow: '0', shrink: '0' }}
+        //                     name={isDir ? 'folder' : 'file'}
+        //                     fill={isDir ? Theme.colors.warning.main : Theme.colors.info.main}
+        //                     width={'1.25rem'} height={'1.25rem'}
+        //                 ></i-icon>
+        //                 <i-vstack gap={'0.5rem'}>
+        //                     <i-label caption={folder.name} font={{ weight: 600, size: '0.875rem' }} textOverflow='ellipsis'></i-label>
+        //                     <i-hstack
+        //                         verticalAlignment='center'
+        //                         gap={'0.5rem'}
+        //                     >
+        //                         <i-label caption={`${folder.links?.length || 0} files`} opacity={0.5} font={{ size: '0.675rem' }} visible={isDir}></i-label>
+        //                         <i-panel width={1} height={'0.75rem'} background={{ color: Theme.divider }} visible={isDir}></i-panel>
+        //                         <i-label caption={`${formatBytes(folder.size)}`} opacity={0.5} font={{ size: '0.675rem' }}></i-label>
+        //                     </i-hstack>
+        //                 </i-vstack>
+        //             </i-vstack>
+        //         )
+        //         items.push({
+        //             name: '',
+        //             controls: [
+        //                 itemEl
+        //             ]
+        //         })
+        //     }
+        //     this.foldersSlider.items = items;
+        //     this.foldersSlider.activeSlide = 0;
+        // }
+        // private renderRecent() {
+        //     this.pnlRecent.clearInnerHTML();
+        //     const recentList = [...this.recents].slice(0, 3);
+        //     if (recentList?.length) {
+        //         for (let nodeData of recentList) {
+        //             const nodeEl = (
+        //                 <i-hstack
+        //                     verticalAlignment='center'
+        //                     gap='1.5rem'
+        //                     padding={{ top: '0.5rem', bottom: '0.5rem' }}
+        //                 >
+        //                     <i-icon
+        //                         stack={{ grow: '0', shrink: '0' }}
+        //                         name={'file'}
+        //                         fill={Theme.colors.info.main}
+        //                         border={{ radius: '0.25rem' }}
+        //                         width={'2.5rem'} height={'2.5rem'}
+        //                     ></i-icon>
+        //                     <i-vstack gap={'0.5rem'}>
+        //                         <i-label caption={nodeData.name} font={{ weight: 600, size: '0.875rem' }} textOverflow='ellipsis'></i-label>
+        //                         <i-label caption={`${formatBytes(nodeData.size)}`} opacity={0.5} font={{ size: '0.675rem' }}></i-label>
+        //                     </i-vstack>
+        //                 </i-hstack>
+        //             )
+        //             this.pnlRecent.append(nodeEl);
+        //         }
+        //     }
+        // }
+        // private async onFolderClick(data: IIPFSData) {
+        //     if (data.type === 'file') return;
+        //     await this.mobileFolder.handleFolderClick(data);
+        //     this.mobileMain.visible = false;
+        //     this.mobileFolder.visible = true;
+        // }
+        // private onViewFiles() {
+        //     this.mobileMain.visible = false;
+        //     this.mobileFolder.setData({ list: [...this.recents], type: 'file' });
+        //     this.mobileFolder.visible = true;
+        // }
+        // private onViewFolders() {
+        //     this.mobileMain.visible = false;
+        //     const list = [...this.folders];
+        //     if (this._data.parentNode) this.mobileFolder.updatePath({ ...this._data.parentNode, links: list });
+        //     this.mobileFolder.setData({ list: list, type: 'dir' });
+        //     this.mobileFolder.visible = true;
+        // }
+        // private onBack() {
+        //     this.mobileMain.visible = true;
+        //     this.mobileFolder.visible = false;
+        // }
         async onFetchData(ipfsData) {
             const childrenData = await (0, data_2.autoRetryGetContent)(ipfsData.cid);
             childrenData.path = ipfsData.path;
@@ -519,20 +559,9 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
         }
         render() {
             return (this.$render("i-panel", { width: '100%', minHeight: 'inherit' },
-                this.$render("i-vstack", { id: "mobileMain", gap: "1.5rem", width: '100%', padding: { top: '1.25rem', bottom: '1.25rem', left: '1.25rem', right: '1.25rem' } },
-                    this.$render("i-vstack", { gap: "1.25rem" },
-                        this.$render("i-label", { caption: 'Your storage', font: { size: '1.5rem', weight: 600 } })),
-                    this.$render("i-panel", null,
-                        this.$render("i-hstack", { verticalAlignment: 'center', horizontalAlignment: 'space-between', gap: "0.5rem", margin: { bottom: '1.25rem' } },
-                            this.$render("i-label", { caption: 'All folders', font: { size: '0.875rem', transform: 'uppercase', weight: 600 } }),
-                            this.$render("i-label", { caption: 'See All', font: { size: '0.875rem', color: Theme.colors.primary.main, weight: 500 }, cursor: 'pointer', onClick: this.onViewFolders })),
-                        this.$render("i-carousel-slider", { id: "foldersSlider", width: '100%', slidesToShow: 2, indicators: false, swipe: true })),
-                    this.$render("i-panel", null,
-                        this.$render("i-hstack", { verticalAlignment: 'center', horizontalAlignment: 'space-between', gap: "0.5rem", margin: { bottom: '0.75rem' } },
-                            this.$render("i-label", { caption: 'Recent file', font: { size: '0.875rem', transform: 'uppercase', weight: 600 } }),
-                            this.$render("i-label", { caption: 'See All', font: { size: '0.875rem', color: Theme.colors.primary.main, weight: 500 }, cursor: 'pointer', onClick: this.onViewFiles })),
-                        this.$render("i-vstack", { id: "pnlRecent", gap: "0.5rem", width: '100%' }))),
-                this.$render("i-scom-ipfs--mobile-folder", { id: "mobileFolder", width: '100%', minHeight: '100%', display: 'block', visible: false, onFetchData: this.onFetchData.bind(this), onClose: this.onBack.bind(this) })));
+                this.$render("i-scom-ipfs--mobile-folder", { id: "mobileFolder", width: '100%', minHeight: '100%', display: 'block', 
+                    // visible={false}
+                    onFetchData: this.onFetchData.bind(this) })));
         }
     };
     ScomIPFSMobileHome = __decorate([
@@ -558,7 +587,7 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
         }
     });
 });
-define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_7, data_3, index_css_4) {
+define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_7, data_3, index_css_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomStorage = void 0;
@@ -617,12 +646,12 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                 return (this.$render("i-hstack", { verticalAlignment: "center", gap: "0.375rem" },
                                     this.$render("i-panel", { stack: { basis: '1rem' } },
                                         this.$render("i-icon", { name: "folder", width: '0.875rem', height: '0.875rem', display: "inline-flex", fill: "#fddd35" })),
-                                    this.$render("i-label", { caption: columnData })));
+                                    this.$render("i-label", { caption: columnData, font: { size: '0.875rem' } })));
                             case 'file':
                                 return (this.$render("i-hstack", { verticalAlignment: "center", gap: "0.375rem" },
                                     this.$render("i-panel", { stack: { basis: '1rem' } },
                                         this.$render("i-icon", { name: "file", width: '0.875rem', height: '0.875rem', display: "inline-flex", fill: "#298de0" })),
-                                    this.$render("i-label", { caption: columnData })));
+                                    this.$render("i-label", { caption: columnData, font: { size: '0.875rem' } })));
                             default:
                                 return columnData;
                         }
@@ -892,7 +921,10 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         processTableData(ipfsData) {
             const processedData = [];
             if (ipfsData && ipfsData.links && ipfsData.links.length) {
-                ipfsData.links.forEach((data) => {
+                const sortFn = (a, b) => a.name.localeCompare(b.name);
+                const folders = [...ipfsData.links].filter(item => item.type === 'dir').sort(sortFn);
+                const files = [...ipfsData.links].filter(item => item.type === 'file').sort(sortFn);
+                [...folders, ...files].forEach((data) => {
                     processedData.push({
                         checkbox: '',
                         name: data.name,
@@ -918,7 +950,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         init() {
             super.init();
-            this.classList.add(index_css_4.default);
+            this.classList.add(index_css_3.default);
             this.setTag(defaultColors);
             const cid = this.getAttribute('cid', true);
             if (cid)

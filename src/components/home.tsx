@@ -34,10 +34,10 @@ interface IHomeData {
 
 @customElements('i-scom-ipfs--mobile-home')
 export class ScomIPFSMobileHome extends Module {
-    private pnlRecent: VStack;
-    private foldersSlider: CarouselSlider;
+    // private pnlRecent: VStack;
+    // private foldersSlider: CarouselSlider;
     private mobileFolder: ScomIPFSFolder;
-    private mobileMain: VStack;
+    // private mobileMain: VStack;
 
     private _data: IHomeData;
 
@@ -67,112 +67,115 @@ export class ScomIPFSMobileHome extends Module {
 
     setData(data: IHomeData) {
         this._data = data;
-        this.mobileMain.visible = true;
-        this.mobileFolder.visible = false;
-        this.renderRecent();
-        this.renderFolders();
-    }
-
-    private renderFolders() {
-        let items = [];
-        for (let folder of this.folders) {
-            const isDir = folder.type === 'dir';
-            const itemEl = (
-                <i-vstack
-                    verticalAlignment='center'
-                    gap='0.5rem'
-                    padding={{ top: '2rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
-                    border={{ radius: '0.5rem' }}
-                    background={{ color: Theme.divider }}
-                    margin={{ right: '0.5rem' }}
-                    class={backgroundStyle}
-                    cursor="pointer"
-                    onClick={() => this.onFolderClick(folder)}
-                >
-                    <i-icon
-                        stack={{ grow: '0', shrink: '0' }}
-                        name={isDir ? 'folder' : 'file'}
-                        fill={isDir ? Theme.colors.warning.main : Theme.colors.info.main}
-                        width={'1.25rem'} height={'1.25rem'}
-                    ></i-icon>
-                    <i-vstack gap={'0.5rem'}>
-                        <i-label caption={folder.name} font={{ weight: 600, size: '0.875rem' }} textOverflow='ellipsis'></i-label>
-                        <i-hstack
-                            verticalAlignment='center'
-                            gap={'0.5rem'}
-                        >
-                            <i-label caption={`${folder.links?.length || 0} files`} opacity={0.5} font={{ size: '0.675rem' }} visible={isDir}></i-label>
-                            <i-panel width={1} height={'0.75rem'} background={{ color: Theme.divider }} visible={isDir}></i-panel>
-                            <i-label caption={`${formatBytes(folder.size)}`} opacity={0.5} font={{ size: '0.675rem' }}></i-label>
-                        </i-hstack>
-                    </i-vstack>
-                </i-vstack>
-            )
-            items.push({
-                name: '',
-                controls: [
-                    itemEl
-                ]
-            })
-        }
-        this.foldersSlider.items = items;
-        this.foldersSlider.activeSlide = 0;
-    }
-
-    private renderRecent() {
-        this.pnlRecent.clearInnerHTML();
-        const recentList = [...this.recents].slice(0, 3);
-        if (recentList?.length) {
-            for (let nodeData of recentList) {
-                const nodeEl = (
-                    <i-hstack
-                        verticalAlignment='center'
-                        gap='1.5rem'
-                        padding={{ top: '0.5rem', bottom: '0.5rem' }}
-                    >
-                        <i-icon
-                            stack={{ grow: '0', shrink: '0' }}
-                            name={'file'}
-                            fill={Theme.colors.info.main}
-                            border={{ radius: '0.25rem' }}
-                            width={'2.5rem'} height={'2.5rem'}
-                        ></i-icon>
-                        <i-vstack gap={'0.5rem'}>
-                            <i-label caption={nodeData.name} font={{ weight: 600, size: '0.875rem' }} textOverflow='ellipsis'></i-label>
-                            <i-label caption={`${formatBytes(nodeData.size)}`} opacity={0.5} font={{ size: '0.675rem' }}></i-label>
-                        </i-vstack>
-                    </i-hstack>
-                )
-                this.pnlRecent.append(nodeEl);
-            }
-        }
-    }
-
-    private async onFolderClick(data: IIPFSData) {
-        if (data.type === 'file') return;
-        await this.mobileFolder.handleFolderClick(data);
-        this.mobileMain.visible = false;
-        this.mobileFolder.visible = true;
-    }
-
-    private onViewFiles() {
-        this.mobileMain.visible = false;
-        this.mobileFolder.setData({ list: [...this.recents], type: 'file' });
-        this.mobileFolder.visible = true;
-    }
-
-    private onViewFolders() {
-        this.mobileMain.visible = false;
+        // this.mobileMain.visible = true;
+        // this.mobileFolder.visible = false;
+        // this.renderRecent();
+        // this.renderFolders();
         const list = [...this.folders];
         if (this._data.parentNode) this.mobileFolder.updatePath({ ...this._data.parentNode, links: list });
         this.mobileFolder.setData({ list: list, type: 'dir' });
-        this.mobileFolder.visible = true;
     }
 
-    private onBack() {
-        this.mobileMain.visible = true;
-        this.mobileFolder.visible = false;
-    }
+    // private renderFolders() {
+    //     let items = [];
+    //     for (let folder of this.folders) {
+    //         const isDir = folder.type === 'dir';
+    //         const itemEl = (
+    //             <i-vstack
+    //                 verticalAlignment='center'
+    //                 gap='0.5rem'
+    //                 padding={{ top: '2rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
+    //                 border={{ radius: '0.5rem' }}
+    //                 background={{ color: Theme.divider }}
+    //                 margin={{ right: '0.5rem' }}
+    //                 class={backgroundStyle}
+    //                 cursor="pointer"
+    //                 onClick={() => this.onFolderClick(folder)}
+    //             >
+    //                 <i-icon
+    //                     stack={{ grow: '0', shrink: '0' }}
+    //                     name={isDir ? 'folder' : 'file'}
+    //                     fill={isDir ? Theme.colors.warning.main : Theme.colors.info.main}
+    //                     width={'1.25rem'} height={'1.25rem'}
+    //                 ></i-icon>
+    //                 <i-vstack gap={'0.5rem'}>
+    //                     <i-label caption={folder.name} font={{ weight: 600, size: '0.875rem' }} textOverflow='ellipsis'></i-label>
+    //                     <i-hstack
+    //                         verticalAlignment='center'
+    //                         gap={'0.5rem'}
+    //                     >
+    //                         <i-label caption={`${folder.links?.length || 0} files`} opacity={0.5} font={{ size: '0.675rem' }} visible={isDir}></i-label>
+    //                         <i-panel width={1} height={'0.75rem'} background={{ color: Theme.divider }} visible={isDir}></i-panel>
+    //                         <i-label caption={`${formatBytes(folder.size)}`} opacity={0.5} font={{ size: '0.675rem' }}></i-label>
+    //                     </i-hstack>
+    //                 </i-vstack>
+    //             </i-vstack>
+    //         )
+    //         items.push({
+    //             name: '',
+    //             controls: [
+    //                 itemEl
+    //             ]
+    //         })
+    //     }
+    //     this.foldersSlider.items = items;
+    //     this.foldersSlider.activeSlide = 0;
+    // }
+
+    // private renderRecent() {
+    //     this.pnlRecent.clearInnerHTML();
+    //     const recentList = [...this.recents].slice(0, 3);
+    //     if (recentList?.length) {
+    //         for (let nodeData of recentList) {
+    //             const nodeEl = (
+    //                 <i-hstack
+    //                     verticalAlignment='center'
+    //                     gap='1.5rem'
+    //                     padding={{ top: '0.5rem', bottom: '0.5rem' }}
+    //                 >
+    //                     <i-icon
+    //                         stack={{ grow: '0', shrink: '0' }}
+    //                         name={'file'}
+    //                         fill={Theme.colors.info.main}
+    //                         border={{ radius: '0.25rem' }}
+    //                         width={'2.5rem'} height={'2.5rem'}
+    //                     ></i-icon>
+    //                     <i-vstack gap={'0.5rem'}>
+    //                         <i-label caption={nodeData.name} font={{ weight: 600, size: '0.875rem' }} textOverflow='ellipsis'></i-label>
+    //                         <i-label caption={`${formatBytes(nodeData.size)}`} opacity={0.5} font={{ size: '0.675rem' }}></i-label>
+    //                     </i-vstack>
+    //                 </i-hstack>
+    //             )
+    //             this.pnlRecent.append(nodeEl);
+    //         }
+    //     }
+    // }
+
+    // private async onFolderClick(data: IIPFSData) {
+    //     if (data.type === 'file') return;
+    //     await this.mobileFolder.handleFolderClick(data);
+    //     this.mobileMain.visible = false;
+    //     this.mobileFolder.visible = true;
+    // }
+
+    // private onViewFiles() {
+    //     this.mobileMain.visible = false;
+    //     this.mobileFolder.setData({ list: [...this.recents], type: 'file' });
+    //     this.mobileFolder.visible = true;
+    // }
+
+    // private onViewFolders() {
+    //     this.mobileMain.visible = false;
+    //     const list = [...this.folders];
+    //     if (this._data.parentNode) this.mobileFolder.updatePath({ ...this._data.parentNode, links: list });
+    //     this.mobileFolder.setData({ list: list, type: 'dir' });
+    //     this.mobileFolder.visible = true;
+    // }
+
+    // private onBack() {
+    //     this.mobileMain.visible = true;
+    //     this.mobileFolder.visible = false;
+    // }
 
     private async onFetchData(ipfsData: any) {
         const childrenData = await autoRetryGetContent(ipfsData.cid);
@@ -199,7 +202,7 @@ export class ScomIPFSMobileHome extends Module {
                 width={'100%'}
                 minHeight={'inherit'}
             >
-                <i-vstack
+                {/* <i-vstack
                     id="mobileMain"
                     gap="1.5rem"
                     width={'100%'}
@@ -248,15 +251,15 @@ export class ScomIPFSMobileHome extends Module {
                             width={'100%'}
                         ></i-vstack>
                     </i-panel>
-                </i-vstack>
+                </i-vstack> */}
                 <i-scom-ipfs--mobile-folder
                     id="mobileFolder"
                     width={'100%'}
                     minHeight={'100%'}
                     display='block'
-                    visible={false}
+                    // visible={false}
                     onFetchData={this.onFetchData.bind(this)}
-                    onClose={this.onBack.bind(this)}
+                    // onClose={this.onBack.bind(this)}
                 ></i-scom-ipfs--mobile-folder>
             </i-panel>
         )

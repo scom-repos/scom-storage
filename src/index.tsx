@@ -93,7 +93,7 @@ export class ScomStorage extends Module {
                                 <i-panel stack={{ basis: '1rem' }}>
                                     <i-icon name="folder" width={'0.875rem'} height={'0.875rem'} display="inline-flex" fill="#fddd35"></i-icon>
                                 </i-panel>
-                                <i-label caption={columnData}></i-label>
+                                <i-label caption={columnData} font={{ size: '0.875rem' }}></i-label>
                             </i-hstack>
                         );
                     case 'file':
@@ -102,7 +102,7 @@ export class ScomStorage extends Module {
                                 <i-panel stack={{ basis: '1rem' }}>
                                     <i-icon name="file" width={'0.875rem'} height={'0.875rem'} display="inline-flex" fill="#298de0"></i-icon>
                                 </i-panel>
-                                <i-label caption={columnData}></i-label>
+                                <i-label caption={columnData} font={{ size: '0.875rem' }}></i-label>
                             </i-hstack>
                         );
                     default:
@@ -393,7 +393,10 @@ export class ScomStorage extends Module {
     private processTableData(ipfsData: IIPFSData) {
         const processedData = [];
         if (ipfsData && ipfsData.links && ipfsData.links.length) {
-            ipfsData.links.forEach((data) => {
+            const sortFn = (a: IIPFSData, b: IIPFSData) => a.name.localeCompare(b.name);
+            const folders = [...ipfsData.links].filter(item => item.type === 'dir').sort(sortFn);
+            const files = [...ipfsData.links].filter(item => item.type === 'file').sort(sortFn);
+            [...folders, ...files].forEach((data) => {
                 processedData.push({
                     checkbox: '',
                     name: data.name,
