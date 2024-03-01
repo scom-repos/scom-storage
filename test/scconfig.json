@@ -16,6 +16,12 @@
     "@scom/dapp": "*",
     "@scom/scom-storage": "*"
   },
+  "packages": [
+      "@scom/scom-image",
+      "@scom/scom-markdown-editor",
+      "@scom/scom-media-player",
+      "@scom/scom-video"
+  ],
   "menus": [
     {
       "caption": "Module 1",

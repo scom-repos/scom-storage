@@ -11,6 +11,10 @@
         "@ijstech/cli": "^0.1.28",
         "@ijstech/compiler": "^0.1.22",
         "@scom/dapp": "^0.1.11",
+        "@scom/scom-image": "^0.1.19",
+        "@scom/scom-markdown-editor": "^0.1.19",
+        "@scom/scom-media-player": "^0.1.0",
+        "@scom/scom-video": "^0.1.10",
         "@scom/scom-storage": "file:./ref"
     },
     "scripts": {
