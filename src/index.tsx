@@ -4,7 +4,6 @@ import {
     FormatUtils,
     Table,
     Control,
-    application,
     TreeNode,
     TreeView,
     customElements,
@@ -12,13 +11,15 @@ import {
     IDataSchema,
     Panel,
     GridLayout,
+    IPFS
 } from '@ijstech/components';
-import { IIPFSData, IPreview, IStorageConfig, ITableData } from './inteface';
+import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { autoRetryGetContent, fetchData, formatBytes } from './data';
-import { ScomIPFSMobileHome } from './components/home';
-import { ScomIPFSPath } from './components/path';
+import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal } from './components';
 import customStyles from './index.css';
 import { ScomIPFSPreview } from './components/preview';
+
+declare var require: any
 
 const Theme = Styles.Theme.ThemeVars;
 
@@ -57,6 +58,7 @@ const defaultColors = {
 
 interface ScomStorageElement extends ControlElement {
     cid?: string;
+    transportEndpoint?: string;
 }
 
 declare global {
@@ -75,6 +77,7 @@ export class ScomStorage extends Module {
     private gridWrapper: GridLayout;
     private iePreview: ScomIPFSPreview;
     private bdPreview: Panel;
+    private uploadModal: ScomIPFSUploadModal;
 
     tag: any = {
         light: {},
@@ -151,6 +154,8 @@ export class ScomStorage extends Module {
     private _uploadedFileNodes: { [idx: string]: TreeNode } = {};
     private currentParentDir: { cid: string; name: string } | null = null;
     private breadcrumb: { [idx: string]: IIPFSData } = {};
+    private transportEndpoint: string;
+    private manager: any;
 
     private async setData(value: IStorageConfig) {
         this._data = value;
@@ -269,15 +274,27 @@ export class ScomStorage extends Module {
 
     private async initContent() {
         if (!this._data.cid) return;
-        const ipfsData = await fetchData({ cid: this._data.cid });
+        let rootNode = await this.manager.getRootNode();
+        const ipfsData = rootNode._cidInfo;
+        // const ipfsData = await fetchData({ cid: this._data.cid });
         // this._storedFileData = null;
         if (ipfsData) {
             const parentNode = (({ links, ...o }) => o)(ipfsData);
             parentNode.name = parentNode.name ? parentNode.name : FormatUtils.truncateWalletAddress(parentNode.cid);
-            parentNode.path = parentNode.name;
+            parentNode.path = '';
             parentNode.root = true;
-            if (ipfsData.links)
-                ipfsData.links.map((data) => (data.path = `${parentNode.path}/${data.name}`));
+            if (ipfsData.links?.length) {
+                await Promise.all(
+                    ipfsData.links.map(async (data) => {
+                        data.path = `${parentNode.path}/${data.name}`;
+                        if (!data.type) {
+                            let node = await this.manager.getFileNode(`/${data.name}`);
+                            let isFolder = await node.isFolder();
+                            data.type = isFolder ? 'dir' : 'file'
+                        }
+                    })
+                );
+            }
             const data = ipfsData.links ? [parentNode, ...ipfsData.links] : [parentNode];
             this._uploadedTreeData = [...data];
             this.renderUploadedFileTreeUI();
@@ -370,7 +387,37 @@ export class ScomStorage extends Module {
     }
 
     private onOpenUploadModal() {
-        application.showUploadModal();
+        if (!this.uploadModal) this.uploadModal = new ScomIPFSUploadModal();
+        const modal = this.uploadModal.openModal({
+            width: 800,
+            maxWidth: '100%',
+            popupPlacement: 'center',
+            showBackdrop: true,
+            closeOnBackdropClick: false,
+            closeIcon: { name: 'times', fill: Theme.text.primary, position: 'absolute', top: '1rem', right: '1rem', zIndex: 2 },
+            zIndex: 1000,
+            padding: {},
+            onClose: () => this.uploadModal.reset(),
+            mediaQueries: [
+                {
+                    maxWidth: '767px',
+                    properties: {
+                        height: '100vh',
+                        maxHeight: '100vh'
+                    }
+                }
+            ]
+        });
+        let path;
+        if (window.matchMedia('(max-width: 767px)').matches) {
+            path = this.mobileHome.currentPath;
+            this.uploadModal.manager = this.mobileHome.manager;
+        } else {
+            path = this.pnlPath.data.path;
+            this.uploadModal.manager = this.manager;
+        }
+        this.uploadModal.show(path);
+        modal.refresh();
     }
 
     private async onActiveChange(parent: TreeView, prevNode?: TreeNode) {
@@ -379,7 +426,7 @@ export class ScomStorage extends Module {
     }
 
     private async onOpenFolder(ipfsData: any, toggle: boolean) {
-        if (ipfsData && ipfsData.cid) {
+        if (ipfsData) {
             this.currentParentDir = ipfsData;
             const childrenData = await this.onFetchData(ipfsData);
             if (!childrenData.name && ipfsData.name) childrenData.name = ipfsData.name;
@@ -390,9 +437,27 @@ export class ScomStorage extends Module {
     }
 
     private async onFetchData(ipfsData: any) {
-        const childrenData = await autoRetryGetContent(ipfsData.cid);
-        childrenData.path = ipfsData.path;
-        return childrenData;
+        let fileNode;
+        if (ipfsData.path) {
+            fileNode = await this.manager.getFileNode(ipfsData.path);
+        } else {
+            fileNode = await this.manager.setRootCid(this._data.cid);
+        }
+        if (!fileNode._cidInfo.links) fileNode._cidInfo.links = [];
+        if (fileNode._cidInfo.links.length) {
+            await Promise.all(
+                fileNode._cidInfo.links.map(async (data) => {
+                    data.path = `${ipfsData.path}/${data.name}`;
+                    if (!data.type) {
+                        let node = await this.manager.getFileNode(`/${data.name}`);
+                        let isFolder = await node.isFolder();
+                        data.type = isFolder ? 'dir' : 'file'
+                    }
+                })
+            );
+        }
+        fileNode._cidInfo.path = ipfsData.path;
+        return fileNode._cidInfo;
     }
 
     private processTableData(ipfsData: IIPFSData) {
@@ -476,10 +541,15 @@ export class ScomStorage extends Module {
     }
 
     init() {
+        this.transportEndpoint = this.getAttribute('transportEndpoint', true) || window.location.origin;
         super.init();
         this.classList.add(customStyles);
         this.setTag(defaultColors);
         const cid = this.getAttribute('cid', true);
+        this.manager = new IPFS.FileManager({
+            endpoint: this.transportEndpoint,
+            rootCid: cid
+        });
         if (cid) this.setData({ cid });
     }
 
@@ -493,6 +563,7 @@ export class ScomStorage extends Module {
                     display='block'
                     background={{ color: Theme.background.main }}
                     onPreview={this.previewFile.bind(this)}
+                    transportEndpoint={this.transportEndpoint}
                     visible={false}
                     mediaQueries={[
                         {

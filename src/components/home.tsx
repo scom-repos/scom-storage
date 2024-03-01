@@ -5,10 +5,11 @@ import {
     customElements,
     Module,
     Styles,
-    VStack
+    VStack,
+    IPFS
 } from '@ijstech/components';
 import { autoRetryGetContent, formatBytes } from '../data';
-import { IIPFSData, IPreview } from '../inteface';
+import { IIPFSData, IPreview } from '../interface';
 import { ScomIPFSFolder } from './folder';
 import { backgroundStyle } from './index.css';
 const Theme = Styles.Theme.ThemeVars;
@@ -18,6 +19,7 @@ type previewCallback = (data: IPreview) => void
 interface ScomIPFSMobileHomeElement extends ControlElement {
     recents?: IIPFSData[];
     folders?: IIPFSData[];
+    transportEndpoint?: string;
     onPreview?: previewCallback;
 }
 
@@ -35,15 +37,18 @@ interface IHomeData {
     parentNode?: IIPFSData;
 }
 
+declare var require: any;
+
 @customElements('i-scom-ipfs--mobile-home')
 export class ScomIPFSMobileHome extends Module {
     // private pnlRecent: VStack;
     // private foldersSlider: CarouselSlider;
     private mobileFolder: ScomIPFSFolder;
     // private mobileMain: VStack;
+    private _manager: any;
 
     private _data: IHomeData;
-
+    private _transportEndpoint: string;
     onPreview: previewCallback;
 
     constructor(parent?: Container, options?: any) {
@@ -70,14 +75,32 @@ export class ScomIPFSMobileHome extends Module {
         this._data.folders = value ?? [];
     }
 
-    setData(data: IHomeData) {
+    get transportEndpoint() {
+        return this._transportEndpoint;
+    }
+    set transportEndpoint(value: string) {
+        this._transportEndpoint = value;
+    }
+
+    get manager() {
+        return this._manager;
+    }
+
+    get currentPath() {
+        return this.mobileFolder.currentPath;
+    }
+
+    async setData(data: IHomeData) {
         this._data = data;
         // this.mobileMain.visible = true;
         // this.mobileFolder.visible = false;
         // this.renderRecent();
         // this.renderFolders();
         const list = [...this.folders];
-        if (this._data.parentNode) this.mobileFolder.updatePath({ ...this._data.parentNode, links: list });
+        if (this._data.parentNode) {
+            this.mobileFolder.updatePath({ ...this._data.parentNode, links: list });
+            await this.manager.setRootCid(this._data.parentNode.cid);
+        }
         this.mobileFolder.setData({ list: list, type: 'dir' });
     }
 
@@ -182,16 +205,28 @@ export class ScomIPFSMobileHome extends Module {
     //     this.mobileFolder.visible = false;
     // }
 
-    private async onFetchData(ipfsData: IIPFSData) {
-        const childrenData = await autoRetryGetContent(ipfsData.cid);
-        childrenData.path = ipfsData.path;
-        if (childrenData.links) {
-            for (let child of childrenData.links) {
-                child.path = `${ipfsData.path}/${child.name}`;
-                // child.links = (await autoRetryGetContent(child.cid))?.links || [];
-            }
+    private async onFetchData(ipfsData: any) {
+        let fileNode;
+        if (ipfsData.path) {
+            fileNode = await this.manager.getFileNode(ipfsData.path);
+        } else {
+            fileNode = await this.manager.setRootCid(this._data.parentNode.cid);
         }
-        return childrenData;
+        if (!fileNode._cidInfo.links) fileNode._cidInfo.links = [];
+        if (fileNode._cidInfo.links.length) {
+            await Promise.all(
+                fileNode._cidInfo.links.map(async (data) => {
+                    data.path = `${ipfsData.path}/${data.name}`;
+                    if (!data.type) {
+                        let node = await this.manager.getFileNode(`/${data.name}`);
+                        let isFolder = await node.isFolder();
+                        data.type = isFolder ? 'dir' : 'file'
+                    }
+                })
+            );
+        }
+        fileNode._cidInfo.path = ipfsData.path;
+        return fileNode._cidInfo;
     }
 
     private onItemClicked(data: IIPFSData) {
@@ -206,7 +241,11 @@ export class ScomIPFSMobileHome extends Module {
         this.onPreview = this.onPreview.bind(this) || this.onPreview;
         const recents = this.getAttribute('recents', true);
         const folders = this.getAttribute('folders', true);
+        this.transportEndpoint = this.getAttribute('transportEndpoint', true);
         this.setData({ recents, folders });
+        this._manager = new IPFS.FileManager({
+            endpoint: this.transportEndpoint
+        });
     }
 
     render() {

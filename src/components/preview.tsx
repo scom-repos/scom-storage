@@ -10,7 +10,7 @@ import {
 import { customLinkStyle } from './index.css'
 import { getFileContent } from '../data'
 import { getEmbedElement } from '../utils';
-import { IPreview } from '../inteface';
+import { IPreview } from '../interface';
 const Theme = Styles.Theme.ThemeVars
 
 interface ScomIPFSPreviewElement extends ControlElement {

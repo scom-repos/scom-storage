@@ -1,5 +1,5 @@
-/// <amd-module name="@scom/scom-storage/inteface.ts" />
-declare module "@scom/scom-storage/inteface.ts" {
+/// <amd-module name="@scom/scom-storage/interface.ts" />
+declare module "@scom/scom-storage/interface.ts" {
     export interface IIPFSData {
         cid: string;
         name?: string;
@@ -25,7 +25,7 @@ declare module "@scom/scom-storage/inteface.ts" {
 }
 /// <amd-module name="@scom/scom-storage/data.ts" />
 declare module "@scom/scom-storage/data.ts" {
-    import { IIPFSData, IStorageConfig } from "@scom/scom-storage/inteface.ts";
+    import { IIPFSData, IStorageConfig } from "@scom/scom-storage/interface.ts";
     export const IPFS_GATEWAY = "https://ipfs.scom.dev/ipfs/";
     export const autoRetryGetContent: (cid: string) => Promise<IIPFSData>;
     export const fetchData: (data: IStorageConfig) => Promise<IIPFSData>;
@@ -46,11 +46,12 @@ declare module "@scom/scom-storage/components/index.css.ts" {
     export const transitionStyle: string;
     export const addressPanelStyle: string;
     export const customLinkStyle: string;
+    export const uploadModalStyle: string;
 }
 /// <amd-module name="@scom/scom-storage/components/path.tsx" />
 declare module "@scom/scom-storage/components/path.tsx" {
     import { Container, ControlElement, Module } from '@ijstech/components';
-    import { IIPFSData } from "@scom/scom-storage/inteface.ts";
+    import { IIPFSData } from "@scom/scom-storage/interface.ts";
     interface ScomIPFSPathElement extends ControlElement {
         data?: IIPFSData;
         onItemClicked?: (data: IIPFSData) => void;
@@ -87,7 +88,7 @@ declare module "@scom/scom-storage/components/path.tsx" {
 /// <amd-module name="@scom/scom-storage/components/folder.tsx" />
 declare module "@scom/scom-storage/components/folder.tsx" {
     import { Container, ControlElement, Module } from '@ijstech/components';
-    import { FileType, IIPFSData } from "@scom/scom-storage/inteface.ts";
+    import { FileType, IIPFSData } from "@scom/scom-storage/interface.ts";
     type callbackType = (data: IIPFSData) => Promise<IIPFSData>;
     interface ScomIPFSFolderElement extends ControlElement {
         data?: IFolderData;
@@ -120,9 +121,8 @@ declare module "@scom/scom-storage/components/folder.tsx" {
         private mode;
         private searchTimer;
         private sortMapping;
-        private cidMapping;
         private pathMapping;
-        private currentPath;
+        private _currentPath;
         onFetchData: callbackType;
         onClose: () => void;
         onItemClicked: (data: IIPFSData) => void;
@@ -136,6 +136,7 @@ declare module "@scom/scom-storage/components/folder.tsx" {
         set title(value: string);
         get filteredList(): any[];
         get isGridMode(): boolean;
+        get currentPath(): string;
         setData(data: IFolderData): void;
         updatePath(data: IIPFSData): void;
         private renderUI;
@@ -155,11 +156,12 @@ declare module "@scom/scom-storage/components/folder.tsx" {
 /// <amd-module name="@scom/scom-storage/components/home.tsx" />
 declare module "@scom/scom-storage/components/home.tsx" {
     import { Container, ControlElement, Module } from '@ijstech/components';
-    import { IIPFSData, IPreview } from "@scom/scom-storage/inteface.ts";
+    import { IIPFSData, IPreview } from "@scom/scom-storage/interface.ts";
     type previewCallback = (data: IPreview) => void;
     interface ScomIPFSMobileHomeElement extends ControlElement {
         recents?: IIPFSData[];
         folders?: IIPFSData[];
+        transportEndpoint?: string;
         onPreview?: previewCallback;
     }
     global {
@@ -176,7 +178,9 @@ declare module "@scom/scom-storage/components/home.tsx" {
     }
     export class ScomIPFSMobileHome extends Module {
         private mobileFolder;
+        private _manager;
         private _data;
+        private _transportEndpoint;
         onPreview: previewCallback;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomIPFSMobileHomeElement, parent?: Container): Promise<ScomIPFSMobileHome>;
@@ -184,12 +188,117 @@ declare module "@scom/scom-storage/components/home.tsx" {
         set recents(value: any[]);
         get folders(): any[];
         set folders(value: any[]);
-        setData(data: IHomeData): void;
+        get transportEndpoint(): string;
+        set transportEndpoint(value: string);
+        get manager(): any;
+        get currentPath(): string;
+        setData(data: IHomeData): Promise<void>;
         private onFetchData;
         private onItemClicked;
         init(): void;
         render(): any;
     }
+}
+/// <amd-module name="@scom/scom-storage/components/uploadModal.tsx" />
+declare module "@scom/scom-storage/components/uploadModal.tsx" {
+    import { ControlElement, Module, Container } from '@ijstech/components';
+    interface ICidInfo {
+        cid: string;
+        links?: ICidInfo[];
+        name?: string;
+        size: number;
+        type?: 'dir' | 'file';
+    }
+    type BeforeUploadedCallback = (target: ScomIPFSUploadModal, data: ICidInfo) => void;
+    type UploadedCallback = (target: ScomIPFSUploadModal, file: File, cid: string) => void;
+    interface ScomIPFSUploadModalElement extends ControlElement {
+        rootCid?: string;
+        parentDir?: Partial<ICidInfo>;
+        onBeforeUploaded: BeforeUploadedCallback;
+        onUploaded?: UploadedCallback;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-scom-ipfs--upload-modal']: ScomIPFSUploadModalElement;
+            }
+        }
+    }
+    export interface IIPFSItem {
+        cid: string;
+        name: string;
+        size: number;
+        type: 'dir' | 'file';
+        links?: IIPFSItem[];
+    }
+    export interface IUploadResult {
+        success: boolean;
+        error?: string;
+        data?: IIPFSItem;
+    }
+    export class ScomIPFSUploadModal extends Module {
+        private fileUploader;
+        private imgFile;
+        private lblDrag;
+        private pnlStatusFilter;
+        private pnlFilterBar;
+        private pnlFilterActions;
+        private pnlFileList;
+        private btnUpload;
+        private pnlNote;
+        private pnlPagination;
+        private _rootCid;
+        private _parentDir;
+        onBeforeUploaded: BeforeUploadedCallback;
+        onUploaded: UploadedCallback;
+        private isForcedCancelled;
+        private currentRequest;
+        private currentPage;
+        private currentFilterStatus;
+        private files;
+        private fileListData;
+        private _manager;
+        private folderPath;
+        constructor(parent?: Container, options?: any);
+        get rootCid(): string;
+        set rootCid(value: string);
+        get parentDir(): Partial<ICidInfo>;
+        set parentDir(value: Partial<ICidInfo>);
+        get manager(): any;
+        set manager(value: any);
+        show(path: string): void;
+        private onBeforeDrop;
+        private onBeforeUpload;
+        private filteredFileListData;
+        private numPages;
+        private setCurrentPage;
+        private get isSmallWidth();
+        private renderFilterBar;
+        private renderFileList;
+        private formatBytes;
+        private renderStatus;
+        private getPagination;
+        private renderPagination;
+        private onChangeCurrentFilterStatus;
+        private onClear;
+        private onCancel;
+        private onChangeFile;
+        private updateBtnCaption;
+        private onRemove;
+        private onRemoveFile;
+        private getDirItems;
+        private onUpload;
+        reset(): void;
+        private toggle;
+        init(): Promise<void>;
+        render(): any;
+    }
+}
+/// <amd-module name="@scom/scom-storage/components/index.ts" />
+declare module "@scom/scom-storage/components/index.ts" {
+    export { ScomIPFSMobileHome } from "@scom/scom-storage/components/home.tsx";
+    export { ScomIPFSPath } from "@scom/scom-storage/components/path.tsx";
+    export { ScomIPFSUploadModal } from "@scom/scom-storage/components/uploadModal.tsx";
 }
 /// <amd-module name="@scom/scom-storage/index.css.ts" />
 declare module "@scom/scom-storage/index.css.ts" {
@@ -204,7 +313,7 @@ declare module "@scom/scom-storage/utils.ts" {
 /// <amd-module name="@scom/scom-storage/components/preview.tsx" />
 declare module "@scom/scom-storage/components/preview.tsx" {
     import { Container, ControlElement, Module } from '@ijstech/components';
-    import { IPreview } from "@scom/scom-storage/inteface.ts";
+    import { IPreview } from "@scom/scom-storage/interface.ts";
     interface ScomIPFSPreviewElement extends ControlElement {
         cid?: string;
         name?: string;
@@ -242,9 +351,10 @@ declare module "@scom/scom-storage/components/preview.tsx" {
 /// <amd-module name="@scom/scom-storage" />
 declare module "@scom/scom-storage" {
     import { Module, ControlElement, IDataSchema } from '@ijstech/components';
-    import { IIPFSData } from "@scom/scom-storage/inteface.ts";
+    import { IIPFSData } from "@scom/scom-storage/interface.ts";
     interface ScomStorageElement extends ControlElement {
         cid?: string;
+        transportEndpoint?: string;
     }
     global {
         namespace JSX {
@@ -260,6 +370,7 @@ declare module "@scom/scom-storage" {
         private gridWrapper;
         private iePreview;
         private bdPreview;
+        private uploadModal;
         tag: any;
         private _data;
         private fileTable;
@@ -269,6 +380,8 @@ declare module "@scom/scom-storage" {
         private _uploadedFileNodes;
         private currentParentDir;
         private breadcrumb;
+        private transportEndpoint;
+        private manager;
         private setData;
         private getData;
         getConfigurators(): {

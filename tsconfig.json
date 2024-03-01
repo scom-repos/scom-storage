@@ -14,7 +14,11 @@
       "paths": {
         "@ijstech/components": ["node_modules/@ijstech/components"],
         "@scom-storage/*": ["src/*"],
-      }
+      },
+      "types": [
+        // ... your other types
+        "node"
+      ]
     },
     "include": ["src/*.tsx", "src/*.ts"],
     "exclude": ["node_modules"]
