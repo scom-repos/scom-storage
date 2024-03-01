@@ -21,5 +21,5 @@ export interface IStorageConfig {
 }
 
 export interface IPreview extends IIPFSData {
-    rootCid?: string;
+    transportEndpoint?: string;
 }
