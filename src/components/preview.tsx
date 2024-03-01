@@ -8,14 +8,14 @@ import {
   Styles,
 } from '@ijstech/components'
 import { customLinkStyle } from './index.css'
-import { getFileContent, IPFS_GATEWAY } from '../data'
+import { formatBytes, IPFS_GATEWAY } from '../data'
 import { getEmbedElement } from '../utils';
 import { IPreview } from '../interface';
 const Theme = Styles.Theme.ThemeVars
 
 interface ScomIPFSPreviewElement extends ControlElement {
-  cid?: string
-  name?: string
+  data?: IPreview;
+  onClose?: () => void
 }
 
 declare global {
@@ -29,14 +29,18 @@ declare global {
 @customElements('i-scom-ipfs--preview')
 export class ScomIPFSPreview extends Module {
   private pnlPreview: Panel;
+  private lblName: Label;
+  private lblSize: Label;
 
   private _data: IPreview = {
     cid: '',
     name: ''
   }
+  onClose: () => void
 
   constructor(parent?: Container, options?: any) {
     super(parent, options)
+    this.onClosePreview = this.onClosePreview.bind(this)
   }
 
   static async create(options?: ScomIPFSPreviewElement, parent?: Container) {
@@ -45,32 +49,40 @@ export class ScomIPFSPreview extends Module {
     return self
   }
 
-  get name() {
-    return this._data.name
+  get data() {
+    return this._data
   }
-  set name(value: string) {
-    this._data.name = value
+  set data(value: IPreview) {
+    this._data = value
   }
 
-  get cid() {
-    return this._data.cid
+  get rootCid(): string {
+    return this._data?.rootCid
   }
-  set cid(value: string) {
-    this._data.cid = value
+  set rootCid(value: string) {
+    this._data.rootCid = value
   }
 
   setData(value: IPreview) {
-    this._data = value
+    this.data = value
     this.renderUI()
   }
 
   clear() {
     this.pnlPreview.clearInnerHTML()
+    this.lblName.caption = ''
+    this.lblSize.caption = ''
   }
 
   private renderUI() {
     this.clear();
     this.previewFile();
+    this.renderFileInfo();
+  }
+
+  private renderFileInfo() {
+    this.lblName.caption = this._data?.name || '';
+    this.lblSize.caption = formatBytes(this._data?.size || 0);
   }
 
   private async previewFile() {
@@ -83,11 +95,10 @@ export class ScomIPFSPreview extends Module {
         const isHTML = content.indexOf('<html') > -1
         if (isHTML) {
           content = content.replace(/\</g, '&lt;').replace(/\>/g, '&gt;')
-          console.log(content)
         }
         this.appendLabel(content)
       } else {
-        this.appendLabel('No preview available')
+        this.renderFilePreview()
       }
     } catch (error) {}
   }
@@ -109,19 +120,20 @@ export class ScomIPFSPreview extends Module {
     if (imgExts.includes(ext)) {
       moduleData = this.createImageElement(url)
     } else if (videodExts.includes(ext)) {
-      moduleData = this.createVideoElement(url)
+      const videoUrl = '//d2zihajmogu5jn.cloudfront.net/elephantsdream/ed_hd.mp4'
+      moduleData = this.createVideoElement(videoUrl)
     } else if (audioExts.includes(ext)) {
       moduleData = this.createVideoElement(url)
     } else if (streamingExts.includes(ext)) {
       moduleData = this.createPlayerElement(url)
     } else {
-      const result = await getFileContent(cid)
-      if (!result) return null
-      if (mdExts.includes(ext)) {
-        moduleData = this.createTextElement(result)
-      } else {
-        moduleData = { module: '', data: result }
-      }
+      // const result = await getFileContent(cid)
+      // if (!result) return null
+      // if (mdExts.includes(ext)) {
+      //   moduleData = this.createTextElement(result)
+      // } else {
+      //   moduleData = { module: '', data: result }
+      // }
     }
     return moduleData
   }
@@ -147,6 +159,17 @@ export class ScomIPFSPreview extends Module {
       })
     label.caption = text
     this.pnlPreview.appendChild(label)
+  }
+
+  private renderFilePreview() {
+    const wrapper = <i-panel width={'100%'}>
+      <i-hstack
+        horizontalAlignment='center'
+      >
+        <i-icon width={'3rem'} height={'3rem'} name="file"></i-icon>
+      </i-hstack>
+    </i-panel>
+    this.pnlPreview.appendChild(wrapper)
   }
 
   private createTextElement(text: string) {
@@ -215,23 +238,84 @@ export class ScomIPFSPreview extends Module {
     }
   }
 
+  private onClosePreview() {
+    if (this.onClose) this.onClose()
+  }
+
   init() {
     super.init()
-    const name = this.getAttribute('name', true)
-    const cid = this.getAttribute('cid', true)
-    this.setData({ name, cid })
+    this.onClose = this.getAttribute('onClose', true) || this.onClose
+    const data = this.getAttribute('data', true)
+    if (data) this.setData(data)
   }
 
   render() {
     return (
       <i-vstack
-        id={'pnlPreview'}
         width={'100%'}
         height={'100%'}
-        overflow={{ y: 'auto' }}
-        padding={{ left: '1rem', right: '1rem', top: '1rem', bottom: '1rem' }}
-        verticalAlignment='center' horizontalAlignment='center'
-      ></i-vstack>
+        padding={{ left: '1rem', right: '1rem' }}
+      >
+        <i-hstack
+          width={'100%'} height={'2.188rem'}
+          verticalAlignment='center' horizontalAlignment='space-between'
+          border={{bottom: {width: '1px', style: 'solid', color: Theme.divider}}}
+          mediaQueries={[
+            {
+              maxWidth: '767px',
+              properties: {
+                visible: false,
+                maxWidth: '100%'
+              }
+            }
+          ]}
+        >
+          <i-hstack
+            verticalAlignment='center'
+            gap="0.5rem"
+          >
+            <i-icon name="file-alt" width={'0.875rem'} height={'0.875rem'} stack={{shrink: '0'}} opacity={0.7}></i-icon>
+            <i-label caption={'File Preview'} font={{size: '1rem'}}></i-label>
+          </i-hstack>
+          <i-icon
+            name="times"
+            width={'0.875rem'}
+            height={'0.875rem'}
+            stack={{shrink: '0'}}
+            opacity={0.7}
+            cursor='pointer'
+            onClick={this.onClosePreview}
+          ></i-icon>
+        </i-hstack>
+        <i-vstack
+          stack={{ shrink: '1', grow: '1' }}
+          overflow={{ y: 'auto' }}
+          padding={{ top: '1.5rem', bottom: '1.5rem' }}
+          gap={'1.5rem'}
+        >
+          <i-panel
+            id={'pnlPreview'}
+            width={'100%'}
+          ></i-panel>
+          <i-vstack
+            width={'100%'}
+            gap="0.5rem"
+            padding={{bottom: '1.25rem', top: '1.25rem'}}
+            border={{top: {width: '1px', style: 'solid', color: Theme.divider}}}
+          >
+            <i-label id="lblName"
+              font={{size: '1rem', weight: 600}}
+              wordBreak='break-all'
+              lineHeight={1.2}
+            ></i-label>
+            <i-label
+              id="lblSize"
+              font={{size: `0.75rem`}}
+              opacity={0.7}
+            ></i-label>
+          </i-vstack>
+        </i-vstack>
+      </i-vstack>
     )
   }
 }

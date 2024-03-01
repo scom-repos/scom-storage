@@ -15,7 +15,7 @@ export default class Module1 extends Module {
         return (
             <i-panel width="100%" height="100%">
                 <i-scom-storage
-                    cid="bafybeiadhh6b33tyybyi6gp6tcykcyak3fyqkqt4a5iz6cvkkd476jdkea"
+                    cid="bafybeigqp3wtqc3csdjxoxhmifpqzpa5m6kex6i3mik6cyei2pdeyev2o4"
                     transportEndpoint="http://localhost:8088"
                 ></i-scom-storage>
             </i-panel>

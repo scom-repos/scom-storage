@@ -1392,34 +1392,42 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 cid: '',
                 name: ''
             };
+            this.onClosePreview = this.onClosePreview.bind(this);
         }
         static async create(options, parent) {
             let self = new this(parent, options);
             await self.ready();
             return self;
         }
-        get name() {
-            return this._data.name;
+        get data() {
+            return this._data;
         }
-        set name(value) {
-            this._data.name = value;
+        set data(value) {
+            this._data = value;
         }
-        get cid() {
-            return this._data.cid;
+        get rootCid() {
+            return this._data?.rootCid;
         }
-        set cid(value) {
-            this._data.cid = value;
+        set rootCid(value) {
+            this._data.rootCid = value;
         }
         setData(value) {
-            this._data = value;
+            this.data = value;
             this.renderUI();
         }
         clear() {
             this.pnlPreview.clearInnerHTML();
+            this.lblName.caption = '';
+            this.lblSize.caption = '';
         }
         renderUI() {
             this.clear();
             this.previewFile();
+            this.renderFileInfo();
+        }
+        renderFileInfo() {
+            this.lblName.caption = this._data?.name || '';
+            this.lblSize.caption = (0, data_2.formatBytes)(this._data?.size || 0);
         }
         async previewFile() {
             try {
@@ -1432,12 +1440,11 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                     const isHTML = content.indexOf('<html') > -1;
                     if (isHTML) {
                         content = content.replace(/\</g, '&lt;').replace(/\>/g, '&gt;');
-                        console.log(content);
                     }
                     this.appendLabel(content);
                 }
                 else {
-                    this.appendLabel('No preview available');
+                    this.renderFilePreview();
                 }
             }
             catch (error) { }
@@ -1461,7 +1468,8 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 moduleData = this.createImageElement(url);
             }
             else if (videodExts.includes(ext)) {
-                moduleData = this.createVideoElement(url);
+                const videoUrl = '//d2zihajmogu5jn.cloudfront.net/elephantsdream/ed_hd.mp4';
+                moduleData = this.createVideoElement(videoUrl);
             }
             else if (audioExts.includes(ext)) {
                 moduleData = this.createVideoElement(url);
@@ -1470,15 +1478,13 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 moduleData = this.createPlayerElement(url);
             }
             else {
-                const result = await (0, data_2.getFileContent)(cid);
-                if (!result)
-                    return null;
-                if (mdExts.includes(ext)) {
-                    moduleData = this.createTextElement(result);
-                }
-                else {
-                    moduleData = { module: '', data: result };
-                }
+                // const result = await getFileContent(cid)
+                // if (!result) return null
+                // if (mdExts.includes(ext)) {
+                //   moduleData = this.createTextElement(result)
+                // } else {
+                //   moduleData = { module: '', data: result }
+                // }
             }
             return moduleData;
         }
@@ -1493,6 +1499,12 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             });
             label.caption = text;
             this.pnlPreview.appendChild(label);
+        }
+        renderFilePreview() {
+            const wrapper = this.$render("i-panel", { width: '100%' },
+                this.$render("i-hstack", { horizontalAlignment: 'center' },
+                    this.$render("i-icon", { width: '3rem', height: '3rem', name: "file" })));
+            this.pnlPreview.appendChild(wrapper);
         }
         createTextElement(text) {
             return {
@@ -1556,14 +1568,37 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 },
             };
         }
+        onClosePreview() {
+            if (this.onClose)
+                this.onClose();
+        }
         init() {
             super.init();
-            const name = this.getAttribute('name', true);
-            const cid = this.getAttribute('cid', true);
-            this.setData({ name, cid });
+            this.onClose = this.getAttribute('onClose', true) || this.onClose;
+            const data = this.getAttribute('data', true);
+            if (data)
+                this.setData(data);
         }
         render() {
-            return (this.$render("i-vstack", { id: 'pnlPreview', width: '100%', height: '100%', overflow: { y: 'auto' }, padding: { left: '1rem', right: '1rem', top: '1rem', bottom: '1rem' }, verticalAlignment: 'center', horizontalAlignment: 'center' }));
+            return (this.$render("i-vstack", { width: '100%', height: '100%', padding: { left: '1rem', right: '1rem' } },
+                this.$render("i-hstack", { width: '100%', height: '2.188rem', verticalAlignment: 'center', horizontalAlignment: 'space-between', border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } }, mediaQueries: [
+                        {
+                            maxWidth: '767px',
+                            properties: {
+                                visible: false,
+                                maxWidth: '100%'
+                            }
+                        }
+                    ] },
+                    this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
+                        this.$render("i-icon", { name: "file-alt", width: '0.875rem', height: '0.875rem', stack: { shrink: '0' }, opacity: 0.7 }),
+                        this.$render("i-label", { caption: 'File Preview', font: { size: '1rem' } })),
+                    this.$render("i-icon", { name: "times", width: '0.875rem', height: '0.875rem', stack: { shrink: '0' }, opacity: 0.7, cursor: 'pointer', onClick: this.onClosePreview })),
+                this.$render("i-vstack", { stack: { shrink: '1', grow: '1' }, overflow: { y: 'auto' }, padding: { top: '1.5rem', bottom: '1.5rem' }, gap: '1.5rem' },
+                    this.$render("i-panel", { id: 'pnlPreview', width: '100%' }),
+                    this.$render("i-vstack", { width: '100%', gap: "0.5rem", padding: { bottom: '1.25rem', top: '1.25rem' }, border: { top: { width: '1px', style: 'solid', color: Theme.divider } } },
+                        this.$render("i-label", { id: "lblName", font: { size: '1rem', weight: 600 }, wordBreak: 'break-all', lineHeight: 1.2 }),
+                        this.$render("i-label", { id: "lblSize", font: { size: `0.75rem` }, opacity: 0.7 })))));
         }
     };
     ScomIPFSPreview = __decorate([
@@ -1988,14 +2023,12 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.onOpenFolder(record, true);
             }
             else {
-                const { cid, name } = record;
-                this.previewFile({ cid, name });
+                this.previewFile(record);
             }
         }
         previewFile(record) {
-            const { cid, name } = record;
             this.iePreview.visible = true;
-            this.iePreview.setData({ cid, name });
+            this.iePreview.setData(record);
             if (window.matchMedia('(max-width: 767px)').matches) {
                 this.iePreview.openModal({
                     width: '100vw',
@@ -2012,13 +2045,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     onClose: () => {
                         if (!window.matchMedia('(max-width: 767px)').matches) {
                             this.gridWrapper.appendChild(this.iePreview);
-                            this.iePreview.visible = false;
-                            this.bdPreview.visible = false;
-                            this.gridWrapper.templateColumns = [
-                                '15rem',
-                                '1px',
-                                '1fr'
-                            ];
+                            this.closePreview();
                         }
                     }
                 });
@@ -2035,6 +2062,15 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     '20rem'
                 ];
             }
+        }
+        closePreview() {
+            this.iePreview.visible = false;
+            this.bdPreview.visible = false;
+            this.gridWrapper.templateColumns = [
+                '15rem',
+                '1px',
+                '1fr'
+            ];
         }
         onBreadcrumbClick({ cid, path }) {
             if (this.uploadedFileTree.activeItem)
@@ -2120,7 +2156,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                         }
                                     }
                                 ] }),
-                            this.$render("i-scom-ipfs--preview", { id: "iePreview", width: '100%', height: '100%', display: 'block', visible: false })))),
+                            this.$render("i-scom-ipfs--preview", { id: "iePreview", width: '100%', height: '100%', display: 'block', visible: false, onClose: this.closePreview.bind(this) })))),
                 this.$render("i-button", { boxShadow: '0 10px 25px -5px rgba(44, 179, 240, 0.6)', border: { radius: '50%' }, background: { color: Theme.colors.primary.light }, lineHeight: '3.375rem', width: '3.375rem', height: '3.375rem', icon: { name: 'plus', width: '1.125rem', height: ' 1.125rem', fill: Theme.colors.primary.contrastText }, position: 'absolute', bottom: '3.125rem', right: '3.125rem', zIndex: 100, onClick: this.onOpenUploadModal, mediaQueries: [
                         {
                             maxWidth: '767px',
