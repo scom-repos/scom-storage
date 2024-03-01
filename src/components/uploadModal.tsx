@@ -20,8 +20,7 @@ import {
 import assets from '../assets';
 import { uploadModalStyle } from './index.css';
 
-declare var require: any
-const IPFSUtils = require('@ijstech/ipfs');
+declare var require: any;
 
 const Theme = Styles.Theme.ThemeVars;
 

@@ -594,7 +594,6 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSMobileHome = void 0;
     const Theme = components_5.Styles.Theme.ThemeVars;
-    const IPFSUtils = require('@ijstech/ipfs');
     let ScomIPFSMobileHome = class ScomIPFSMobileHome extends components_5.Module {
         constructor(parent, options) {
             super(parent, options);
@@ -765,7 +764,7 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
             const folders = this.getAttribute('folders', true);
             this.transportEndpoint = this.getAttribute('transportEndpoint', true);
             this.setData({ recents, folders });
-            this._manager = new IPFSUtils.FileManager({
+            this._manager = new components_5.IPFS.FileManager({
                 endpoint: this.transportEndpoint
             });
         }
@@ -785,7 +784,6 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSUploadModal = void 0;
-    const IPFSUtils = require('@ijstech/ipfs');
     const Theme = components_6.Styles.Theme.ThemeVars;
     var FILE_STATUS;
     (function (FILE_STATUS) {
@@ -1323,7 +1321,6 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomStorage = void 0;
-    const IPFSUtils = require('@ijstech/ipfs');
     const Theme = components_8.Styles.Theme.ThemeVars;
     const defaultColors = {
         light: {
@@ -1747,7 +1744,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.classList.add(index_css_4.default);
             this.setTag(defaultColors);
             const cid = this.getAttribute('cid', true);
-            this.manager = new IPFSUtils.FileManager({
+            this.manager = new components_8.IPFS.FileManager({
                 endpoint: this.transportEndpoint,
                 rootCid: cid
             });

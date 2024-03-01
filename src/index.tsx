@@ -9,6 +9,7 @@ import {
     customElements,
     ControlElement,
     IDataSchema,
+    IPFS
 } from '@ijstech/components';
 import { IIPFSData, IStorageConfig, ITableData } from './interface';
 import { autoRetryGetContent, fetchData, formatBytes } from './data';
@@ -16,7 +17,6 @@ import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal } from './compone
 import customStyles from './index.css';
 
 declare var require: any
-const IPFSUtils = require('@ijstech/ipfs');
 
 const Theme = Styles.Theme.ThemeVars;
 
@@ -493,7 +493,7 @@ export class ScomStorage extends Module {
         this.classList.add(customStyles);
         this.setTag(defaultColors);
         const cid = this.getAttribute('cid', true);
-        this.manager = new IPFSUtils.FileManager({
+        this.manager = new IPFS.FileManager({
             endpoint: this.transportEndpoint,
             rootCid: cid
         });

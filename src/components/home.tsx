@@ -5,7 +5,8 @@ import {
     customElements,
     Module,
     Styles,
-    VStack
+    VStack,
+    IPFS
 } from '@ijstech/components';
 import { autoRetryGetContent, formatBytes } from '../data';
 import { IIPFSData } from '../interface';
@@ -33,8 +34,7 @@ interface IHomeData {
     parentNode?: IIPFSData;
 }
 
-declare var require: any
-const IPFSUtils = require('@ijstech/ipfs');
+declare var require: any;
 
 @customElements('i-scom-ipfs--mobile-home')
 export class ScomIPFSMobileHome extends Module {
@@ -232,7 +232,7 @@ export class ScomIPFSMobileHome extends Module {
         const folders = this.getAttribute('folders', true);
         this.transportEndpoint = this.getAttribute('transportEndpoint', true);
         this.setData({ recents, folders });
-        this._manager = new IPFSUtils.FileManager({
+        this._manager = new IPFS.FileManager({
             endpoint: this.transportEndpoint
         });
     }
