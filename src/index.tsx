@@ -449,7 +449,7 @@ export class ScomStorage extends Module {
                 fileNode._cidInfo.links.map(async (data) => {
                     data.path = `${ipfsData.path}/${data.name}`;
                     if (!data.type) {
-                        let node = await this.manager.getFileNode(`/${data.name}`);
+                        let node = await this.manager.getFileNode(data.path);
                         let isFolder = await node.isFolder();
                         data.type = isFolder ? 'dir' : 'file'
                     }

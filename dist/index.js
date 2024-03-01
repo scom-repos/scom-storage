@@ -777,7 +777,7 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
                 await Promise.all(fileNode._cidInfo.links.map(async (data) => {
                     data.path = `${ipfsData.path}/${data.name}`;
                     if (!data.type) {
-                        let node = await this.manager.getFileNode(`/${data.name}`);
+                        let node = await this.manager.getFileNode(data.path);
                         let isFolder = await node.isFolder();
                         data.type = isFolder ? 'dir' : 'file';
                     }
@@ -1311,7 +1311,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                         this.$render("i-panel", { id: "pnlFilterActions", class: "filter-actions", margin: { left: 'auto' } })),
                     this.$render("i-vstack", { id: "pnlFileList", class: "filelist", gap: "0.5rem" }),
                     this.$render("i-panel", { id: "pnlPagination", class: "pagination" }),
-                    this.$render("i-button", { id: "btnUpload", class: "upload-btn", caption: "Upload files to IPFS", boxShadow: "none", background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, visible: false, onClick: this.onUpload.bind(this) })),
+                    this.$render("i-button", { id: "btnUpload", class: "upload-btn", caption: "Upload files to IPFS", boxShadow: "none", background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, visible: false, onClick: this.onUpload })),
                 this.$render("i-panel", { id: "pnlNote" },
                     this.$render("i-panel", { class: "note" },
                         this.$render("i-label", { class: "head", caption: "Public Data" }),
@@ -1953,7 +1953,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 await Promise.all(fileNode._cidInfo.links.map(async (data) => {
                     data.path = `${ipfsData.path}/${data.name}`;
                     if (!data.type) {
-                        let node = await this.manager.getFileNode(`/${data.name}`);
+                        let node = await this.manager.getFileNode(data.path);
                         let isFolder = await node.isFolder();
                         data.type = isFolder ? 'dir' : 'file';
                     }
