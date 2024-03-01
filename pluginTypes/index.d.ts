@@ -24,11 +24,6 @@ declare module "@scom/scom-storage/interface.ts" {
 }
 /// <amd-module name="@scom/scom-storage/data.ts" />
 declare module "@scom/scom-storage/data.ts" {
-    import { IIPFSData, IStorageConfig } from "@scom/scom-storage/interface.ts";
-    export const IPFS_GATEWAY = "https://ipfs.scom.dev/ipfs/";
-    export const autoRetryGetContent: (cid: string) => Promise<IIPFSData>;
-    export const fetchData: (data: IStorageConfig) => Promise<IIPFSData>;
-    export const getFileContent: (cid: string) => Promise<string>;
     export const formatBytes: (bytes: any, decimals?: number) => string;
 }
 /// <amd-module name="@scom/scom-storage/assets.ts" />
@@ -181,6 +176,7 @@ declare module "@scom/scom-storage/components/home.tsx" {
         private _manager;
         private _data;
         private _transportEndpoint;
+        private _currentCid;
         onPreview: previewCallback;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomIPFSMobileHomeElement, parent?: Container): Promise<ScomIPFSMobileHome>;
@@ -192,6 +188,7 @@ declare module "@scom/scom-storage/components/home.tsx" {
         set transportEndpoint(value: string);
         get manager(): any;
         get currentPath(): string;
+        get currentCid(): string;
         setData(data: IHomeData): Promise<void>;
         private onFetchData;
         private onItemClicked;
@@ -347,6 +344,7 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         private createVideoElement;
         private createPlayerElement;
         private onClosePreview;
+        private downloadFile;
         init(): void;
         render(): any;
     }
@@ -381,6 +379,7 @@ declare module "@scom/scom-storage" {
         private _uploadedTreeData;
         private _uploadedFileNodes;
         private transportEndpoint;
+        private currentCid;
         private manager;
         private setData;
         private getData;

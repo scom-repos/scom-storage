@@ -8,7 +8,6 @@ import {
     VStack,
     IPFS
 } from '@ijstech/components';
-import { autoRetryGetContent, formatBytes } from '../data';
 import { IIPFSData, IPreview } from '../interface';
 import { ScomIPFSFolder } from './folder';
 import { backgroundStyle } from './index.css';
@@ -49,6 +48,7 @@ export class ScomIPFSMobileHome extends Module {
 
     private _data: IHomeData;
     private _transportEndpoint: string;
+    private _currentCid: string;
     onPreview: previewCallback;
 
     constructor(parent?: Container, options?: any) {
@@ -88,6 +88,10 @@ export class ScomIPFSMobileHome extends Module {
 
     get currentPath() {
         return this.mobileFolder.currentPath;
+    }
+
+    get currentCid() {
+        return this._currentCid;
     }
 
     async setData(data: IHomeData) {
@@ -234,6 +238,8 @@ export class ScomIPFSMobileHome extends Module {
         if (data.type === 'file') {
             const { cid, name } = data;
             this.onPreview({ cid, name });
+        } else {
+            this._currentCid = data.cid;
         }
     }
 

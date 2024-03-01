@@ -11,51 +11,8 @@ define("@scom/scom-storage/interface.ts", ["require", "exports"], function (requ
 define("@scom/scom-storage/data.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.formatBytes = exports.getFileContent = exports.fetchData = exports.autoRetryGetContent = exports.IPFS_GATEWAY = void 0;
-    exports.IPFS_GATEWAY = 'https://ipfs.scom.dev/ipfs/';
-    const autoRetryGetContent = async (cid) => {
-        return new Promise((resolve, reject) => {
-            const load = async (counter) => {
-                try {
-                    if (counter >= 10)
-                        return reject();
-                    const response = await fetch(`${exports.IPFS_GATEWAY}${cid}`);
-                    if (response.ok) {
-                        resolve(response.json());
-                    }
-                    else {
-                        return load(++counter);
-                    }
-                }
-                catch (e) {
-                    return load(++counter);
-                }
-            };
-            load(0);
-        });
-    };
-    exports.autoRetryGetContent = autoRetryGetContent;
-    const fetchData = async (data) => {
-        if (data && data.cid)
-            return await (0, exports.autoRetryGetContent)(data.cid);
-        else
-            return null;
-    };
-    exports.fetchData = fetchData;
-    const getFileContent = async (cid) => {
-        let result = '';
-        if (cid) {
-            const response = await fetch(`${exports.IPFS_GATEWAY}${cid}`);
-            try {
-                if (response.ok) {
-                    result = await response.text();
-                }
-            }
-            catch (err) { }
-        }
-        return result;
-    };
-    exports.getFileContent = getFileContent;
+    exports.formatBytes = void 0;
+    ///<amd-module name='@scom/scom-storage/data.ts'/> 
     const formatBytes = (bytes, decimals = 2) => {
         if (!+bytes)
             return '0 Bytes';
@@ -659,6 +616,9 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
         get currentPath() {
             return this.mobileFolder.currentPath;
         }
+        get currentCid() {
+            return this._currentCid;
+        }
         async setData(data) {
             this._data = data;
             // this.mobileMain.visible = true;
@@ -795,6 +755,9 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
             if (data.type === 'file') {
                 const { cid, name } = data;
                 this.onPreview({ cid, name });
+            }
+            else {
+                this._currentCid = data.cid;
             }
         }
         init() {
@@ -1460,7 +1423,6 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             const { cid, name, path } = this._data;
             if (!cid)
                 return null;
-            const url = `${data_2.IPFS_GATEWAY}${cid}`;
             let moduleData = {
                 module: '',
                 data: null,
@@ -1473,7 +1435,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             const mdExts = ['md'];
             const mediaUrl = `${this.transportEndpoint}/ipfs/${path}`;
             if (imgExts.includes(ext)) {
-                moduleData = this.createImageElement(url);
+                moduleData = this.createImageElement(mediaUrl);
             }
             else if (videodExts.includes(ext)) {
                 moduleData = this.createVideoElement(mediaUrl);
@@ -1579,6 +1541,13 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             if (this.onClose)
                 this.onClose();
         }
+        downloadFile() {
+            let a = document.createElement('a');
+            a.href = `${this.transportEndpoint}/ipfs/${this._data.path}`;
+            a.download = this._data.name;
+            a.target = '_blank';
+            a.click();
+        }
         init() {
             super.init();
             this.onClose = this.getAttribute('onClose', true) || this.onClose;
@@ -1603,9 +1572,12 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                     this.$render("i-icon", { name: "times", width: '0.875rem', height: '0.875rem', stack: { shrink: '0' }, opacity: 0.7, cursor: 'pointer', onClick: this.onClosePreview })),
                 this.$render("i-vstack", { stack: { shrink: '1', grow: '1' }, overflow: { y: 'auto' }, padding: { top: '1.5rem', bottom: '1.5rem' }, gap: '1.5rem' },
                     this.$render("i-panel", { id: 'pnlPreview', width: '100%' }),
-                    this.$render("i-vstack", { width: '100%', gap: "0.5rem", padding: { bottom: '1.25rem', top: '1.25rem' }, border: { top: { width: '1px', style: 'solid', color: Theme.divider } } },
-                        this.$render("i-label", { id: "lblName", font: { size: '1rem', weight: 600 }, wordBreak: 'break-all', lineHeight: 1.2 }),
-                        this.$render("i-label", { id: "lblSize", font: { size: `0.75rem` }, opacity: 0.7 })))));
+                    this.$render("i-hstack", { width: '100%', padding: { bottom: '1.25rem', top: '1.25rem' }, border: { top: { width: '1px', style: 'solid', color: Theme.divider } }, horizontalAlignment: "space-between", gap: "0.5rem" },
+                        this.$render("i-vstack", { width: '100%', gap: "0.5rem" },
+                            this.$render("i-label", { id: "lblName", font: { size: '1rem', weight: 600 }, wordBreak: 'break-all', lineHeight: 1.2 }),
+                            this.$render("i-label", { id: "lblSize", font: { size: `0.75rem` }, opacity: 0.7 })),
+                        this.$render("i-hstack", { width: 35, height: 35, border: { radius: '50%' }, horizontalAlignment: "center", verticalAlignment: "center", stack: { shrink: "0" }, cursor: "pointer", background: { color: Theme.colors.secondary.main }, hover: { backgroundColor: Theme.action.hoverBackground }, onClick: this.downloadFile },
+                            this.$render("i-icon", { width: 15, height: 15, name: 'download' }))))));
         }
     };
     ScomIPFSPreview = __decorate([
@@ -1829,6 +1801,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         async initContent() {
             if (!this._data.cid)
                 return;
+            this.currentCid = this._data.cid;
             let rootNode = await this.manager.getRootNode();
             const ipfsData = rootNode._cidInfo;
             // const ipfsData = await fetchData({ cid: this._data.cid });
@@ -1943,6 +1916,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 path = this.pnlPath.data.path;
             }
             if (ipfsData) {
+                this.currentCid = ipfsData.cid;
                 const parentNode = (({ links, ...o }) => o)(ipfsData);
                 parentNode.name = parentNode.name ? parentNode.name : components_10.FormatUtils.truncateWalletAddress(parentNode.cid);
                 parentNode.path = '';
@@ -1964,6 +1938,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     this.pnlPath.setData(parentNode);
                 if (path) {
                     const childrenData = await this.onFetchData({ path: path });
+                    this.currentCid = childrenData.cid;
                     childrenData.links.map((child) => (child.path = `${parentNode.path}/${child.name}`));
                     data.push(...childrenData.links);
                     tableData = { ...childrenData };
@@ -2028,6 +2003,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         async onOpenFolder(ipfsData, toggle) {
             if (ipfsData) {
+                this.currentCid = ipfsData.cid;
                 const childrenData = await this.onFetchData(ipfsData);
                 this.onUpdateContent({ data: { ...childrenData }, toggle });
                 if (childrenData.links)
@@ -2095,7 +2071,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         previewFile(record) {
             this.pnlPreview.visible = true;
-            this.iePreview.setData({ ...record, transportEndpoint: this.transportEndpoint });
+            const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
+            this.iePreview.setData({ ...record, transportEndpoint: this.transportEndpoint, path: `${currentCid}/${record.name}` });
             if (window.matchMedia('(max-width: 767px)').matches) {
                 this.iePreview.openModal({
                     width: '100vw',

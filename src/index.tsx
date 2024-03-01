@@ -14,7 +14,7 @@ import {
     IPFS
 } from '@ijstech/components';
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
-import { autoRetryGetContent, fetchData, formatBytes } from './data';
+import { formatBytes } from './data';
 import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal } from './components';
 import customStyles from './index.css';
 import { ScomIPFSPreview } from './components/preview';
@@ -153,6 +153,7 @@ export class ScomStorage extends Module {
     private _uploadedTreeData: any = [];
     private _uploadedFileNodes: { [idx: string]: TreeNode } = {};
     private transportEndpoint: string;
+    private currentCid: string;
     private manager: any;
 
     private async setData(value: IStorageConfig) {
@@ -272,6 +273,7 @@ export class ScomStorage extends Module {
 
     private async initContent() {
         if (!this._data.cid) return;
+        this.currentCid = this._data.cid;
         let rootNode = await this.manager.getRootNode();
         const ipfsData = rootNode._cidInfo;
         // const ipfsData = await fetchData({ cid: this._data.cid });
@@ -399,6 +401,7 @@ export class ScomStorage extends Module {
         }
 
         if (ipfsData) {
+            this.currentCid = ipfsData.cid;
             const parentNode = (({ links, ...o }) => o)(ipfsData);
             parentNode.name = parentNode.name ? parentNode.name : FormatUtils.truncateWalletAddress(parentNode.cid);
             parentNode.path = '';
@@ -421,6 +424,7 @@ export class ScomStorage extends Module {
             if (parentNode.name) this.pnlPath.setData(parentNode);
             if (path) {
                 const childrenData = await this.onFetchData({ path: path });
+                this.currentCid = childrenData.cid;
                 childrenData.links.map((child) => (child.path = `${parentNode.path}/${child.name}`));
                 data.push(...childrenData.links);
                 tableData = { ...childrenData };
@@ -487,6 +491,7 @@ export class ScomStorage extends Module {
 
     private async onOpenFolder(ipfsData: any, toggle: boolean) {
         if (ipfsData) {
+            this.currentCid = ipfsData.cid;
             const childrenData = await this.onFetchData(ipfsData);
             this.onUpdateContent({ data: { ...childrenData }, toggle });
             if (childrenData.links) childrenData.links.map((child) => (child.path = `${ipfsData.path}/${child.name}`));
@@ -554,7 +559,8 @@ export class ScomStorage extends Module {
 
     private previewFile(record: IPreview) {
         this.pnlPreview.visible = true;
-        this.iePreview.setData({...record, transportEndpoint: this.transportEndpoint});
+        const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
+        this.iePreview.setData({...record, transportEndpoint: this.transportEndpoint, path: `${currentCid}/${record.name}`});
         if (window.matchMedia('(max-width: 767px)').matches) {
             this.iePreview.openModal({
                 width: '100vw',

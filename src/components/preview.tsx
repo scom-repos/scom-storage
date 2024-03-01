@@ -8,7 +8,7 @@ import {
   Styles,
 } from '@ijstech/components'
 import { customLinkStyle } from './index.css'
-import { formatBytes, IPFS_GATEWAY } from '../data'
+import { formatBytes } from '../data'
 import { getEmbedElement } from '../utils';
 import { IPreview } from '../interface';
 const Theme = Styles.Theme.ThemeVars
@@ -100,13 +100,12 @@ export class ScomIPFSPreview extends Module {
       } else {
         this.renderFilePreview()
       }
-    } catch (error) {}
+    } catch (error) { }
   }
 
   private async getModuleFromExtension() {
     const { cid, name, path } = this._data;
     if (!cid) return null
-    const url = `${IPFS_GATEWAY}${cid}`
     let moduleData = {
       module: '',
       data: null,
@@ -120,7 +119,7 @@ export class ScomIPFSPreview extends Module {
     const mediaUrl = `${this.transportEndpoint}/ipfs/${path}`
 
     if (imgExts.includes(ext)) {
-      moduleData = this.createImageElement(url)
+      moduleData = this.createImageElement(mediaUrl)
     } else if (videodExts.includes(ext)) {
       moduleData = this.createVideoElement(mediaUrl)
     } else if (audioExts.includes(ext)) {
@@ -243,6 +242,14 @@ export class ScomIPFSPreview extends Module {
     if (this.onClose) this.onClose()
   }
 
+  private downloadFile() {
+    let a = document.createElement('a');
+    a.href = `${this.transportEndpoint}/ipfs/${this._data.path}`;
+    a.download = this._data.name;
+    a.target = '_blank';
+    a.click();
+  }
+
   init() {
     super.init()
     this.onClose = this.getAttribute('onClose', true) || this.onClose
@@ -260,7 +267,7 @@ export class ScomIPFSPreview extends Module {
         <i-hstack
           width={'100%'} height={'2.188rem'}
           verticalAlignment='center' horizontalAlignment='space-between'
-          border={{bottom: {width: '1px', style: 'solid', color: Theme.divider}}}
+          border={{ bottom: { width: '1px', style: 'solid', color: Theme.divider } }}
           mediaQueries={[
             {
               maxWidth: '767px',
@@ -275,14 +282,14 @@ export class ScomIPFSPreview extends Module {
             verticalAlignment='center'
             gap="0.5rem"
           >
-            <i-icon name="file-alt" width={'0.875rem'} height={'0.875rem'} stack={{shrink: '0'}} opacity={0.7}></i-icon>
-            <i-label caption={'File Preview'} font={{size: '1rem'}}></i-label>
+            <i-icon name="file-alt" width={'0.875rem'} height={'0.875rem'} stack={{ shrink: '0' }} opacity={0.7}></i-icon>
+            <i-label caption={'File Preview'} font={{ size: '1rem' }}></i-label>
           </i-hstack>
           <i-icon
             name="times"
             width={'0.875rem'}
             height={'0.875rem'}
-            stack={{shrink: '0'}}
+            stack={{ shrink: '0' }}
             opacity={0.7}
             cursor='pointer'
             onClick={this.onClosePreview}
@@ -298,23 +305,40 @@ export class ScomIPFSPreview extends Module {
             id={'pnlPreview'}
             width={'100%'}
           ></i-panel>
-          <i-vstack
+          <i-hstack
             width={'100%'}
+            padding={{ bottom: '1.25rem', top: '1.25rem' }}
+            border={{ top: { width: '1px', style: 'solid', color: Theme.divider } }}
+            horizontalAlignment="space-between"
             gap="0.5rem"
-            padding={{bottom: '1.25rem', top: '1.25rem'}}
-            border={{top: {width: '1px', style: 'solid', color: Theme.divider}}}
           >
-            <i-label id="lblName"
-              font={{size: '1rem', weight: 600}}
-              wordBreak='break-all'
-              lineHeight={1.2}
-            ></i-label>
-            <i-label
-              id="lblSize"
-              font={{size: `0.75rem`}}
-              opacity={0.7}
-            ></i-label>
-          </i-vstack>
+            <i-vstack width={'100%'} gap="0.5rem">
+              <i-label id="lblName"
+                font={{ size: '1rem', weight: 600 }}
+                wordBreak='break-all'
+                lineHeight={1.2}
+              ></i-label>
+              <i-label
+                id="lblSize"
+                font={{ size: `0.75rem` }}
+                opacity={0.7}
+              ></i-label>
+            </i-vstack>
+            <i-hstack
+              width={35}
+              height={35}
+              border={{ radius: '50%' }}
+              horizontalAlignment="center"
+              verticalAlignment="center"
+              stack={{ shrink: "0" }}
+              cursor="pointer"
+              background={{ color: Theme.colors.secondary.main }}
+              hover={{ backgroundColor: Theme.action.hoverBackground }}
+              onClick={this.downloadFile}
+            >
+              <i-icon width={15} height={15} name='download' />
+            </i-hstack>
+          </i-hstack>
         </i-vstack>
       </i-vstack>
     )
