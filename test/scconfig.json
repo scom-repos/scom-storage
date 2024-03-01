@@ -2,6 +2,7 @@
   "env": "testnet",
   "main": "@scom/dapp",
   "assets": "@modules/assets",
+  "bundle": true,
   "moduleDir": "modules",
   "modules": {
     "@modules/assets": {
