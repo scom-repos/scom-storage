@@ -8,7 +8,7 @@ import {
   Styles,
 } from '@ijstech/components'
 import { customLinkStyle } from './index.css'
-import { getFileContent } from '../data'
+import { getFileContent, IPFS_GATEWAY } from '../data'
 import { getEmbedElement } from '../utils';
 import { IPreview } from '../interface';
 const Theme = Styles.Theme.ThemeVars
@@ -95,7 +95,7 @@ export class ScomIPFSPreview extends Module {
   private async getModuleFromExtension() {
     const { cid, name } = this._data;
     if (!cid) return null
-    const url = `https://ipfs.io/ipfs/${cid}`
+    const url = `${IPFS_GATEWAY}${cid}`
     let moduleData = {
       module: '',
       data: null,

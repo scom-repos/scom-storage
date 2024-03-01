@@ -1446,7 +1446,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             const { cid, name } = this._data;
             if (!cid)
                 return null;
-            const url = `https://ipfs.io/ipfs/${cid}`;
+            const url = `${data_2.IPFS_GATEWAY}${cid}`;
             let moduleData = {
                 module: '',
                 data: null,
