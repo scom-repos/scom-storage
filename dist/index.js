@@ -4,19 +4,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
-define("@scom/scom-storage/assets.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    const moduleDir = components_1.application.currentModuleDir;
-    function fullPath(path) {
-        return `${moduleDir}/${path}`;
-    }
-    ;
-    exports.default = {
-        fullPath
-    };
-});
-define("@scom/scom-storage/inteface.ts", ["require", "exports"], function (require, exports) {
+define("@scom/scom-storage/interface.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
 });
@@ -65,10 +53,22 @@ define("@scom/scom-storage/data.ts", ["require", "exports"], function (require, 
     };
     exports.formatBytes = formatBytes;
 });
+define("@scom/scom-storage/assets.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const moduleDir = components_1.application.currentModuleDir;
+    function fullPath(path) {
+        return `${moduleDir}/${path}`;
+    }
+    ;
+    exports.default = {
+        fullPath
+    };
+});
 define("@scom/scom-storage/components/index.css.ts", ["require", "exports", "@ijstech/components", "@scom/scom-storage/assets.ts"], function (require, exports, components_2, assets_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.addressPanelStyle = exports.transitionStyle = exports.backgroundStyle = void 0;
+    exports.uploadModalStyle = exports.addressPanelStyle = exports.transitionStyle = exports.backgroundStyle = void 0;
     const Theme = components_2.Styles.Theme.ThemeVars;
     exports.backgroundStyle = components_2.Styles.style({
         backgroundColor: Theme.divider,
@@ -93,6 +93,177 @@ define("@scom/scom-storage/components/index.css.ts", ["require", "exports", "@ij
                 whiteSpace: 'nowrap'
             }
         }
+    });
+    exports.uploadModalStyle = components_2.Styles.style({
+        $nest: {
+            '.heading': {
+                display: 'block',
+                fontSize: 'clamp(1rem, 0.875rem + 0.625vw, 1.625rem)',
+                color: Theme.colors.primary.dark,
+                marginBottom: '0.5rem',
+                fontWeight: 700,
+                lineHeight: 1.2,
+                textAlign: 'center',
+            },
+            '.label': {
+                display: 'block',
+                marginBottom: '0.5rem',
+                color: Theme.text.primary,
+                textAlign: 'center',
+            },
+            '.file-uploader-dropzone': {
+                display: 'flex',
+                flexDirection: 'column',
+                gridRowGap: '2rem',
+                rowGap: '1.5rem',
+                marginBottom: '2.5rem',
+                marginTop: '2rem',
+                $nest: {
+                    '.droparea': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexDirection: 'column',
+                        gridRowGap: '1rem',
+                        rowGap: '1rem',
+                        padding: '1.875rem 0',
+                        background: 'rgba(255,255,255,.1)',
+                        border: `1px dashed ${Theme.colors.primary.light}`,
+                        borderRadius: '0.625rem',
+                        cursor: 'pointer',
+                    },
+                    'i-upload': {
+                        position: 'absolute',
+                        top: 0,
+                        opacity: 0,
+                        minHeight: 'auto',
+                        minWidth: 'auto',
+                        margin: 0,
+                        zIndex: 1,
+                        $nest: {
+                            '.i-upload_preview-img': {
+                                display: 'none!important',
+                            },
+                        },
+                    },
+                    '.filelist': {
+                        marginBottom: '0.5rem',
+                        $nest: {
+                            '@media screen and (max-width: 767px)': {
+                                flex: '1',
+                                overflowY: 'auto'
+                            },
+                            '.file': {
+                                border: `1px solid ${Theme.divider}`,
+                                borderRadius: '0.5rem',
+                                $nest: {
+                                    '&:hover': {
+                                        border: `1px solid ${Theme.colors.primary.main}`,
+                                    }
+                                }
+                            },
+                        },
+                    },
+                    '.pagination': {
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '5px',
+                        $nest: {
+                            '@media screen and (max-width: 767px)': {
+                                display: 'none'
+                            },
+                            'i-button': {
+                                width: '24px',
+                                height: '24px',
+                                borderRadius: '50%',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                color: Theme.colors.primary.dark,
+                                backgroundColor: 'transparent',
+                                border: `1px solid ${Theme.colors.primary.dark}`,
+                                boxShadow: 'none',
+                                gap: 'unset',
+                                userSelect: 'none',
+                                $nest: {
+                                    '&.active': {
+                                        color: Theme.colors.primary.contrastText,
+                                        backgroundColor: Theme.colors.primary.dark,
+                                    },
+                                    '&.dots': {
+                                        borderColor: 'transparent',
+                                    },
+                                    'i-icon': {
+                                        height: '10px!important',
+                                        width: '12px!important',
+                                        fill: `${Theme.colors.primary.dark}!important`,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+            '.status-filter': {
+                display: 'flex',
+                justifyContent: 'space-between',
+                $nest: {
+                    '.filter-bar': {
+                        display: 'flex',
+                        gap: '10px',
+                        $nest: {
+                            '@media screen and (max-width: 767px)': {
+                                display: 'none'
+                            },
+                            '.filter-btn': {
+                                fontSize: '14px',
+                                background: 'transparent',
+                                color: Theme.text.secondary,
+                                boxShadow: 'none',
+                            },
+                            '.filter-btn.filter-btn-active': {
+                                fontWeight: 'bold',
+                                color: Theme.colors.primary.dark,
+                            },
+                        },
+                    },
+                    '.filter-actions': {
+                        $nest: {
+                            'i-button': {
+                                background: Theme.colors.primary.light,
+                                color: Theme.colors.primary.contrastText,
+                                padding: '5px 10px',
+                                fontSize: '14px',
+                                boxShadow: 'none',
+                            },
+                        },
+                    },
+                },
+            },
+            '.note': {
+                display: 'flex',
+                flexDirection: 'column',
+                lineHeight: '1.4375rem',
+                paddingLeft: '1.25rem',
+                paddingRight: '0.25rem',
+                $nest: {
+                    '&:not(:last-child)': {
+                        marginBottom: '1.5rem',
+                    },
+                    '.head': {
+                        fontSize: '14px',
+                        fontWeight: 700,
+                        color: Theme.text.primary,
+                    },
+                    '.desc': {
+                        fontSize: '12px',
+                        fontWeight: 400,
+                        letterSpacing: 0,
+                        color: Theme.text.secondary,
+                    },
+                },
+            },
+        },
     });
 });
 define("@scom/scom-storage/components/path.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts"], function (require, exports, components_3, index_css_1) {
@@ -207,7 +378,6 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             super(parent, options);
             this.mode = 'list';
             this.sortMapping = {};
-            this.cidMapping = {};
             this.pathMapping = {};
             this.onSort = this.onSort.bind(this);
             this.onChangeMode = this.onChangeMode.bind(this);
@@ -247,10 +417,13 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
         get isGridMode() {
             return this.mode === 'grid';
         }
+        get currentPath() {
+            return this._currentPath;
+        }
         setData(data) {
             this._data = data;
-            const path = this.pnlPath.data.path || 'main';
-            this.currentPath = path;
+            const path = this.pnlPath.data.path || '';
+            this._currentPath = path;
             const sortData = this.sortMapping[path] ?? 'desc';
             const isDown = sortData === 'desc';
             this.iconSort.name = isDown ? 'angle-up' : 'angle-down';
@@ -266,7 +439,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             this.renderUI();
         }
         updatePath(data) {
-            if (data.path)
+            if (data.path != null)
                 this.pathMapping[data.path] = data;
             this.pnlPath.setData(data);
         }
@@ -280,12 +453,12 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
         }
         async onBreadcrumbClick({ cid, path }) {
             let childData;
-            if (this.cidMapping[cid]) {
-                childData = this.cidMapping[cid];
+            if (this.pathMapping[path]) {
+                childData = this.pathMapping[path];
             }
             else {
                 childData = await this.onFetchData({ cid, path });
-                this.cidMapping[cid] = childData;
+                this.pathMapping[path] = childData;
             }
             const paths = path.split('/');
             this.iconBack.visible = paths.length > 1;
@@ -317,12 +490,12 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
         }
         async handleFolderClick(data) {
             let childData;
-            if (this.cidMapping[data.cid]) {
-                childData = this.cidMapping[data.cid];
+            if (this.pathMapping[data.path]) {
+                childData = this.pathMapping[data.path];
             }
             else {
                 childData = await this.onFetchData(data);
-                this.cidMapping[data.cid] = childData;
+                this.pathMapping[data.path] = childData;
             }
             if (!childData.name && data.name)
                 childData.name = data.name;
@@ -350,10 +523,10 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             this.renderList();
         }
         goBack() {
-            const paths = this.currentPath?.split('/');
+            const paths = this._currentPath?.split('/');
             paths.pop();
             const prevPath = paths?.join('/');
-            if (prevPath && this.pathMapping[prevPath]) {
+            if (prevPath != null && this.pathMapping[prevPath]) {
                 const data = this.pathMapping[prevPath];
                 this.updatePath(data);
                 this.setData({ list: data?.links ?? [], type: 'dir' });
@@ -416,11 +589,12 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
     ], ScomIPFSFolder);
     exports.ScomIPFSFolder = ScomIPFSFolder;
 });
-define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts"], function (require, exports, components_5, data_2) {
+define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSMobileHome = void 0;
     const Theme = components_5.Styles.Theme.ThemeVars;
+    const IPFSUtils = require('@ijstech/ipfs');
     let ScomIPFSMobileHome = class ScomIPFSMobileHome extends components_5.Module {
         constructor(parent, options) {
             super(parent, options);
@@ -442,15 +616,29 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
         set folders(value) {
             this._data.folders = value ?? [];
         }
-        setData(data) {
+        get transportEndpoint() {
+            return this._transportEndpoint;
+        }
+        set transportEndpoint(value) {
+            this._transportEndpoint = value;
+        }
+        get manager() {
+            return this._manager;
+        }
+        get currentPath() {
+            return this.mobileFolder.currentPath;
+        }
+        async setData(data) {
             this._data = data;
             // this.mobileMain.visible = true;
             // this.mobileFolder.visible = false;
             // this.renderRecent();
             // this.renderFolders();
             const list = [...this.folders];
-            if (this._data.parentNode)
+            if (this._data.parentNode) {
                 this.mobileFolder.updatePath({ ...this._data.parentNode, links: list });
+                await this.manager.setRootCid(this._data.parentNode.cid);
+            }
             this.mobileFolder.setData({ list: list, type: 'dir' });
         }
         // private renderFolders() {
@@ -549,21 +737,37 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
         //     this.mobileFolder.visible = false;
         // }
         async onFetchData(ipfsData) {
-            const childrenData = await (0, data_2.autoRetryGetContent)(ipfsData.cid);
-            childrenData.path = ipfsData.path;
-            if (childrenData.links) {
-                for (let child of childrenData.links) {
-                    child.path = `${ipfsData.path}/${child.name}`;
-                    // child.links = (await autoRetryGetContent(child.cid))?.links || [];
-                }
+            let fileNode;
+            if (ipfsData.path) {
+                fileNode = await this.manager.getFileNode(ipfsData.path);
             }
-            return childrenData;
+            else {
+                fileNode = await this.manager.setRootCid(this._data.parentNode.cid);
+            }
+            if (!fileNode._cidInfo.links)
+                fileNode._cidInfo.links = [];
+            if (fileNode._cidInfo.links.length) {
+                await Promise.all(fileNode._cidInfo.links.map(async (data) => {
+                    data.path = `${ipfsData.path}/${data.name}`;
+                    if (!data.type) {
+                        let node = await this.manager.getFileNode(`/${data.name}`);
+                        let isFolder = await node.isFolder();
+                        data.type = isFolder ? 'dir' : 'file';
+                    }
+                }));
+            }
+            fileNode._cidInfo.path = ipfsData.path;
+            return fileNode._cidInfo;
         }
         init() {
             super.init();
             const recents = this.getAttribute('recents', true);
             const folders = this.getAttribute('folders', true);
+            this.transportEndpoint = this.getAttribute('transportEndpoint', true);
             this.setData({ recents, folders });
+            this._manager = new IPFSUtils.FileManager({
+                endpoint: this.transportEndpoint
+            });
         }
         render() {
             return (this.$render("i-panel", { width: '100%', minHeight: 'inherit' },
@@ -577,11 +781,531 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
     ], ScomIPFSMobileHome);
     exports.ScomIPFSMobileHome = ScomIPFSMobileHome;
 });
-define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_6) {
+define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/assets.ts", "@scom/scom-storage/components/index.css.ts"], function (require, exports, components_6, assets_2, index_css_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ScomIPFSUploadModal = void 0;
+    const IPFSUtils = require('@ijstech/ipfs');
     const Theme = components_6.Styles.Theme.ThemeVars;
-    exports.default = components_6.Styles.style({
+    var FILE_STATUS;
+    (function (FILE_STATUS) {
+        FILE_STATUS[FILE_STATUS["LISTED"] = 0] = "LISTED";
+        FILE_STATUS[FILE_STATUS["SUCCESS"] = 1] = "SUCCESS";
+        FILE_STATUS[FILE_STATUS["FAILED"] = 2] = "FAILED";
+        FILE_STATUS[FILE_STATUS["UPLOADING"] = 3] = "UPLOADING";
+    })(FILE_STATUS || (FILE_STATUS = {}));
+    const ITEMS_PER_PAGE = 5;
+    ;
+    ;
+    let ScomIPFSUploadModal = class ScomIPFSUploadModal extends components_6.Module {
+        constructor(parent, options) {
+            super(parent, options);
+            this.isForcedCancelled = false;
+            this.currentPage = 1;
+            this.currentFilterStatus = FILE_STATUS.LISTED;
+            this.files = [];
+            this.fileListData = [];
+        }
+        get rootCid() {
+            return this._rootCid;
+        }
+        set rootCid(value) {
+            console.log('set rootCid: ', value);
+            this._rootCid = value;
+        }
+        get parentDir() {
+            return this._parentDir;
+        }
+        set parentDir(value) {
+            console.log('set parentDir: ', value);
+            this._parentDir = value;
+        }
+        get manager() {
+            return this._manager;
+        }
+        set manager(value) {
+            this._manager = value;
+        }
+        show(path) {
+            this.folderPath = path;
+            this.updateBtnCaption();
+        }
+        onBeforeDrop(target) {
+            console.log('onBeforeDrop: ', target);
+            this.fileUploader.enabled = false;
+            this.imgFile.url = assets_2.default.fullPath("img/loading-icon.svg");
+            this.lblDrag.caption = 'Processing your files...';
+        }
+        onBeforeUpload(target, file) {
+            return new Promise((resolve, reject) => {
+                resolve(true);
+            });
+        }
+        filteredFileListData() {
+            return this.currentFilterStatus === FILE_STATUS.LISTED
+                ? this.fileListData
+                : this.fileListData.filter((i) => i.status === this.currentFilterStatus);
+        }
+        numPages() {
+            return Math.ceil(this.filteredFileListData().length / ITEMS_PER_PAGE);
+        }
+        setCurrentPage(page) {
+            if (page >= 1 && page <= this.numPages())
+                this.currentPage = page;
+            this.renderFileList();
+            this.renderPagination();
+        }
+        get isSmallWidth() {
+            return !!window.matchMedia('(max-width: 767px)').matches;
+        }
+        async renderFilterBar() {
+            this.pnlFilterBar.clearInnerHTML();
+            this.pnlFilterBar.append(this.$render("i-button", { class: `filter-btn ${this.currentFilterStatus === FILE_STATUS.LISTED ? 'filter-btn-active' : ''}`, caption: `All (${this.fileListData.length})`, onClick: () => this.onChangeCurrentFilterStatus(FILE_STATUS.LISTED) }), this.$render("i-button", { class: `filter-btn ${this.currentFilterStatus === FILE_STATUS.SUCCESS ? 'filter-btn-active' : ''}`, caption: `Success (${this.fileListData.filter((i) => i.status === FILE_STATUS.SUCCESS).length})`, onClick: () => this.onChangeCurrentFilterStatus(FILE_STATUS.SUCCESS) }), this.$render("i-button", { class: `filter-btn ${this.currentFilterStatus === FILE_STATUS.FAILED ? 'filter-btn-active' : ''}`, caption: `Fail (${this.fileListData.filter((i) => i.status === FILE_STATUS.FAILED).length})`, onClick: () => this.onChangeCurrentFilterStatus(FILE_STATUS.FAILED) }), this.$render("i-button", { class: `filter-btn ${this.currentFilterStatus === FILE_STATUS.UPLOADING ? 'filter-btn-active' : ''}`, caption: `Uploading (${this.fileListData.filter((i) => i.status === FILE_STATUS.UPLOADING).length})`, onClick: () => this.onChangeCurrentFilterStatus(FILE_STATUS.UPLOADING) }));
+            this.pnlFilterActions.clearInnerHTML();
+            if (this.currentFilterStatus === FILE_STATUS.UPLOADING) {
+                this.pnlFilterActions.appendChild(this.$render("i-button", { caption: "Cancel", onClick: this.onCancel.bind(this) }));
+            }
+            else {
+                this.pnlFilterActions.appendChild(this.$render("i-button", { caption: "Clear", onClick: this.onClear.bind(this) }));
+            }
+        }
+        async renderFileList() {
+            this.pnlFileList.clearInnerHTML();
+            const filteredFileListData = this.filteredFileListData();
+            const paginatedFilteredFileListData = this.isSmallWidth ? this.fileListData : [...filteredFileListData].slice((this.currentPage - 1) * ITEMS_PER_PAGE, ITEMS_PER_PAGE * this.currentPage);
+            for (let i = 0; i < paginatedFilteredFileListData.length; i++) {
+                const fileData = paginatedFilteredFileListData[i];
+                const pnlRow2 = (this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
+                    this.$render("i-label", { maxWidth: "100%", caption: this.formatBytes(fileData.file.size || 0), font: { size: '0.75rem' }, textOverflow: "ellipsis", opacity: 0.75 })));
+                this.renderStatus(fileData.status, pnlRow2);
+                this.pnlFileList.appendChild(this.$render("i-hstack", { class: `file file-${i} status-${fileData.status}`, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, stack: { shrink: '0', grow: '1' }, overflow: "hidden", gap: "1rem" },
+                    this.$render("i-icon", { width: "1.75rem", height: "1.75rem", name: "file", fill: Theme.colors.primary.main, border: { radius: '0.5rem', width: '1px', color: Theme.divider, style: 'solid' }, padding: { top: '0.35rem', bottom: '0.35rem', left: '0.35rem', right: '0.35rem' }, stack: { shrink: '0' } }),
+                    this.$render("i-vstack", { maxWidth: "100%", stack: { shrink: '1', grow: '1' }, gap: "0.25rem", overflow: "hidden" },
+                        this.$render("i-hstack", { horizontalAlignment: 'space-between', verticalAlignment: 'center', gap: "1rem" },
+                            this.$render("i-label", { maxWidth: "100%", caption: fileData.file.path || fileData.file.name, font: { weight: 600, size: '0.875rem' }, textOverflow: "ellipsis" }),
+                            this.$render("i-icon", { width: "0.875rem", height: "0.875rem", name: "times", fill: Theme.text.primary, cursor: "pointer", onClick: () => this.onRemoveFile(i) })),
+                        pnlRow2,
+                        this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.75rem" },
+                            this.$render("i-progress", { height: "auto", percent: +fileData.percentage, strokeWidth: 10, stack: { grow: '1', shrink: '1', basis: '60%' }, border: { radius: '0.5rem' } }),
+                            this.$render("i-label", { caption: `${fileData.percentage}%`, font: { size: '0.75rem' }, stack: { grow: '1', shrink: '0' } })))));
+            }
+        }
+        formatBytes(bytes, decimals = 2) {
+            if (bytes === 0)
+                return '0 Bytes';
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+        renderStatus(status, parent) {
+            let uploadStatus = "";
+            let iconOptions = { name: 'times', background: { color: Theme.text.primary }, visible: false };
+            switch (status) {
+                case 1:
+                    iconOptions.name = 'check';
+                    iconOptions.background.color = Theme.colors.success.main;
+                    iconOptions.visible = true;
+                    uploadStatus = 'Completed';
+                    break;
+                case 2:
+                    iconOptions.name = 'times';
+                    iconOptions.background.color = Theme.colors.error.main;
+                    iconOptions.visible = true;
+                    uploadStatus = 'Failed';
+                case 3:
+                    uploadStatus = 'Uploading';
+            }
+            parent.appendChild(this.$render("i-icon", { width: "0.875rem", height: "0.875rem", padding: { top: '0.125rem', bottom: '0.125rem', left: '0.125rem', right: '0.125rem' }, border: { radius: '50%' }, fill: Theme.colors.primary.contrastText, ...iconOptions }));
+            parent.appendChild(this.$render("i-label", { caption: uploadStatus }));
+        }
+        getPagination(currentIndex, totalPages) {
+            let current = currentIndex, last = totalPages, delta = 2, left = current - delta, right = current + delta + 1, range = [], rangeWithDots = [], l;
+            for (let i = 1; i <= last; i++) {
+                if (i == 1 || i == last || (i >= left && i < right)) {
+                    range.push(i);
+                }
+            }
+            for (let i of range) {
+                if (l) {
+                    if (i - l === 2) {
+                        rangeWithDots.push(l + 1);
+                    }
+                    else if (i - l !== 1) {
+                        rangeWithDots.push('...');
+                    }
+                }
+                rangeWithDots.push(i);
+                l = i;
+            }
+            return rangeWithDots;
+        }
+        async renderPagination() {
+            const numPages = this.numPages();
+            const rangeWithDots = this.getPagination(this.currentPage, numPages);
+            if (numPages >= 1) {
+                if (this.currentPage > numPages) {
+                    this.setCurrentPage(numPages);
+                }
+                else {
+                    this.pnlPagination.clearInnerHTML();
+                    const prevBtn = new components_6.Button(this.pnlPagination, {
+                        icon: { name: 'chevron-left' },
+                    });
+                    prevBtn.onClick = () => {
+                        this.setCurrentPage(this.currentPage - 1);
+                    };
+                    for (let i = 0; i < rangeWithDots.length; i++) {
+                        const pageBtn = new components_6.Button(this.pnlPagination, {
+                            class: this.currentPage === rangeWithDots[i] ? 'active' : '',
+                            caption: rangeWithDots[i].toString(),
+                        });
+                        if (rangeWithDots[i] === '...') {
+                            pageBtn.classList.add('dots');
+                        }
+                        else {
+                            pageBtn.onClick = () => {
+                                this.setCurrentPage(rangeWithDots[i]);
+                            };
+                        }
+                    }
+                    const nexBtn = new components_6.Button(this.pnlPagination, {
+                        icon: { name: 'chevron-right' },
+                    });
+                    nexBtn.onClick = () => {
+                        this.setCurrentPage(this.currentPage + 1);
+                    };
+                }
+            }
+            else {
+                this.pnlPagination.clearInnerHTML();
+            }
+        }
+        onChangeCurrentFilterStatus(status) {
+            this.currentFilterStatus = status;
+            this.renderFilterBar();
+            this.renderPagination();
+            this.renderFileList();
+        }
+        onClear() {
+            switch (this.currentFilterStatus) {
+                case FILE_STATUS.LISTED:
+                    this.fileListData =
+                        this.fileListData && this.fileListData.length
+                            ? this.fileListData.filter((fileData) => ![
+                                FILE_STATUS.LISTED,
+                                FILE_STATUS.SUCCESS,
+                                FILE_STATUS.FAILED,
+                            ].includes(fileData.status))
+                            : this.fileListData;
+                    break;
+                case FILE_STATUS.SUCCESS:
+                    this.fileListData =
+                        this.fileListData && this.fileListData.length
+                            ? this.fileListData.filter((fileData) => ![FILE_STATUS.SUCCESS].includes(fileData.status))
+                            : this.fileListData;
+                    break;
+                case FILE_STATUS.FAILED:
+                    this.fileListData =
+                        this.fileListData && this.fileListData.length
+                            ? this.fileListData.filter((fileData) => ![FILE_STATUS.FAILED].includes(fileData.status))
+                            : this.fileListData;
+                    break;
+            }
+            this.renderFilterBar();
+            this.renderFileList();
+            this.renderPagination();
+        }
+        onCancel() {
+            this.currentRequest.abort();
+            this.isForcedCancelled = true;
+        }
+        async onChangeFile(source, files) {
+            console.log('onChangeFile: ', files);
+            return new Promise(async (resolve, reject) => {
+                if (!files.length)
+                    reject();
+                this.fileUploader.enabled = true;
+                this.imgFile.url = assets_2.default.fullPath("img/file-icon.png");
+                this.updateBtnCaption();
+                for (let i = 0; i < files.length; i++) {
+                    this.fileListData.push({ file: files[i], status: 0, percentage: 0 });
+                    this.files.push(files[i]);
+                }
+                this.renderFileList();
+                this.renderFilterBar();
+                this.renderPagination();
+                this.toggle(true);
+                this.fileUploader.clear();
+            });
+        }
+        updateBtnCaption() {
+            this.lblDrag.caption = this.isSmallWidth ? 'Select Files' : 'Drag and drop your files here';
+        }
+        onRemove(source, file) { }
+        onRemoveFile(index) {
+            this.fileListData.splice(index, 1);
+            this.files.splice(index, 1);
+            this.renderFileList();
+            this.renderFilterBar();
+            this.renderPagination();
+            if (!this.fileListData.length) {
+                this.toggle(false);
+            }
+        }
+        getDirItems(cidItem, result) {
+            result = result || [];
+            if (cidItem.type == 'dir') {
+                let items = [];
+                if (cidItem.links) {
+                    for (let i = 0; i < cidItem.links?.length; i++) {
+                        let item = cidItem.links[i];
+                        if (item.type == 'dir')
+                            this.getDirItems(item, result);
+                        items.push({
+                            cid: item.cid,
+                            name: item.name,
+                            size: item.size,
+                            type: item.type,
+                        });
+                    }
+                }
+                result.push({
+                    cid: cidItem.cid,
+                    name: cidItem.name,
+                    size: cidItem.size,
+                    type: 'dir',
+                    links: items,
+                });
+            }
+            return result;
+        }
+        // private async onUpload() {
+        //     return new Promise(async (resolve, reject) => {
+        //         if (!this.fileListData.length) reject();
+        //         this.btnUpload.caption = 'Uploading files to IPFS...';
+        //         this.btnUpload.enabled = false;
+        //         this.isForcedCancelled = false;
+        //         // const cidItems: ICidInfo = await hashFiles(this.files);
+        //         const cidItems: ICidInfo = {} as ICidInfo;
+        //         console.dir('### IPFS Upload ###');
+        //         console.log('cidItems: ', cidItems);
+        //         let dirItems = this.getDirItems(cidItems);
+        //         console.log('dirItems: ', dirItems);
+        //         if (this.parentDir && this.rootCid) {
+        //             // uploadTo
+        //             const oldParentDirCID = cidItems.cid;
+        //             dirItems = dirItems.filter(
+        //                 (dirItem) => dirItem.cid !== oldParentDirCID
+        //             );
+        //             const items: IUploadItem[] = [];
+        //             for (let i = 0; i < dirItems.length; i++) {
+        //                 let item = dirItems[i];
+        //                 items.push({ cid: item });
+        //             }
+        //             for (let i = 0; i < this.fileListData.length; i++) {
+        //                 const file = this.fileListData[i];
+        //                 const cidItem = cidItems.links?.find(
+        //                     (cidItem) => cidItem.cid === file.file.cid?.cid
+        //                 );
+        //                 if (cidItem) items.push({ cid: cidItem, data: file.file });
+        //             }
+        //             try {
+        //                 const uploadResult = await application.uploadTo(
+        //                     this.parentDir.cid as string,
+        //                     items as any
+        //                 );
+        //                 console.log('uploadToResult: ', uploadResult);
+        //                 if (uploadResult && uploadResult.data) {
+        //                     uploadResult.data.name = this.parentDir.name as string;
+        //                     // Sync root folder
+        //                     if (this.parentDir.cid !== this.rootCid) {
+        //                         const syncResult = await application.uploadTo(this.rootCid, [
+        //                             { cid: uploadResult.data },
+        //                         ]);
+        //                         console.log('syncResult: ', syncResult);
+        //                         if (syncResult && syncResult.data) {
+        //                             if (this.onBeforeUploaded)
+        //                                 this.onBeforeUploaded(this, syncResult.data);
+        //                         }
+        //                     } else {
+        //                         if (this.onBeforeUploaded)
+        //                             this.onBeforeUploaded(this, uploadResult.data);
+        //                     }
+        //                     for (let i = 0; i < this.fileListData.length; i++) {
+        //                         const file = this.fileListData[i];
+        //                         if (this.onUploaded && file.file.cid)
+        //                             this.onUploaded(this, file.file, file.file.cid?.cid);
+        //                         file.status = FILE_STATUS.SUCCESS;
+        //                     }
+        //                     this.renderFilterBar();
+        //                     this.renderFileList();
+        //                 }
+        //             } catch (err) {
+        //                 console.log('Error! ', err);
+        //             }
+        //         } else {
+        //             // upload
+        //             if (this.onBeforeUploaded) this.onBeforeUploaded(this, cidItems);
+        //             let uploadUrl = await application.getUploadUrl(cidItems as any);
+        //             for (let i = 0; i < dirItems.length; i++) {
+        //                 let item = dirItems[i];
+        //                 if (uploadUrl[item.cid]) {
+        //                     await application.upload(uploadUrl[item.cid], JSON.stringify(item));
+        //                 }
+        //             }
+        //             for (let i = 0; i < this.fileListData.length; i++) {
+        //                 if (this.isForcedCancelled) {
+        //                     break;
+        //                 } else {
+        //                     const file = this.fileListData[i];
+        //                     file.url = `/ipfs/${cidItems.cid}${file.file.path || file.file.name
+        //                         }`;
+        //                     if (
+        //                         [FILE_STATUS.SUCCESS, FILE_STATUS.UPLOADING].includes(
+        //                             file.status
+        //                         ) ||
+        //                         !file.file.cid?.cid
+        //                     ) {
+        //                         continue;
+        //                     }
+        //                     this.fileListData[i].status = FILE_STATUS.UPLOADING;
+        //                     this.renderFilterBar();
+        //                     if (uploadUrl[file.file.cid?.cid]) {
+        //                         try {
+        //                             let result = await application.upload(
+        //                                 uploadUrl[file.file.cid?.cid],
+        //                                 file.file
+        //                             );
+        //                             console.log('uploaded fileListData result: ', result);
+        //                             if (this.onUploaded)
+        //                                 this.onUploaded(this, file.file, file.file.cid?.cid);
+        //                             this.fileListData[i].status = FILE_STATUS.SUCCESS;
+        //                             this.renderFilterBar();
+        //                             this.renderFileList();
+        //                         } catch (err) {
+        //                             console.log('Error! ', err);
+        //                             this.fileListData[i].status = FILE_STATUS.FAILED;
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //             this.renderFilterBar();
+        //             this.renderFileList();
+        //             this.renderPagination();
+        //             this.btnUpload.caption = 'Upload file to IPFS';
+        //             this.btnUpload.enabled = true;
+        //         }
+        //     });
+        // }
+        async onUpload() {
+            return new Promise(async (resolve, reject) => {
+                if (!this.fileListData.length || !this.manager)
+                    reject();
+                this.btnUpload.caption = 'Uploading files to IPFS...';
+                this.btnUpload.enabled = false;
+                this.isForcedCancelled = false;
+                try {
+                    for (let i = 0; i < this.fileListData.length; i++) {
+                        const file = this.fileListData[i];
+                        const filePath = this.folderPath ? `${this.folderPath}/${file.file.name}` : file.file.name;
+                        await this.manager.addFile(filePath, file.file);
+                    }
+                    await this.manager.applyUpdates();
+                    for (let i = 0; i < this.fileListData.length; i++) {
+                        const file = this.fileListData[i];
+                        file.status = FILE_STATUS.SUCCESS;
+                    }
+                    let rootNode = await this.manager.getRootNode();
+                    console.log("new root node cid: ", rootNode.cid);
+                    this.renderFilterBar();
+                    this.renderFileList();
+                    this.renderPagination();
+                    this.btnUpload.caption = 'Upload file to IPFS';
+                    this.btnUpload.enabled = true;
+                }
+                catch (err) {
+                    console.log('Error! ', err);
+                }
+            });
+        }
+        reset() {
+            this.pnlFileList.clearInnerHTML();
+            this.pnlPagination.clearInnerHTML();
+            this.btnUpload.caption = 'Upload file to IPFS';
+            this.btnUpload.enabled = true;
+            this.fileListData = [];
+            this.files = [];
+            this.toggle(false);
+        }
+        toggle(showFileList) {
+            if (showFileList) {
+                this.pnlStatusFilter.visible = true;
+                this.btnUpload.visible = true;
+                this.pnlNote.visible = false;
+            }
+            else {
+                this.pnlStatusFilter.visible = false;
+                this.btnUpload.visible = false;
+                this.pnlNote.visible = true;
+            }
+        }
+        async init() {
+            super.init();
+            this.classList.add(index_css_3.uploadModalStyle);
+            this.rootCid = this.getAttribute('rootCid', true);
+            this.parentDir = this.getAttribute('parentDir', true);
+        }
+        render() {
+            return (this.$render("i-panel", { height: "100%", overflow: "hidden", padding: { top: '3.125rem', bottom: '3.125rem', left: '8.125rem', right: '8.125rem' }, border: { radius: '0.375rem' }, mediaQueries: [
+                    {
+                        maxWidth: '767px',
+                        properties: {
+                            padding: { top: '1.5rem', bottom: '1.5rem', left: '1.5rem', right: '1.5rem' }
+                        }
+                    }
+                ] },
+                this.$render("i-label", { class: "heading", caption: "Upload more files" }),
+                this.$render("i-label", { class: "label", caption: "Choose file to upload to IPFS network" }),
+                this.$render("i-panel", { class: "file-uploader-dropzone", maxHeight: "calc(100% - 4.5rem)" },
+                    this.$render("i-panel", { class: "droparea" },
+                        this.$render("i-upload", { id: "fileUploader", multiple: true, draggable: true, onBeforeDrop: this.onBeforeDrop, onUploading: this.onBeforeUpload, onChanged: this.onChangeFile, onRemoved: this.onRemove }),
+                        this.$render("i-image", { id: "imgFile", width: 60, height: 60, class: "icon", url: assets_2.default.fullPath('img/file-icon.png') }),
+                        this.$render("i-label", { id: "lblDrag", caption: "Drag and drop your files here" })),
+                    this.$render("i-panel", { id: "pnlStatusFilter", class: "status-filter", visible: false },
+                        this.$render("i-panel", { id: "pnlFilterBar", class: "filter-bar" }),
+                        this.$render("i-panel", { id: "pnlFilterActions", class: "filter-actions", margin: { left: 'auto' } })),
+                    this.$render("i-vstack", { id: "pnlFileList", class: "filelist", gap: "0.5rem" }),
+                    this.$render("i-panel", { id: "pnlPagination", class: "pagination" }),
+                    this.$render("i-button", { id: "btnUpload", class: "upload-btn", caption: "Upload files to IPFS", boxShadow: "none", background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, visible: false, onClick: this.onUpload.bind(this) })),
+                this.$render("i-panel", { id: "pnlNote" },
+                    this.$render("i-panel", { class: "note" },
+                        this.$render("i-label", { class: "head", caption: "Public Data" }),
+                        this.$render("i-label", { class: "desc", caption: "All data uploaded to IPFS Explorer is available to anyone who requests it using the correct CID. Do not store any private or sensitive information in an unencrypted form using IPFS Explorer." })),
+                    this.$render("i-panel", { class: "note" },
+                        this.$render("i-label", { class: "head", caption: "Permanent Data" }),
+                        this.$render("i-label", { class: "desc", caption: "Deleting files from the IPFS Explorer site\u2019s Files page will remove them from the file listing for your account, but that doesn\u2019t prevent nodes on the decentralized storage network from retaining copies of the data indefinitely. Do not use IPFS Explorer for data that may need to be permanently deleted in the future." })))));
+        }
+    };
+    ScomIPFSUploadModal = __decorate([
+        (0, components_6.customElements)('i-scom-ipfs--upload-modal')
+    ], ScomIPFSUploadModal);
+    exports.ScomIPFSUploadModal = ScomIPFSUploadModal;
+});
+define("@scom/scom-storage/components/index.ts", ["require", "exports", "@scom/scom-storage/components/home.tsx", "@scom/scom-storage/components/path.tsx", "@scom/scom-storage/components/uploadModal.tsx"], function (require, exports, home_1, path_1, uploadModal_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ScomIPFSUploadModal = exports.ScomIPFSPath = exports.ScomIPFSMobileHome = void 0;
+    Object.defineProperty(exports, "ScomIPFSMobileHome", { enumerable: true, get: function () { return home_1.ScomIPFSMobileHome; } });
+    Object.defineProperty(exports, "ScomIPFSPath", { enumerable: true, get: function () { return path_1.ScomIPFSPath; } });
+    Object.defineProperty(exports, "ScomIPFSUploadModal", { enumerable: true, get: function () { return uploadModal_1.ScomIPFSUploadModal; } });
+});
+define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_7) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    const Theme = components_7.Styles.Theme.ThemeVars;
+    exports.default = components_7.Styles.style({
         $nest: {
             '.storage-meter-uploaded': {
                 backgroundSize: '410%',
@@ -595,11 +1319,12 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
         }
     });
 });
-define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_7, data_3, index_css_3) {
+define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_8, data_2, components_9, index_css_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomStorage = void 0;
-    const Theme = components_7.Styles.Theme.ThemeVars;
+    const IPFSUtils = require('@ijstech/ipfs');
+    const Theme = components_8.Styles.Theme.ThemeVars;
     const defaultColors = {
         light: {
             primaryColor: '#3f51b5',
@@ -632,7 +1357,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             selectedBackground: '#0b3a53'
         }
     };
-    let ScomStorage = class ScomStorage extends components_7.Module {
+    let ScomStorage = class ScomStorage extends components_8.Module {
         constructor() {
             super(...arguments);
             this.tag = {
@@ -688,7 +1413,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     title: 'Size',
                     fieldName: 'size',
                     onRenderCell: (source, columnData, rowData) => {
-                        return (0, data_3.formatBytes)(columnData);
+                        return (0, data_2.formatBytes)(columnData);
                     },
                 },
                 {
@@ -813,15 +1538,25 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         async initContent() {
             if (!this._data.cid)
                 return;
-            const ipfsData = await (0, data_3.fetchData)({ cid: this._data.cid });
+            let rootNode = await this.manager.getRootNode();
+            const ipfsData = rootNode._cidInfo;
+            // const ipfsData = await fetchData({ cid: this._data.cid });
             // this._storedFileData = null;
             if (ipfsData) {
                 const parentNode = (({ links, ...o }) => o)(ipfsData);
-                parentNode.name = parentNode.name ? parentNode.name : components_7.FormatUtils.truncateWalletAddress(parentNode.cid);
-                parentNode.path = parentNode.name;
+                parentNode.name = parentNode.name ? parentNode.name : components_8.FormatUtils.truncateWalletAddress(parentNode.cid);
+                parentNode.path = '';
                 parentNode.root = true;
-                if (ipfsData.links)
-                    ipfsData.links.map((data) => (data.path = `${parentNode.path}/${data.name}`));
+                if (ipfsData.links?.length) {
+                    await Promise.all(ipfsData.links.map(async (data) => {
+                        data.path = `${parentNode.path}/${data.name}`;
+                        if (!data.type) {
+                            let node = await this.manager.getFileNode(`/${data.name}`);
+                            let isFolder = await node.isFolder();
+                            data.type = isFolder ? 'dir' : 'file';
+                        }
+                    }));
+                }
                 const data = ipfsData.links ? [parentNode, ...ipfsData.links] : [parentNode];
                 this._uploadedTreeData = [...data];
                 this.renderUploadedFileTreeUI();
@@ -903,14 +1638,46 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.pnlPath.setData(node);
         }
         onOpenUploadModal() {
-            components_7.application.showUploadModal();
+            if (!this.uploadModal)
+                this.uploadModal = new components_9.ScomIPFSUploadModal();
+            const modal = this.uploadModal.openModal({
+                width: 800,
+                maxWidth: '100%',
+                popupPlacement: 'center',
+                showBackdrop: true,
+                closeOnBackdropClick: false,
+                closeIcon: { name: 'times', fill: Theme.text.primary, position: 'absolute', top: '1rem', right: '1rem', zIndex: 2 },
+                zIndex: 1000,
+                padding: {},
+                onClose: () => this.uploadModal.reset(),
+                mediaQueries: [
+                    {
+                        maxWidth: '767px',
+                        properties: {
+                            height: '100vh',
+                            maxHeight: '100vh'
+                        }
+                    }
+                ]
+            });
+            let path;
+            if (window.matchMedia('(max-width: 767px)').matches) {
+                path = this.mobileHome.currentPath;
+                this.uploadModal.manager = this.mobileHome.manager;
+            }
+            else {
+                path = this.pnlPath.data.path;
+                this.uploadModal.manager = this.manager;
+            }
+            this.uploadModal.show(path);
+            modal.refresh();
         }
         async onActiveChange(parent, prevNode) {
             const ipfsData = parent.activeItem?.tag;
             await this.onOpenFolder(ipfsData, true);
         }
         async onOpenFolder(ipfsData, toggle) {
-            if (ipfsData && ipfsData.cid) {
+            if (ipfsData) {
                 this.currentParentDir = ipfsData;
                 const childrenData = await this.onFetchData(ipfsData);
                 if (!childrenData.name && ipfsData.name)
@@ -922,9 +1689,27 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             }
         }
         async onFetchData(ipfsData) {
-            const childrenData = await (0, data_3.autoRetryGetContent)(ipfsData.cid);
-            childrenData.path = ipfsData.path;
-            return childrenData;
+            let fileNode;
+            if (ipfsData.path) {
+                fileNode = await this.manager.getFileNode(ipfsData.path);
+            }
+            else {
+                fileNode = await this.manager.setRootCid(this._data.cid);
+            }
+            if (!fileNode._cidInfo.links)
+                fileNode._cidInfo.links = [];
+            if (fileNode._cidInfo.links.length) {
+                await Promise.all(fileNode._cidInfo.links.map(async (data) => {
+                    data.path = `${ipfsData.path}/${data.name}`;
+                    if (!data.type) {
+                        let node = await this.manager.getFileNode(`/${data.name}`);
+                        let isFolder = await node.isFolder();
+                        data.type = isFolder ? 'dir' : 'file';
+                    }
+                }));
+            }
+            fileNode._cidInfo.path = ipfsData.path;
+            return fileNode._cidInfo;
         }
         processTableData(ipfsData) {
             const processedData = [];
@@ -957,16 +1742,21 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.onOpenFolder({ cid, path }, false);
         }
         init() {
+            this.transportEndpoint = this.getAttribute('transportEndpoint', true) || window.location.origin;
             super.init();
-            this.classList.add(index_css_3.default);
+            this.classList.add(index_css_4.default);
             this.setTag(defaultColors);
             const cid = this.getAttribute('cid', true);
+            this.manager = new IPFSUtils.FileManager({
+                endpoint: this.transportEndpoint,
+                rootCid: cid
+            });
             if (cid)
                 this.setData({ cid });
         }
         render() {
             return (this.$render("i-panel", { height: '100%', width: '100%' },
-                this.$render("i-scom-ipfs--mobile-home", { id: "mobileHome", width: '100%', minHeight: '100vh', display: 'block', background: { color: Theme.background.main }, visible: false, mediaQueries: [
+                this.$render("i-scom-ipfs--mobile-home", { id: "mobileHome", width: '100%', minHeight: '100vh', display: 'block', background: { color: Theme.background.main }, transportEndpoint: this.transportEndpoint, visible: false, mediaQueries: [
                         {
                             maxWidth: '767px',
                             properties: {
@@ -1032,7 +1822,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
     };
     ScomStorage = __decorate([
-        (0, components_7.customElements)('i-scom-storage')
+        (0, components_8.customElements)('i-scom-storage')
     ], ScomStorage);
     exports.ScomStorage = ScomStorage;
 });

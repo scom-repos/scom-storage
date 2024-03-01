@@ -7,7 +7,7 @@ import {
     Panel,
     Styles
 } from '@ijstech/components';
-import { IIPFSData } from '../inteface';
+import { IIPFSData } from '../interface';
 import { addressPanelStyle } from './index.css';
 const Theme = Styles.Theme.ThemeVars;
 

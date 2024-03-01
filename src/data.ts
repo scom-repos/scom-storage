@@ -1,4 +1,4 @@
-import { IIPFSData, IStorageConfig } from "./inteface";
+import { IIPFSData, IStorageConfig } from "./interface";
 
 const IPFS_GATEWAY = 'https://ipfs.scom.dev/ipfs/'
 

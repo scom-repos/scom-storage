@@ -14,9 +14,13 @@
         "test": "cd test && npm run test && cd .."
     },
     "keywords": [],
+    "dependencies": {
+        "@ijstech/ipfs": "^0.1.1"
+    },
     "devDependencies": {
         "@ijstech/cli": "^0.1.26",
         "@ijstech/compiler": "^0.1.18",
-        "@ijstech/components": "^0.1.38"
+        "@ijstech/components": "^0.1.38",
+        "@types/node": "18.11.9"
     }
 }

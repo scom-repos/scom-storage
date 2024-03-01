@@ -12,7 +12,7 @@ import {
     Styles,
 } from '@ijstech/components';
 import { formatBytes } from '../data';
-import { FileType, IIPFSData } from '../inteface';
+import { FileType, IIPFSData } from '../interface';
 import { ScomIPFSPath } from './path';
 import { backgroundStyle, transitionStyle } from './index.css';
 const Theme = Styles.Theme.ThemeVars;
@@ -55,9 +55,8 @@ export class ScomIPFSFolder extends Module {
     private mode: IMode = 'list';
     private searchTimer: any;
     private sortMapping: { [idx: string]: 'asc' | 'desc' } = {};
-    private cidMapping: Record<string, IIPFSData> = {};
     private pathMapping: Record<string, IIPFSData> = {};
-    private currentPath: string;
+    private _currentPath: string;
 
     onFetchData: callbackType;
     onClose: () => void;
@@ -108,10 +107,14 @@ export class ScomIPFSFolder extends Module {
         return this.mode === 'grid';
     }
 
+    get currentPath() {
+        return this._currentPath;
+    }
+
     setData(data: IFolderData) {
         this._data = data;
-        const path = this.pnlPath.data.path || 'main';
-        this.currentPath = path;
+        const path = this.pnlPath.data.path || '';
+        this._currentPath = path;
         const sortData = this.sortMapping[path] ?? 'desc';
         const isDown = sortData === 'desc';
         this.iconSort.name = isDown ? 'angle-up' : 'angle-down';
@@ -127,7 +130,7 @@ export class ScomIPFSFolder extends Module {
     }
 
     updatePath(data: IIPFSData) {
-        if (data.path) this.pathMapping[data.path] = data;
+        if (data.path != null) this.pathMapping[data.path] = data;
         this.pnlPath.setData(data);
     }
 
@@ -142,11 +145,11 @@ export class ScomIPFSFolder extends Module {
 
     private async onBreadcrumbClick({ cid, path }: { cid: string; path: string }) {
         let childData;
-        if (this.cidMapping[cid]) {
-            childData = this.cidMapping[cid];
+        if (this.pathMapping[path]) {
+            childData = this.pathMapping[path];
         } else {
             childData = await this.onFetchData({ cid, path });
-            this.cidMapping[cid] = childData;
+            this.pathMapping[path] = childData;
         }
         const paths: string[] = path.split('/');
         this.iconBack.visible = paths.length > 1;
@@ -203,11 +206,11 @@ export class ScomIPFSFolder extends Module {
 
     async handleFolderClick(data: IIPFSData) {
         let childData;
-        if (this.cidMapping[data.cid]) {
-            childData = this.cidMapping[data.cid];
+        if (this.pathMapping[data.path]) {
+            childData = this.pathMapping[data.path];
         } else {
             childData = await this.onFetchData(data);
-            this.cidMapping[data.cid] = childData;
+            this.pathMapping[data.path] = childData;
         }
         if (!childData.name && data.name) childData.name = data.name;
         this.updatePath(childData);
@@ -237,10 +240,10 @@ export class ScomIPFSFolder extends Module {
     }
 
     private goBack() {
-        const paths: string[] = this.currentPath?.split('/');
+        const paths: string[] = this._currentPath?.split('/');
         paths.pop();
         const prevPath = paths?.join('/');
-        if (prevPath && this.pathMapping[prevPath]) {
+        if (prevPath != null && this.pathMapping[prevPath]) {
             const data = this.pathMapping[prevPath];
             this.updatePath(data);
             this.setData({ list: data?.links ?? [], type: 'dir' });
