@@ -1,6 +1,6 @@
 import { IIPFSData, IStorageConfig } from "./interface";
 
-const IPFS_GATEWAY = 'https://ipfs.scom.dev/ipfs/'
+export const IPFS_GATEWAY = 'https://ipfs.scom.dev/ipfs/'
 
 export const autoRetryGetContent = async (cid: string): Promise<IIPFSData> => {
     return new Promise((resolve, reject) => {
@@ -24,6 +24,19 @@ export const autoRetryGetContent = async (cid: string): Promise<IIPFSData> => {
 export const fetchData = async (data: IStorageConfig): Promise<IIPFSData> => {
     if (data && data.cid) return await autoRetryGetContent(data.cid);
     else return null;
+}
+
+export const getFileContent = async (cid: string) => {
+    let result = '';
+    if (cid) {
+        const response = await fetch(`${IPFS_GATEWAY}${cid}`);
+        try {
+            if (response.ok) {
+                result = await response.text();
+            }
+        } catch(err) {}
+    }
+    return result;
 }
 
 export const formatBytes = (bytes: any, decimals = 2) => {

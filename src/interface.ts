@@ -19,3 +19,8 @@ export type FileType = 'dir' | 'file';
 export interface IStorageConfig {
     cid: string;
 }
+
+export interface IPreview {
+    cid: string
+    name: string
+}
