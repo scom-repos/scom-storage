@@ -14,8 +14,7 @@
   },
   "dependencies": {
     "@scom/dapp": "*",
-    "@scom/scom-storage": "*",
-    "@ijstech/ipfs": "*"
+    "@scom/scom-storage": "*"
   },
   "menus": [
     {

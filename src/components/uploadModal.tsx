@@ -766,7 +766,7 @@ export class ScomIPFSUploadModal extends Module {
                         font={{ color: Theme.colors.primary.contrastText }}
                         padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
                         visible={false}
-                        onClick={this.onUpload.bind(this)}
+                        onClick={this.onUpload}
                     ></i-button>
                 </i-panel>
                 <i-panel id="pnlNote">
