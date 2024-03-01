@@ -19,7 +19,7 @@ declare module "@scom/scom-storage/interface.ts" {
         cid: string;
     }
     export interface IPreview extends IIPFSData {
-        rootCid?: string;
+        transportEndpoint?: string;
     }
 }
 /// <amd-module name="@scom/scom-storage/data.ts" />
@@ -332,8 +332,8 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         static create(options?: ScomIPFSPreviewElement, parent?: Container): Promise<ScomIPFSPreview>;
         get data(): IPreview;
         set data(value: IPreview);
-        get rootCid(): string;
-        set rootCid(value: string);
+        get transportEndpoint(): string;
+        set transportEndpoint(value: string);
         setData(value: IPreview): void;
         clear(): void;
         private renderUI;
@@ -370,9 +370,8 @@ declare module "@scom/scom-storage" {
         private pnlPath;
         private uploadedFileTree;
         private mobileHome;
-        private gridWrapper;
         private iePreview;
-        private bdPreview;
+        private pnlPreview;
         private uploadModal;
         tag: any;
         private _data;

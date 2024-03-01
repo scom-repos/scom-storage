@@ -74,9 +74,9 @@ export class ScomStorage extends Module {
     private pnlPath: ScomIPFSPath;
     private uploadedFileTree: TreeView;
     private mobileHome: ScomIPFSMobileHome;
-    private gridWrapper: GridLayout;
+    // private gridWrapper: GridLayout;
     private iePreview: ScomIPFSPreview;
-    private bdPreview: Panel;
+    private pnlPreview: Panel;
     private uploadModal: ScomIPFSUploadModal;
 
     tag: any = {
@@ -553,8 +553,8 @@ export class ScomStorage extends Module {
     }
 
     private previewFile(record: IPreview) {
-        this.iePreview.visible = true;
-        this.iePreview.setData(record);
+        this.pnlPreview.visible = true;
+        this.iePreview.setData({...record, transportEndpoint: this.transportEndpoint});
         if (window.matchMedia('(max-width: 767px)').matches) {
             this.iePreview.openModal({
                 width: '100vw',
@@ -570,32 +570,31 @@ export class ScomStorage extends Module {
                 },
                 onClose: () => {
                     if (!window.matchMedia('(max-width: 767px)').matches) {
-                        this.gridWrapper.appendChild(this.iePreview);
+                        this.pnlPreview.appendChild(this.iePreview);
                         this.closePreview();
                     }
                 }
             })
         } else {
-            if (!this.gridWrapper.contains(this.iePreview)) this.gridWrapper.appendChild(this.iePreview);
-            this.bdPreview.visible = true
-            this.gridWrapper.templateColumns = [
-                '15rem',
-                '1px',
-                'auto',
-                '1px',
-                '20rem'
-            ]
+            if (!this.pnlPreview.contains(this.iePreview)) this.pnlPreview.appendChild(this.iePreview);
+            this.pnlPreview.visible = true
+            // this.gridWrapper.templateColumns = [
+            //     '15rem',
+            //     '1px',
+            //     'auto',
+            //     '1px',
+            //     '20rem'
+            // ]
         }
     }
 
     private closePreview() {
-        this.iePreview.visible = false;
-        this.bdPreview.visible = false;
-        this.gridWrapper.templateColumns = [
-            '15rem',
-            '1px',
-            '1fr'
-        ]
+        this.pnlPreview.visible = false;
+        // this.gridWrapper.templateColumns = [
+        //     '15rem',
+        //     '1px',
+        //     '1fr'
+        // ]
     }
 
     private onBreadcrumbClick({ cid, path }: { cid: string; path: string }) {
@@ -658,20 +657,20 @@ export class ScomStorage extends Module {
                         <i-grid-layout
                             id={'gridWrapper'}
                             height={'100%'}
+                            width={'100%'}
                             overflow={'hidden'}
+                            position='relative'
                             templateColumns={['15rem', '1px', '1fr']}
                             background={{ color: Theme.background.main }}
-                            mediaQueries={[
-                                {
-                                    maxWidth: '767px',
-                                    properties: {
-                                        templateColumns: ['auto'],
-                                        templateRows: ['auto']
-                                    }
-                                }
-                            ]}
                         >
-                            <i-vstack id={'ieSidebar'} height={'100%'} overflow={{ y: 'auto' }}>
+                            <i-vstack
+                                id={'ieSidebar'}
+                                resizer={true} dock="left"
+                                height={'100%'} overflow={{ y: 'auto', x: 'hidden' }}
+                                minWidth={'10rem'} width={'15rem'}
+                                maxWidth={'calc(100% - 35rem)'}
+                                border={{right: {width: '1px', style: 'solid', color: Theme.divider}}}
+                            >
                                 <i-tree-view
                                     id="uploadedFileTree"
                                     class="file-manager-tree uploaded"
@@ -680,21 +679,12 @@ export class ScomStorage extends Module {
                                     maxHeight={'100%'} overflow={'auto'}
                                 ></i-tree-view>
                             </i-vstack>
-                            <i-panel
-                                width={1} cursor='col-resize'
-                                zIndex={15}
-                                background={{ color: Theme.colors.secondary.light }}
-                                mediaQueries={[
-                                    {
-                                        maxWidth: '767px',
-                                        properties: {
-                                            visible: false,
-                                            maxWidth: '100%'
-                                        }
-                                    }
-                                ]}
-                            ></i-panel>
-                            <i-vstack id={'ieContent'} height={'100%'} overflow={{ y: 'auto' }}>
+                            <i-vstack
+                                id={'ieContent'}
+                                dock='fill'
+                                height={'100%'}
+                                overflow={{ y: 'auto' }}
+                            >
                                 <i-scom-ipfs--path
                                     id="pnlPath"
                                     display='flex' width={'100%'}
@@ -733,29 +723,20 @@ export class ScomStorage extends Module {
                                 </i-panel>
                             </i-vstack>
                             <i-panel
-                                id="bdPreview"
-                                width={1} cursor='col-resize'
-                                zIndex={15}
-                                background={{ color: Theme.colors.secondary.light }}
+                                id="pnlPreview"
+                                border={{left: {width: '1px', style: 'solid', color: Theme.divider}}}
+                                width={'20rem'}
+                                dock='right'
                                 visible={false}
-                                mediaQueries={[
-                                    {
-                                        maxWidth: '767px',
-                                        properties: {
-                                            visible: false,
-                                            maxWidth: '100%'
-                                        }
-                                    }
-                                ]}
-                            ></i-panel>
-                            <i-scom-ipfs--preview
-                                id="iePreview"
-                                width={'100%'}
-                                height={'100%'}
-                                display='block'
-                                visible={false}
-                                onClose={this.closePreview.bind(this)}
-                            />
+                            >
+                                <i-scom-ipfs--preview
+                                    id="iePreview"
+                                    width={'100%'}
+                                    height={'100%'}
+                                    display='block'
+                                    onClose={this.closePreview.bind(this)}
+                                />
+                            </i-panel>
                         </i-grid-layout>
                     </i-panel>
                 </i-vstack>

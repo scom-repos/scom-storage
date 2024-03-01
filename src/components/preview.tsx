@@ -56,11 +56,11 @@ export class ScomIPFSPreview extends Module {
     this._data = value
   }
 
-  get rootCid(): string {
-    return this._data?.rootCid
+  get transportEndpoint(): string {
+    return this._data?.transportEndpoint
   }
-  set rootCid(value: string) {
-    this._data.rootCid = value
+  set transportEndpoint(value: string) {
+    this._data.transportEndpoint = value
   }
 
   setData(value: IPreview) {
@@ -104,7 +104,7 @@ export class ScomIPFSPreview extends Module {
   }
 
   private async getModuleFromExtension() {
-    const { cid, name } = this._data;
+    const { cid, name, path } = this._data;
     if (!cid) return null
     const url = `${IPFS_GATEWAY}${cid}`
     let moduleData = {
@@ -117,15 +117,16 @@ export class ScomIPFSPreview extends Module {
     const audioExts = ['mp3', 'wav', 'ogg']
     const streamingExts = ['m3u8']
     const mdExts = ['md']
+    const mediaUrl = `${this.transportEndpoint}/ipfs/${path}`
+
     if (imgExts.includes(ext)) {
       moduleData = this.createImageElement(url)
     } else if (videodExts.includes(ext)) {
-      const videoUrl = '//d2zihajmogu5jn.cloudfront.net/elephantsdream/ed_hd.mp4'
-      moduleData = this.createVideoElement(videoUrl)
+      moduleData = this.createVideoElement(mediaUrl)
     } else if (audioExts.includes(ext)) {
-      moduleData = this.createVideoElement(url)
+      moduleData = this.createVideoElement(mediaUrl)
     } else if (streamingExts.includes(ext)) {
-      moduleData = this.createPlayerElement(url)
+      moduleData = this.createPlayerElement(mediaUrl)
     } else {
       // const result = await getFileContent(cid)
       // if (!result) return null
