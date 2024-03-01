@@ -18,9 +18,8 @@ declare module "@scom/scom-storage/interface.ts" {
     export interface IStorageConfig {
         cid: string;
     }
-    export interface IPreview {
-        cid: string;
-        name: string;
+    export interface IPreview extends IIPFSData {
+        rootCid?: string;
     }
 }
 /// <amd-module name="@scom/scom-storage/data.ts" />
@@ -313,8 +312,8 @@ declare module "@scom/scom-storage/components/preview.tsx" {
     import { Container, ControlElement, Module } from '@ijstech/components';
     import { IPreview } from "@scom/scom-storage/interface.ts";
     interface ScomIPFSPreviewElement extends ControlElement {
-        cid?: string;
-        name?: string;
+        data?: IPreview;
+        onClose?: () => void;
     }
     global {
         namespace JSX {
@@ -325,23 +324,29 @@ declare module "@scom/scom-storage/components/preview.tsx" {
     }
     export class ScomIPFSPreview extends Module {
         private pnlPreview;
+        private lblName;
+        private lblSize;
         private _data;
+        onClose: () => void;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomIPFSPreviewElement, parent?: Container): Promise<ScomIPFSPreview>;
-        get name(): string;
-        set name(value: string);
-        get cid(): string;
-        set cid(value: string);
+        get data(): IPreview;
+        set data(value: IPreview);
+        get rootCid(): string;
+        set rootCid(value: string);
         setData(value: IPreview): void;
         clear(): void;
         private renderUI;
+        private renderFileInfo;
         private previewFile;
         private getModuleFromExtension;
         private appendLabel;
+        private renderFilePreview;
         private createTextElement;
         private createImageElement;
         private createVideoElement;
         private createPlayerElement;
+        private onClosePreview;
         init(): void;
         render(): any;
     }
@@ -418,6 +423,7 @@ declare module "@scom/scom-storage" {
         private processTableData;
         private onCellClick;
         private previewFile;
+        private closePreview;
         private onBreadcrumbClick;
         init(): void;
         render(): any;

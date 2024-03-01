@@ -548,15 +548,13 @@ export class ScomStorage extends Module {
         if (record.type === 'dir') {
             this.onOpenFolder(record, true);
         } else {
-            const { cid, name } = record;
-            this.previewFile({ cid, name });
+            this.previewFile(record);
         }
     }
 
     private previewFile(record: IPreview) {
-        const { cid, name } = record;
         this.iePreview.visible = true;
-        this.iePreview.setData({ cid, name });
+        this.iePreview.setData(record);
         if (window.matchMedia('(max-width: 767px)').matches) {
             this.iePreview.openModal({
                 width: '100vw',
@@ -573,13 +571,7 @@ export class ScomStorage extends Module {
                 onClose: () => {
                     if (!window.matchMedia('(max-width: 767px)').matches) {
                         this.gridWrapper.appendChild(this.iePreview);
-                        this.iePreview.visible = false;
-                        this.bdPreview.visible = false;
-                        this.gridWrapper.templateColumns = [
-                            '15rem',
-                            '1px',
-                            '1fr'
-                        ]
+                        this.closePreview();
                     }
                 }
             })
@@ -594,6 +586,16 @@ export class ScomStorage extends Module {
                 '20rem'
             ]
         }
+    }
+
+    private closePreview() {
+        this.iePreview.visible = false;
+        this.bdPreview.visible = false;
+        this.gridWrapper.templateColumns = [
+            '15rem',
+            '1px',
+            '1fr'
+        ]
     }
 
     private onBreadcrumbClick({ cid, path }: { cid: string; path: string }) {
@@ -752,6 +754,7 @@ export class ScomStorage extends Module {
                                 height={'100%'}
                                 display='block'
                                 visible={false}
+                                onClose={this.closePreview.bind(this)}
                             />
                         </i-grid-layout>
                     </i-panel>

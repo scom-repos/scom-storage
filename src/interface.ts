@@ -20,7 +20,6 @@ export interface IStorageConfig {
     cid: string;
 }
 
-export interface IPreview {
-    cid: string
-    name: string
+export interface IPreview extends IIPFSData {
+    rootCid?: string;
 }
