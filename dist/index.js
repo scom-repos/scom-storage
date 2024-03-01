@@ -463,6 +463,10 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             }
             this.renderUI();
         }
+        clear() {
+            this.pnlPath.clear();
+            this.pathMapping = {};
+        }
         updatePath(data) {
             if (data.path != null)
                 this.pathMapping[data.path] = data;
@@ -666,6 +670,7 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
                 this.mobileFolder.updatePath({ ...this._data.parentNode, links: list });
                 await this.manager.setRootCid(this._data.parentNode.cid);
             }
+            this.mobileFolder.clear();
             this.mobileFolder.setData({ list: list, type: 'dir' });
         }
         // private renderFolders() {
@@ -1249,9 +1254,11 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                     for (let i = 0; i < this.fileListData.length; i++) {
                         const file = this.fileListData[i];
                         file.status = FILE_STATUS.SUCCESS;
+                        file.percentage = 100;
                     }
                     let rootNode = await this.manager.getRootNode();
-                    console.log("new root node cid: ", rootNode.cid);
+                    if (this.onUploaded)
+                        this.onUploaded(this, rootNode.cid);
                     this.renderFilterBar();
                     this.renderFileList();
                     this.renderPagination();
@@ -1675,8 +1682,6 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.columns = this.filesColumns.slice();
             this._uploadedTreeData = [];
             this._uploadedFileNodes = {};
-            this.currentParentDir = null;
-            this.breadcrumb = {};
         }
         async setData(value) {
             this._data = value;
@@ -1811,7 +1816,6 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 const data = ipfsData.links ? [parentNode, ...ipfsData.links] : [parentNode];
                 this._uploadedTreeData = [...data];
                 this.renderUploadedFileTreeUI();
-                this.breadcrumb[parentNode.path] = parentNode;
                 this.fileTable.data = this.processTableData(ipfsData);
                 // this.mobileFolder.setData({ list: ipfsData.links ?? [] });
                 this.mobileHome.setData({
@@ -1823,16 +1827,16 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     this.pnlPath.setData(parentNode);
             }
         }
-        async renderUploadedFileTreeUI(needReset = true) {
+        async renderUploadedFileTreeUI(needReset = true, path) {
             if (needReset) {
                 this.uploadedFileTree.clear();
                 this._uploadedFileNodes = {};
             }
             for (let nodeData of this._uploadedTreeData) {
-                await this.addUploadedFileNode(nodeData);
+                await this.addUploadedFileNode(nodeData, path);
             }
         }
-        async addUploadedFileNode(nodeData) {
+        async addUploadedFileNode(nodeData, path) {
             const name = nodeData.name;
             let idx = '';
             let items = nodeData.path?.split('/') ?? [];
@@ -1851,8 +1855,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                         node.icon.fill = Theme.colors.primary.light;
                         node.icon.visible = true;
                         node.icon.display = 'inline-flex';
-                        if (nodeData.root)
+                        const isActive = path ? nodeData.path === path : nodeData.root;
+                        if (nodeData.path === path)
                             node.active = true;
+                        if (isActive || path?.startsWith(nodeData.path + "/"))
+                            node.expanded = true;
                     }
                     else {
                         node = self._uploadedFileNodes[idx];
@@ -1888,9 +1895,66 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         onUpdateBreadcumbs(node) {
             this.pnlPath.setData(node);
         }
+        async onFilesUploaded(source, rootCid) {
+            this._data.cid = rootCid;
+            const rootNode = await this.manager.setRootCid(rootCid);
+            console.log("new root node cid: ", rootNode.cid);
+            const ipfsData = rootNode._cidInfo;
+            let path;
+            if (window.matchMedia('(max-width: 767px)').matches) {
+                path = this.mobileHome.currentPath;
+            }
+            else {
+                path = this.pnlPath.data.path;
+            }
+            if (ipfsData) {
+                const parentNode = (({ links, ...o }) => o)(ipfsData);
+                parentNode.name = parentNode.name ? parentNode.name : components_10.FormatUtils.truncateWalletAddress(parentNode.cid);
+                parentNode.path = '';
+                parentNode.root = true;
+                if (ipfsData.links?.length) {
+                    await Promise.all(ipfsData.links.map(async (data) => {
+                        data.path = `${parentNode.path}/${data.name}`;
+                        if (!data.type) {
+                            let node = await this.manager.getFileNode(`/${data.name}`);
+                            let isFolder = await node.isFolder();
+                            data.type = isFolder ? 'dir' : 'file';
+                        }
+                    }));
+                }
+                let data = ipfsData.links ? [parentNode, ...ipfsData.links] : [parentNode];
+                let tableData;
+                this.pnlPath.clear();
+                if (parentNode.name)
+                    this.pnlPath.setData(parentNode);
+                if (path) {
+                    const childrenData = await this.onFetchData({ path: path });
+                    childrenData.links.map((child) => (child.path = `${parentNode.path}/${child.name}`));
+                    data.push(...childrenData.links);
+                    tableData = { ...childrenData };
+                    let pathData = (({ links, ...o }) => o)(tableData);
+                    pathData.name = pathData.name ? pathData.name : pathData.cid;
+                    pathData.path = `${childrenData.path}`;
+                    this.pnlPath.setData(pathData);
+                }
+                else {
+                    tableData = ipfsData;
+                }
+                this._uploadedTreeData = [...data];
+                this.renderUploadedFileTreeUI(true, path);
+                this.fileTable.data = this.processTableData(tableData);
+                this.mobileHome.setData({
+                    recents: [...ipfsData.links].filter(item => item.type === 'file'),
+                    folders: ipfsData.links ?? [],
+                    parentNode: parentNode
+                });
+            }
+        }
         onOpenUploadModal() {
-            if (!this.uploadModal)
+            if (!this.uploadModal) {
                 this.uploadModal = new components_11.ScomIPFSUploadModal();
+                this.uploadModal.onUploaded = this.onFilesUploaded.bind(this);
+            }
             const modal = this.uploadModal.openModal({
                 width: 800,
                 maxWidth: '100%',
@@ -1929,10 +1993,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         async onOpenFolder(ipfsData, toggle) {
             if (ipfsData) {
-                this.currentParentDir = ipfsData;
                 const childrenData = await this.onFetchData(ipfsData);
-                if (!childrenData.name && ipfsData.name)
-                    childrenData.name = ipfsData.name;
                 this.onUpdateContent({ data: { ...childrenData }, toggle });
                 if (childrenData.links)
                     childrenData.links.map((child) => (child.path = `${ipfsData.path}/${child.name}`));
@@ -1958,6 +2019,12 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                         data.type = isFolder ? 'dir' : 'file';
                     }
                 }));
+            }
+            if (!fileNode._cidInfo.name) {
+                if (ipfsData.name)
+                    fileNode._cidInfo.name = ipfsData.name;
+                else if (fileNode.name)
+                    fileNode._cidInfo.name = fileNode.name;
             }
             fileNode._cidInfo.path = ipfsData.path;
             return fileNode._cidInfo;

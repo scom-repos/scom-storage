@@ -46,13 +46,11 @@ interface IUploadItem {
     data?: File | string
 };
 
-type BeforeUploadedCallback = (target: ScomIPFSUploadModal, data: ICidInfo) => void;
-type UploadedCallback = (target: ScomIPFSUploadModal, file: File, cid: string) => void;
+type UploadedCallback = (target: ScomIPFSUploadModal, rootCid: string) => void;
 
 interface ScomIPFSUploadModalElement extends ControlElement {
     rootCid?: string;
     parentDir?: Partial<ICidInfo>;
-    onBeforeUploaded: BeforeUploadedCallback;
     onUploaded?: UploadedCallback;
 }
 
@@ -94,7 +92,6 @@ export class ScomIPFSUploadModal extends Module {
 
     private _rootCid: string;
     private _parentDir: Partial<ICidInfo>;
-    public onBeforeUploaded: BeforeUploadedCallback;
     public onUploaded: UploadedCallback;
 
     private isForcedCancelled = false;
@@ -668,10 +665,12 @@ export class ScomIPFSUploadModal extends Module {
                 for (let i = 0; i < this.fileListData.length; i++) {
                     const file = this.fileListData[i];
                     file.status = FILE_STATUS.SUCCESS;
+                    file.percentage = 100;
                 }
                 
                 let rootNode = await this.manager.getRootNode();
-                console.log("new root node cid: ", rootNode.cid);
+
+                if (this.onUploaded) this.onUploaded(this, rootNode.cid);
     
                 this.renderFilterBar();
                 this.renderFileList();

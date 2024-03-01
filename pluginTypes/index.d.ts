@@ -138,6 +138,7 @@ declare module "@scom/scom-storage/components/folder.tsx" {
         get isGridMode(): boolean;
         get currentPath(): string;
         setData(data: IFolderData): void;
+        clear(): void;
         updatePath(data: IIPFSData): void;
         private renderUI;
         private onBreadcrumbClick;
@@ -209,12 +210,10 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         size: number;
         type?: 'dir' | 'file';
     }
-    type BeforeUploadedCallback = (target: ScomIPFSUploadModal, data: ICidInfo) => void;
-    type UploadedCallback = (target: ScomIPFSUploadModal, file: File, cid: string) => void;
+    type UploadedCallback = (target: ScomIPFSUploadModal, rootCid: string) => void;
     interface ScomIPFSUploadModalElement extends ControlElement {
         rootCid?: string;
         parentDir?: Partial<ICidInfo>;
-        onBeforeUploaded: BeforeUploadedCallback;
         onUploaded?: UploadedCallback;
     }
     global {
@@ -249,7 +248,6 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         private pnlPagination;
         private _rootCid;
         private _parentDir;
-        onBeforeUploaded: BeforeUploadedCallback;
         onUploaded: UploadedCallback;
         private isForcedCancelled;
         private currentRequest;
@@ -378,8 +376,6 @@ declare module "@scom/scom-storage" {
         private columns;
         private _uploadedTreeData;
         private _uploadedFileNodes;
-        private currentParentDir;
-        private breadcrumb;
         private transportEndpoint;
         private manager;
         private setData;
@@ -410,10 +406,11 @@ declare module "@scom/scom-storage" {
         private updateStyle;
         private updateTheme;
         private initContent;
-        renderUploadedFileTreeUI(needReset?: boolean): Promise<void>;
-        addUploadedFileNode(nodeData: IIPFSData): Promise<void>;
+        renderUploadedFileTreeUI(needReset?: boolean, path?: string): Promise<void>;
+        addUploadedFileNode(nodeData: IIPFSData, path?: string): Promise<void>;
         private onUpdateContent;
         private onUpdateBreadcumbs;
+        private onFilesUploaded;
         private onOpenUploadModal;
         private onActiveChange;
         private onOpenFolder;

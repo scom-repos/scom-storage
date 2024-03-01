@@ -101,6 +101,7 @@ export class ScomIPFSMobileHome extends Module {
             this.mobileFolder.updatePath({ ...this._data.parentNode, links: list });
             await this.manager.setRootCid(this._data.parentNode.cid);
         }
+        this.mobileFolder.clear();
         this.mobileFolder.setData({ list: list, type: 'dir' });
     }
 

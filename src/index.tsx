@@ -152,8 +152,6 @@ export class ScomStorage extends Module {
     private columns: any[] = this.filesColumns.slice();
     private _uploadedTreeData: any = [];
     private _uploadedFileNodes: { [idx: string]: TreeNode } = {};
-    private currentParentDir: { cid: string; name: string } | null = null;
-    private breadcrumb: { [idx: string]: IIPFSData } = {};
     private transportEndpoint: string;
     private manager: any;
 
@@ -298,7 +296,6 @@ export class ScomStorage extends Module {
             const data = ipfsData.links ? [parentNode, ...ipfsData.links] : [parentNode];
             this._uploadedTreeData = [...data];
             this.renderUploadedFileTreeUI();
-            this.breadcrumb[parentNode.path] = parentNode;
             this.fileTable.data = this.processTableData(ipfsData);
             // this.mobileFolder.setData({ list: ipfsData.links ?? [] });
             this.mobileHome.setData({
@@ -312,18 +309,18 @@ export class ScomStorage extends Module {
         }
     }
 
-    async renderUploadedFileTreeUI(needReset = true) {
+    async renderUploadedFileTreeUI(needReset = true, path?: string) {
         if (needReset) {
             this.uploadedFileTree.clear();
             this._uploadedFileNodes = {};
         }
 
         for (let nodeData of this._uploadedTreeData) {
-            await this.addUploadedFileNode(nodeData);
+            await this.addUploadedFileNode(nodeData, path);
         }
     }
 
-    async addUploadedFileNode(nodeData: IIPFSData) {
+    async addUploadedFileNode(nodeData: IIPFSData, path?: string) {
         const name = nodeData.name;
         let idx: string = '';
         let items = nodeData.path?.split('/') ?? [];
@@ -343,7 +340,9 @@ export class ScomStorage extends Module {
                     node.icon.fill = Theme.colors.primary.light;
                     node.icon.visible = true;
                     node.icon.display = 'inline-flex';
-                    if (nodeData.root) node.active = true;
+                    const isActive = path ? nodeData.path === path : nodeData.root;
+                    if (nodeData.path === path) node.active = true;
+                    if (isActive || path?.startsWith(nodeData.path + "/")) node.expanded = true;
                 } else {
                     node = self._uploadedFileNodes[idx];
                     if (node && node.tag && idx === `/${nodeData.path}`) node.tag.cid = nodeData.cid;
@@ -386,8 +385,69 @@ export class ScomStorage extends Module {
         this.pnlPath.setData(node);
     }
 
+    private async onFilesUploaded(source: ScomIPFSUploadModal, rootCid: string) {
+        this._data.cid = rootCid;
+        const rootNode = await this.manager.setRootCid(rootCid);
+        console.log("new root node cid: ", rootNode.cid);
+        const ipfsData = rootNode._cidInfo;
+        
+        let path;
+        if (window.matchMedia('(max-width: 767px)').matches) {
+            path = this.mobileHome.currentPath;
+        } else {
+            path = this.pnlPath.data.path;
+        }
+
+        if (ipfsData) {
+            const parentNode = (({ links, ...o }) => o)(ipfsData);
+            parentNode.name = parentNode.name ? parentNode.name : FormatUtils.truncateWalletAddress(parentNode.cid);
+            parentNode.path = '';
+            parentNode.root = true;
+            if (ipfsData.links?.length) {
+                await Promise.all(
+                    ipfsData.links.map(async (data) => {
+                        data.path = `${parentNode.path}/${data.name}`;
+                        if (!data.type) {
+                            let node = await this.manager.getFileNode(`/${data.name}`);
+                            let isFolder = await node.isFolder();
+                            data.type = isFolder ? 'dir' : 'file'
+                        }
+                    })
+                );
+            }
+            let data = ipfsData.links ? [parentNode, ...ipfsData.links] : [parentNode];
+            let tableData;
+            this.pnlPath.clear();
+            if (parentNode.name) this.pnlPath.setData(parentNode);
+            if (path) {
+                const childrenData = await this.onFetchData({ path: path });
+                childrenData.links.map((child) => (child.path = `${parentNode.path}/${child.name}`));
+                data.push(...childrenData.links);
+                tableData = { ...childrenData };
+                let pathData = (({ links, ...o }) => o)(tableData);
+                pathData.name = pathData.name ? pathData.name : pathData.cid;
+                pathData.path = `${childrenData.path}`;
+                this.pnlPath.setData(pathData);
+            } else {
+                tableData = ipfsData;
+            }
+            this._uploadedTreeData = [...data];
+            this.renderUploadedFileTreeUI(true, path);
+            this.fileTable.data = this.processTableData(tableData);
+            this.mobileHome.setData({
+                recents: [...ipfsData.links].filter(item => item.type === 'file'),
+                folders: ipfsData.links ?? [],
+                parentNode: parentNode
+            })
+
+        }
+    }
+
     private onOpenUploadModal() {
-        if (!this.uploadModal) this.uploadModal = new ScomIPFSUploadModal();
+        if (!this.uploadModal) {
+            this.uploadModal = new ScomIPFSUploadModal();
+            this.uploadModal.onUploaded = this.onFilesUploaded.bind(this);
+        }
         const modal = this.uploadModal.openModal({
             width: 800,
             maxWidth: '100%',
@@ -427,9 +487,7 @@ export class ScomStorage extends Module {
 
     private async onOpenFolder(ipfsData: any, toggle: boolean) {
         if (ipfsData) {
-            this.currentParentDir = ipfsData;
             const childrenData = await this.onFetchData(ipfsData);
-            if (!childrenData.name && ipfsData.name) childrenData.name = ipfsData.name;
             this.onUpdateContent({ data: { ...childrenData }, toggle });
             if (childrenData.links) childrenData.links.map((child) => (child.path = `${ipfsData.path}/${child.name}`));
             this.fileTable.data = this.processTableData({ ...childrenData });
@@ -455,6 +513,10 @@ export class ScomStorage extends Module {
                     }
                 })
             );
+        }
+        if (!fileNode._cidInfo.name) {
+            if (ipfsData.name) fileNode._cidInfo.name = ipfsData.name;
+            else if (fileNode.name) fileNode._cidInfo.name = fileNode.name;
         }
         fileNode._cidInfo.path = ipfsData.path;
         return fileNode._cidInfo;

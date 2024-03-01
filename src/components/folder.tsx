@@ -131,6 +131,11 @@ export class ScomIPFSFolder extends Module {
         this.renderUI();
     }
 
+    clear() {
+        this.pnlPath.clear();
+        this.pathMapping = {};
+    }
+
     updatePath(data: IIPFSData) {
         if (data.path != null) this.pathMapping[data.path] = data;
         this.pnlPath.setData(data);
