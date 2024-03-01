@@ -8,14 +8,17 @@ import {
     VStack
 } from '@ijstech/components';
 import { autoRetryGetContent, formatBytes } from '../data';
-import { IIPFSData } from '../inteface';
+import { IIPFSData, IPreview } from '../inteface';
 import { ScomIPFSFolder } from './folder';
 import { backgroundStyle } from './index.css';
 const Theme = Styles.Theme.ThemeVars;
 
+type previewCallback = (data: IPreview) => void
+
 interface ScomIPFSMobileHomeElement extends ControlElement {
     recents?: IIPFSData[];
     folders?: IIPFSData[];
+    onPreview?: previewCallback;
 }
 
 declare global {
@@ -40,6 +43,8 @@ export class ScomIPFSMobileHome extends Module {
     // private mobileMain: VStack;
 
     private _data: IHomeData;
+
+    onPreview: previewCallback;
 
     constructor(parent?: Container, options?: any) {
         super(parent, options);
@@ -177,7 +182,7 @@ export class ScomIPFSMobileHome extends Module {
     //     this.mobileFolder.visible = false;
     // }
 
-    private async onFetchData(ipfsData: any) {
+    private async onFetchData(ipfsData: IIPFSData) {
         const childrenData = await autoRetryGetContent(ipfsData.cid);
         childrenData.path = ipfsData.path;
         if (childrenData.links) {
@@ -189,8 +194,16 @@ export class ScomIPFSMobileHome extends Module {
         return childrenData;
     }
 
+    private onItemClicked(data: IIPFSData) {
+        if (data.type === 'file') {
+            const { cid, name } = data;
+            this.onPreview({ cid, name });
+        }
+    }
+
     init() {
         super.init();
+        this.onPreview = this.onPreview.bind(this) || this.onPreview;
         const recents = this.getAttribute('recents', true);
         const folders = this.getAttribute('folders', true);
         this.setData({ recents, folders });
@@ -259,6 +272,7 @@ export class ScomIPFSMobileHome extends Module {
                     display='block'
                     // visible={false}
                     onFetchData={this.onFetchData.bind(this)}
+                    onItemClicked={this.onItemClicked.bind(this)}
                     // onClose={this.onBack.bind(this)}
                 ></i-scom-ipfs--mobile-folder>
             </i-panel>

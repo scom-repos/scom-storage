@@ -22,6 +22,7 @@ interface ScomIPFSFolderElement extends ControlElement {
     data?: IFolderData;
     onFetchData?: callbackType;
     onClose?: () => void;
+    onItemClicked?: (data: IIPFSData) => void;
 }
 
 type IMode = 'grid' | 'list';
@@ -61,6 +62,7 @@ export class ScomIPFSFolder extends Module {
 
     onFetchData: callbackType;
     onClose: () => void;
+    onItemClicked: (data: IIPFSData) => void;
 
     constructor(parent?: Container, options?: any) {
         super(parent, options);
@@ -216,6 +218,7 @@ export class ScomIPFSFolder extends Module {
     }
 
     private async onFolderClick(data: IIPFSData) {
+        if (this.onItemClicked) this.onItemClicked(data);
         if (data.type === 'file') return;
         await this.handleFolderClick(data);
     }
@@ -274,6 +277,7 @@ export class ScomIPFSFolder extends Module {
         super.init();
         this.onFetchData = this.getAttribute('onFetchData', true) || this.onFetchData;
         this.onClose = this.getAttribute('onClose', true) || this.onClose;
+        this.onItemClicked = this.getAttribute('onItemClicked', true) || this.onItemClicked;
         const data = this.getAttribute('data', true);
         if (data) this.setData(data);
     }

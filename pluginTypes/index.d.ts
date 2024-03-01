@@ -1,11 +1,3 @@
-/// <amd-module name="@scom/scom-storage/assets.ts" />
-declare module "@scom/scom-storage/assets.ts" {
-    function fullPath(path: string): string;
-    const _default: {
-        fullPath: typeof fullPath;
-    };
-    export default _default;
-}
 /// <amd-module name="@scom/scom-storage/inteface.ts" />
 declare module "@scom/scom-storage/inteface.ts" {
     export interface IIPFSData {
@@ -26,19 +18,34 @@ declare module "@scom/scom-storage/inteface.ts" {
     export interface IStorageConfig {
         cid: string;
     }
+    export interface IPreview {
+        cid: string;
+        name: string;
+    }
 }
 /// <amd-module name="@scom/scom-storage/data.ts" />
 declare module "@scom/scom-storage/data.ts" {
     import { IIPFSData, IStorageConfig } from "@scom/scom-storage/inteface.ts";
+    export const IPFS_GATEWAY = "https://ipfs.scom.dev/ipfs/";
     export const autoRetryGetContent: (cid: string) => Promise<IIPFSData>;
     export const fetchData: (data: IStorageConfig) => Promise<IIPFSData>;
+    export const getFileContent: (cid: string) => Promise<string>;
     export const formatBytes: (bytes: any, decimals?: number) => string;
+}
+/// <amd-module name="@scom/scom-storage/assets.ts" />
+declare module "@scom/scom-storage/assets.ts" {
+    function fullPath(path: string): string;
+    const _default: {
+        fullPath: typeof fullPath;
+    };
+    export default _default;
 }
 /// <amd-module name="@scom/scom-storage/components/index.css.ts" />
 declare module "@scom/scom-storage/components/index.css.ts" {
     export const backgroundStyle: string;
     export const transitionStyle: string;
     export const addressPanelStyle: string;
+    export const customLinkStyle: string;
 }
 /// <amd-module name="@scom/scom-storage/components/path.tsx" />
 declare module "@scom/scom-storage/components/path.tsx" {
@@ -86,6 +93,7 @@ declare module "@scom/scom-storage/components/folder.tsx" {
         data?: IFolderData;
         onFetchData?: callbackType;
         onClose?: () => void;
+        onItemClicked?: (data: IIPFSData) => void;
     }
     global {
         namespace JSX {
@@ -117,6 +125,7 @@ declare module "@scom/scom-storage/components/folder.tsx" {
         private currentPath;
         onFetchData: callbackType;
         onClose: () => void;
+        onItemClicked: (data: IIPFSData) => void;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomIPFSFolderElement, parent?: Container): Promise<ScomIPFSFolder>;
         get list(): any[];
@@ -146,10 +155,12 @@ declare module "@scom/scom-storage/components/folder.tsx" {
 /// <amd-module name="@scom/scom-storage/components/home.tsx" />
 declare module "@scom/scom-storage/components/home.tsx" {
     import { Container, ControlElement, Module } from '@ijstech/components';
-    import { IIPFSData } from "@scom/scom-storage/inteface.ts";
+    import { IIPFSData, IPreview } from "@scom/scom-storage/inteface.ts";
+    type previewCallback = (data: IPreview) => void;
     interface ScomIPFSMobileHomeElement extends ControlElement {
         recents?: IIPFSData[];
         folders?: IIPFSData[];
+        onPreview?: previewCallback;
     }
     global {
         namespace JSX {
@@ -166,6 +177,7 @@ declare module "@scom/scom-storage/components/home.tsx" {
     export class ScomIPFSMobileHome extends Module {
         private mobileFolder;
         private _data;
+        onPreview: previewCallback;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomIPFSMobileHomeElement, parent?: Container): Promise<ScomIPFSMobileHome>;
         get recents(): any[];
@@ -174,6 +186,7 @@ declare module "@scom/scom-storage/components/home.tsx" {
         set folders(value: any[]);
         setData(data: IHomeData): void;
         private onFetchData;
+        private onItemClicked;
         init(): void;
         render(): any;
     }
@@ -182,6 +195,49 @@ declare module "@scom/scom-storage/components/home.tsx" {
 declare module "@scom/scom-storage/index.css.ts" {
     const _default_1: string;
     export default _default_1;
+}
+/// <amd-module name="@scom/scom-storage/utils.ts" />
+declare module "@scom/scom-storage/utils.ts" {
+    import { Control } from "@ijstech/components";
+    export const getEmbedElement: (moduleData: any, parent: Control, callback?: any) => Promise<any>;
+}
+/// <amd-module name="@scom/scom-storage/components/preview.tsx" />
+declare module "@scom/scom-storage/components/preview.tsx" {
+    import { Container, ControlElement, Module } from '@ijstech/components';
+    import { IPreview } from "@scom/scom-storage/inteface.ts";
+    interface ScomIPFSPreviewElement extends ControlElement {
+        cid?: string;
+        name?: string;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-scom-ipfs--preview']: ScomIPFSPreviewElement;
+            }
+        }
+    }
+    export class ScomIPFSPreview extends Module {
+        private pnlPreview;
+        private _data;
+        constructor(parent?: Container, options?: any);
+        static create(options?: ScomIPFSPreviewElement, parent?: Container): Promise<ScomIPFSPreview>;
+        get name(): string;
+        set name(value: string);
+        get cid(): string;
+        set cid(value: string);
+        setData(value: IPreview): void;
+        clear(): void;
+        private renderUI;
+        private previewFile;
+        private getModuleFromExtension;
+        private appendLabel;
+        private createTextElement;
+        private createImageElement;
+        private createVideoElement;
+        private createPlayerElement;
+        init(): void;
+        render(): any;
+    }
 }
 /// <amd-module name="@scom/scom-storage" />
 declare module "@scom/scom-storage" {
@@ -201,6 +257,9 @@ declare module "@scom/scom-storage" {
         private pnlPath;
         private uploadedFileTree;
         private mobileHome;
+        private gridWrapper;
+        private iePreview;
+        private bdPreview;
         tag: any;
         private _data;
         private fileTable;
@@ -248,6 +307,7 @@ declare module "@scom/scom-storage" {
         private onFetchData;
         private processTableData;
         private onCellClick;
+        private previewFile;
         private onBreadcrumbClick;
         init(): void;
         render(): any;
