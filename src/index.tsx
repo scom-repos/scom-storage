@@ -9,12 +9,15 @@ import {
     customElements,
     ControlElement,
     IDataSchema,
+    Panel,
+    GridLayout,
     IPFS
 } from '@ijstech/components';
-import { IIPFSData, IStorageConfig, ITableData } from './interface';
+import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { autoRetryGetContent, fetchData, formatBytes } from './data';
 import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal } from './components';
 import customStyles from './index.css';
+import { ScomIPFSPreview } from './components/preview';
 
 declare var require: any
 
@@ -71,6 +74,9 @@ export class ScomStorage extends Module {
     private pnlPath: ScomIPFSPath;
     private uploadedFileTree: TreeView;
     private mobileHome: ScomIPFSMobileHome;
+    private gridWrapper: GridLayout;
+    private iePreview: ScomIPFSPreview;
+    private bdPreview: Panel;
     private uploadModal: ScomIPFSUploadModal;
 
     tag: any = {
@@ -476,8 +482,55 @@ export class ScomStorage extends Module {
     }
 
     private onCellClick(target: Table, rowIndex: number, columnIdx: number, record: ITableData) {
+        this.iePreview.clear();
         if (record.type === 'dir') {
             this.onOpenFolder(record, true);
+        } else {
+            const { cid, name } = record;
+            this.previewFile({ cid, name });
+        }
+    }
+
+    private previewFile(record: IPreview) {
+        const { cid, name } = record;
+        this.iePreview.visible = true;
+        this.iePreview.setData({ cid, name });
+        if (window.matchMedia('(max-width: 767px)').matches) {
+            this.iePreview.openModal({
+                width: '100vw',
+                height: '100vh',
+                padding: {top: 0, bottom: 0, left: 0, right: 0},
+                border: {radius: 0},
+                overflow: 'auto',
+                closeIcon: {
+                    name: 'times',
+                    width: '1rem', height: '1rem',
+                    fill: Theme.text.primary,
+                    margin: {top: '1rem', right: '1rem', bottom: '1rem', left: '1rem'}
+                },
+                onClose: () => {
+                    if (!window.matchMedia('(max-width: 767px)').matches) {
+                        this.gridWrapper.appendChild(this.iePreview);
+                        this.iePreview.visible = false;
+                        this.bdPreview.visible = false;
+                        this.gridWrapper.templateColumns = [
+                            '15rem',
+                            '1px',
+                            '1fr'
+                        ]
+                    }
+                }
+            })
+        } else {
+            if (!this.gridWrapper.contains(this.iePreview)) this.gridWrapper.appendChild(this.iePreview);
+            this.bdPreview.visible = true
+            this.gridWrapper.templateColumns = [
+                '15rem',
+                '1px',
+                'auto',
+                '1px',
+                '20rem'
+            ]
         }
     }
 
@@ -509,6 +562,7 @@ export class ScomStorage extends Module {
                     minHeight={'100vh'}
                     display='block'
                     background={{ color: Theme.background.main }}
+                    onPreview={this.previewFile.bind(this)}
                     transportEndpoint={this.transportEndpoint}
                     visible={false}
                     mediaQueries={[
@@ -530,14 +584,15 @@ export class ScomStorage extends Module {
                         {
                             maxWidth: '767px',
                             properties: {
-                                visible: false
+                                visible: false,
+                                maxWidth: '100%'
                             }
                         }
                     ]}
                 >
                     <i-panel stack={{ grow: '1', basis: '0%' }} overflow={'hidden'}>
                         <i-grid-layout
-                            id={'pnlExplorer'}
+                            id={'gridWrapper'}
                             height={'100%'}
                             overflow={'hidden'}
                             templateColumns={['15rem', '1px', '1fr']}
@@ -569,7 +624,8 @@ export class ScomStorage extends Module {
                                     {
                                         maxWidth: '767px',
                                         properties: {
-                                            visible: false
+                                            visible: false,
+                                            maxWidth: '100%'
                                         }
                                     }
                                 ]}
@@ -612,6 +668,29 @@ export class ScomStorage extends Module {
                                     </i-panel>
                                 </i-panel>
                             </i-vstack>
+                            <i-panel
+                                id="bdPreview"
+                                width={1} cursor='col-resize'
+                                zIndex={15}
+                                background={{ color: Theme.colors.secondary.light }}
+                                visible={false}
+                                mediaQueries={[
+                                    {
+                                        maxWidth: '767px',
+                                        properties: {
+                                            visible: false,
+                                            maxWidth: '100%'
+                                        }
+                                    }
+                                ]}
+                            ></i-panel>
+                            <i-scom-ipfs--preview
+                                id="iePreview"
+                                width={'100%'}
+                                height={'100%'}
+                                display='block'
+                                visible={false}
+                            />
                         </i-grid-layout>
                     </i-panel>
                 </i-vstack>

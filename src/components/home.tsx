@@ -9,15 +9,18 @@ import {
     IPFS
 } from '@ijstech/components';
 import { autoRetryGetContent, formatBytes } from '../data';
-import { IIPFSData } from '../interface';
+import { IIPFSData, IPreview } from '../interface';
 import { ScomIPFSFolder } from './folder';
 import { backgroundStyle } from './index.css';
 const Theme = Styles.Theme.ThemeVars;
+
+type previewCallback = (data: IPreview) => void
 
 interface ScomIPFSMobileHomeElement extends ControlElement {
     recents?: IIPFSData[];
     folders?: IIPFSData[];
     transportEndpoint?: string;
+    onPreview?: previewCallback;
 }
 
 declare global {
@@ -45,8 +48,8 @@ export class ScomIPFSMobileHome extends Module {
     private _manager: any;
 
     private _data: IHomeData;
-
     private _transportEndpoint: string;
+    onPreview: previewCallback;
 
     constructor(parent?: Container, options?: any) {
         super(parent, options);
@@ -226,8 +229,16 @@ export class ScomIPFSMobileHome extends Module {
         return fileNode._cidInfo;
     }
 
+    private onItemClicked(data: IIPFSData) {
+        if (data.type === 'file') {
+            const { cid, name } = data;
+            this.onPreview({ cid, name });
+        }
+    }
+
     init() {
         super.init();
+        this.onPreview = this.onPreview.bind(this) || this.onPreview;
         const recents = this.getAttribute('recents', true);
         const folders = this.getAttribute('folders', true);
         this.transportEndpoint = this.getAttribute('transportEndpoint', true);
@@ -300,6 +311,7 @@ export class ScomIPFSMobileHome extends Module {
                     display='block'
                     // visible={false}
                     onFetchData={this.onFetchData.bind(this)}
+                    onItemClicked={this.onItemClicked.bind(this)}
                     // onClose={this.onBack.bind(this)}
                 ></i-scom-ipfs--mobile-folder>
             </i-panel>

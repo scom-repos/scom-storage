@@ -11,15 +11,15 @@ define("@scom/scom-storage/interface.ts", ["require", "exports"], function (requ
 define("@scom/scom-storage/data.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.formatBytes = exports.fetchData = exports.autoRetryGetContent = void 0;
-    const IPFS_GATEWAY = 'https://ipfs.scom.dev/ipfs/';
+    exports.formatBytes = exports.getFileContent = exports.fetchData = exports.autoRetryGetContent = exports.IPFS_GATEWAY = void 0;
+    exports.IPFS_GATEWAY = 'https://ipfs.scom.dev/ipfs/';
     const autoRetryGetContent = async (cid) => {
         return new Promise((resolve, reject) => {
             const load = async (counter) => {
                 try {
                     if (counter >= 10)
                         return reject();
-                    const response = await fetch(`${IPFS_GATEWAY}${cid}`);
+                    const response = await fetch(`${exports.IPFS_GATEWAY}${cid}`);
                     if (response.ok) {
                         resolve(response.json());
                     }
@@ -42,6 +42,20 @@ define("@scom/scom-storage/data.ts", ["require", "exports"], function (require, 
             return null;
     };
     exports.fetchData = fetchData;
+    const getFileContent = async (cid) => {
+        let result = '';
+        if (cid) {
+            const response = await fetch(`${exports.IPFS_GATEWAY}${cid}`);
+            try {
+                if (response.ok) {
+                    result = await response.text();
+                }
+            }
+            catch (err) { }
+        }
+        return result;
+    };
+    exports.getFileContent = getFileContent;
     const formatBytes = (bytes, decimals = 2) => {
         if (!+bytes)
             return '0 Bytes';
@@ -68,7 +82,7 @@ define("@scom/scom-storage/assets.ts", ["require", "exports", "@ijstech/componen
 define("@scom/scom-storage/components/index.css.ts", ["require", "exports", "@ijstech/components", "@scom/scom-storage/assets.ts"], function (require, exports, components_2, assets_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.uploadModalStyle = exports.addressPanelStyle = exports.transitionStyle = exports.backgroundStyle = void 0;
+    exports.uploadModalStyle = exports.customLinkStyle = exports.addressPanelStyle = exports.transitionStyle = exports.backgroundStyle = void 0;
     const Theme = components_2.Styles.Theme.ThemeVars;
     exports.backgroundStyle = components_2.Styles.style({
         backgroundColor: Theme.divider,
@@ -91,6 +105,17 @@ define("@scom/scom-storage/components/index.css.ts", ["require", "exports", "@ij
             },
             'i-button': {
                 whiteSpace: 'nowrap'
+            }
+        }
+    });
+    exports.customLinkStyle = components_2.Styles.style({
+        $nest: {
+            'a': {
+                color: `${Theme.colors.primary.main}!important`,
+                display: `inline !important`,
+            },
+            'img': {
+                maxWidth: '100%'
             }
         }
     });
@@ -504,6 +529,8 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             this.iconBack.visible = true;
         }
         async onFolderClick(data) {
+            if (this.onItemClicked)
+                this.onItemClicked(data);
             if (data.type === 'file')
                 return;
             await this.handleFolderClick(data);
@@ -560,6 +587,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             super.init();
             this.onFetchData = this.getAttribute('onFetchData', true) || this.onFetchData;
             this.onClose = this.getAttribute('onClose', true) || this.onClose;
+            this.onItemClicked = this.getAttribute('onItemClicked', true) || this.onItemClicked;
             const data = this.getAttribute('data', true);
             if (data)
                 this.setData(data);
@@ -758,8 +786,15 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
             fileNode._cidInfo.path = ipfsData.path;
             return fileNode._cidInfo;
         }
+        onItemClicked(data) {
+            if (data.type === 'file') {
+                const { cid, name } = data;
+                this.onPreview({ cid, name });
+            }
+        }
         init() {
             super.init();
+            this.onPreview = this.onPreview.bind(this) || this.onPreview;
             const recents = this.getAttribute('recents', true);
             const folders = this.getAttribute('folders', true);
             this.transportEndpoint = this.getAttribute('transportEndpoint', true);
@@ -772,7 +807,7 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
             return (this.$render("i-panel", { width: '100%', minHeight: 'inherit' },
                 this.$render("i-scom-ipfs--mobile-folder", { id: "mobileFolder", width: '100%', minHeight: '100%', display: 'block', 
                     // visible={false}
-                    onFetchData: this.onFetchData.bind(this) })));
+                    onFetchData: this.onFetchData.bind(this), onItemClicked: this.onItemClicked.bind(this) })));
         }
     };
     ScomIPFSMobileHome = __decorate([
@@ -1317,11 +1352,230 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
         }
     });
 });
-define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_8, data_2, components_9, index_css_4) {
+define("@scom/scom-storage/utils.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_8) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.getEmbedElement = void 0;
+    const getEmbedElement = async (moduleData, parent, callback) => {
+        const { module, data } = moduleData;
+        const elm = await components_8.application.createElement(module, true);
+        if (!elm)
+            throw new Error('not found');
+        elm.parent = parent;
+        const builderTarget = elm.getConfigurators ? elm.getConfigurators().find((conf) => conf.target === 'Builders') : null;
+        if (elm.ready)
+            await elm.ready();
+        elm.maxWidth = '100%';
+        elm.maxHeight = '100%';
+        elm.display = 'block';
+        if (builderTarget?.setData && data.properties) {
+            await builderTarget.setData(data.properties);
+        }
+        if (builderTarget?.setTag && data.tag) {
+            await builderTarget.setTag(data.tag);
+        }
+        if (callback)
+            callback(elm);
+        return elm;
+    };
+    exports.getEmbedElement = getEmbedElement;
+});
+define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts", "@scom/scom-storage/utils.ts"], function (require, exports, components_9, index_css_4, data_2, utils_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ScomIPFSPreview = void 0;
+    const Theme = components_9.Styles.Theme.ThemeVars;
+    let ScomIPFSPreview = class ScomIPFSPreview extends components_9.Module {
+        constructor(parent, options) {
+            super(parent, options);
+            this._data = {
+                cid: '',
+                name: ''
+            };
+        }
+        static async create(options, parent) {
+            let self = new this(parent, options);
+            await self.ready();
+            return self;
+        }
+        get name() {
+            return this._data.name;
+        }
+        set name(value) {
+            this._data.name = value;
+        }
+        get cid() {
+            return this._data.cid;
+        }
+        set cid(value) {
+            this._data.cid = value;
+        }
+        setData(value) {
+            this._data = value;
+            this.renderUI();
+        }
+        clear() {
+            this.pnlPreview.clearInnerHTML();
+        }
+        renderUI() {
+            this.clear();
+            this.previewFile();
+        }
+        async previewFile() {
+            try {
+                const moduleData = await this.getModuleFromExtension();
+                if (moduleData?.module) {
+                    await (0, utils_1.getEmbedElement)(moduleData, this.pnlPreview);
+                }
+                else if (moduleData?.data) {
+                    let content = moduleData.data || '';
+                    const isHTML = content.indexOf('<html') > -1;
+                    if (isHTML) {
+                        content = content.replace(/\</g, '&lt;').replace(/\>/g, '&gt;');
+                        console.log(content);
+                    }
+                    this.appendLabel(content);
+                }
+                else {
+                    this.appendLabel('No preview available');
+                }
+            }
+            catch (error) { }
+        }
+        async getModuleFromExtension() {
+            const { cid, name } = this._data;
+            if (!cid)
+                return null;
+            const url = `https://ipfs.io/ipfs/${cid}`;
+            let moduleData = {
+                module: '',
+                data: null,
+            };
+            const ext = (name || '').split('.').pop().toLowerCase();
+            const imgExts = ['jpg', 'jpeg', 'png', 'gif', 'svg'];
+            const videodExts = ['mp4', 'webm', 'mov'];
+            const audioExts = ['mp3', 'wav', 'ogg'];
+            const streamingExts = ['m3u8'];
+            const mdExts = ['md'];
+            if (imgExts.includes(ext)) {
+                moduleData = this.createImageElement(url);
+            }
+            else if (videodExts.includes(ext)) {
+                moduleData = this.createVideoElement(url);
+            }
+            else if (audioExts.includes(ext)) {
+                moduleData = this.createVideoElement(url);
+            }
+            else if (streamingExts.includes(ext)) {
+                moduleData = this.createPlayerElement(url);
+            }
+            else {
+                const result = await (0, data_2.getFileContent)(cid);
+                if (!result)
+                    return null;
+                if (mdExts.includes(ext)) {
+                    moduleData = this.createTextElement(result);
+                }
+                else {
+                    moduleData = { module: '', data: result };
+                }
+            }
+            return moduleData;
+        }
+        appendLabel(text) {
+            const label = (this.$render("i-label", { width: '100%', overflowWrap: 'anywhere', class: index_css_4.customLinkStyle, lineHeight: 1.2, display: 'block', maxHeight: '100%', font: { size: '0.875rem' } }));
+            const hrefRegex = /https?:\/\/\S+/g;
+            text = text
+                .replace(/\n/gm, ' <br> ')
+                .replace(/\s/g, '&nbsp;')
+                .replace(hrefRegex, (match) => {
+                return ` <a href="${match}" target="_blank">${match}</a> `;
+            });
+            label.caption = text;
+            this.pnlPreview.appendChild(label);
+        }
+        createTextElement(text) {
+            return {
+                module: '@scom/scom-markdown-editor',
+                data: {
+                    properties: {
+                        content: text,
+                    },
+                    tag: {
+                        width: '100%',
+                        pt: 0,
+                        pb: 0,
+                        pl: 0,
+                        pr: 0,
+                    },
+                },
+            };
+        }
+        createImageElement(url) {
+            return {
+                module: '@scom/scom-image',
+                data: {
+                    properties: {
+                        url: url,
+                    },
+                    tag: {
+                        width: '100%',
+                        pt: 0,
+                        pb: 0,
+                        pl: 0,
+                        pr: 0,
+                    },
+                },
+            };
+        }
+        createVideoElement(url, tag) {
+            return {
+                module: '@scom/scom-video',
+                data: {
+                    properties: {
+                        url: url,
+                    },
+                    tag: {
+                        width: '100%',
+                        ...tag,
+                    },
+                },
+            };
+        }
+        createPlayerElement(url, tag) {
+            return {
+                module: '@scom/scom-media-player',
+                data: {
+                    properties: {
+                        url: url,
+                    },
+                    tag: {
+                        width: '100%',
+                        ...tag,
+                    },
+                },
+            };
+        }
+        init() {
+            super.init();
+            const name = this.getAttribute('name', true);
+            const cid = this.getAttribute('cid', true);
+            this.setData({ name, cid });
+        }
+        render() {
+            return (this.$render("i-vstack", { id: 'pnlPreview', width: '100%', height: '100%', overflow: { y: 'auto' }, padding: { left: '1rem', right: '1rem', top: '1rem', bottom: '1rem' }, verticalAlignment: 'center', horizontalAlignment: 'center' }));
+        }
+    };
+    ScomIPFSPreview = __decorate([
+        (0, components_9.customElements)('i-scom-ipfs--preview')
+    ], ScomIPFSPreview);
+    exports.ScomIPFSPreview = ScomIPFSPreview;
+});
+define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_10, data_3, components_11, index_css_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomStorage = void 0;
-    const Theme = components_8.Styles.Theme.ThemeVars;
+    const Theme = components_10.Styles.Theme.ThemeVars;
     const defaultColors = {
         light: {
             primaryColor: '#3f51b5',
@@ -1354,7 +1608,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             selectedBackground: '#0b3a53'
         }
     };
-    let ScomStorage = class ScomStorage extends components_8.Module {
+    let ScomStorage = class ScomStorage extends components_10.Module {
         constructor() {
             super(...arguments);
             this.tag = {
@@ -1410,7 +1664,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     title: 'Size',
                     fieldName: 'size',
                     onRenderCell: (source, columnData, rowData) => {
-                        return (0, data_2.formatBytes)(columnData);
+                        return (0, data_3.formatBytes)(columnData);
                     },
                 },
                 {
@@ -1541,7 +1795,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             // this._storedFileData = null;
             if (ipfsData) {
                 const parentNode = (({ links, ...o }) => o)(ipfsData);
-                parentNode.name = parentNode.name ? parentNode.name : components_8.FormatUtils.truncateWalletAddress(parentNode.cid);
+                parentNode.name = parentNode.name ? parentNode.name : components_10.FormatUtils.truncateWalletAddress(parentNode.cid);
                 parentNode.path = '';
                 parentNode.root = true;
                 if (ipfsData.links?.length) {
@@ -1636,7 +1890,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         onOpenUploadModal() {
             if (!this.uploadModal)
-                this.uploadModal = new components_9.ScomIPFSUploadModal();
+                this.uploadModal = new components_11.ScomIPFSUploadModal();
             const modal = this.uploadModal.openModal({
                 width: 800,
                 maxWidth: '100%',
@@ -1729,8 +1983,57 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             return processedData;
         }
         onCellClick(target, rowIndex, columnIdx, record) {
+            this.iePreview.clear();
             if (record.type === 'dir') {
                 this.onOpenFolder(record, true);
+            }
+            else {
+                const { cid, name } = record;
+                this.previewFile({ cid, name });
+            }
+        }
+        previewFile(record) {
+            const { cid, name } = record;
+            this.iePreview.visible = true;
+            this.iePreview.setData({ cid, name });
+            if (window.matchMedia('(max-width: 767px)').matches) {
+                this.iePreview.openModal({
+                    width: '100vw',
+                    height: '100vh',
+                    padding: { top: 0, bottom: 0, left: 0, right: 0 },
+                    border: { radius: 0 },
+                    overflow: 'auto',
+                    closeIcon: {
+                        name: 'times',
+                        width: '1rem', height: '1rem',
+                        fill: Theme.text.primary,
+                        margin: { top: '1rem', right: '1rem', bottom: '1rem', left: '1rem' }
+                    },
+                    onClose: () => {
+                        if (!window.matchMedia('(max-width: 767px)').matches) {
+                            this.gridWrapper.appendChild(this.iePreview);
+                            this.iePreview.visible = false;
+                            this.bdPreview.visible = false;
+                            this.gridWrapper.templateColumns = [
+                                '15rem',
+                                '1px',
+                                '1fr'
+                            ];
+                        }
+                    }
+                });
+            }
+            else {
+                if (!this.gridWrapper.contains(this.iePreview))
+                    this.gridWrapper.appendChild(this.iePreview);
+                this.bdPreview.visible = true;
+                this.gridWrapper.templateColumns = [
+                    '15rem',
+                    '1px',
+                    'auto',
+                    '1px',
+                    '20rem'
+                ];
             }
         }
         onBreadcrumbClick({ cid, path }) {
@@ -1741,10 +2044,10 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         init() {
             this.transportEndpoint = this.getAttribute('transportEndpoint', true) || window.location.origin;
             super.init();
-            this.classList.add(index_css_4.default);
+            this.classList.add(index_css_5.default);
             this.setTag(defaultColors);
             const cid = this.getAttribute('cid', true);
-            this.manager = new components_8.IPFS.FileManager({
+            this.manager = new components_10.IPFS.FileManager({
                 endpoint: this.transportEndpoint,
                 rootCid: cid
             });
@@ -1753,7 +2056,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         render() {
             return (this.$render("i-panel", { height: '100%', width: '100%' },
-                this.$render("i-scom-ipfs--mobile-home", { id: "mobileHome", width: '100%', minHeight: '100vh', display: 'block', background: { color: Theme.background.main }, transportEndpoint: this.transportEndpoint, visible: false, mediaQueries: [
+                this.$render("i-scom-ipfs--mobile-home", { id: "mobileHome", width: '100%', minHeight: '100vh', display: 'block', background: { color: Theme.background.main }, onPreview: this.previewFile.bind(this), transportEndpoint: this.transportEndpoint, visible: false, mediaQueries: [
                         {
                             maxWidth: '767px',
                             properties: {
@@ -1765,12 +2068,13 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                         {
                             maxWidth: '767px',
                             properties: {
-                                visible: false
+                                visible: false,
+                                maxWidth: '100%'
                             }
                         }
                     ] },
                     this.$render("i-panel", { stack: { grow: '1', basis: '0%' }, overflow: 'hidden' },
-                        this.$render("i-grid-layout", { id: 'pnlExplorer', height: '100%', overflow: 'hidden', templateColumns: ['15rem', '1px', '1fr'], background: { color: Theme.background.main }, mediaQueries: [
+                        this.$render("i-grid-layout", { id: 'gridWrapper', height: '100%', overflow: 'hidden', templateColumns: ['15rem', '1px', '1fr'], background: { color: Theme.background.main }, mediaQueries: [
                                 {
                                     maxWidth: '767px',
                                     properties: {
@@ -1785,7 +2089,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                     {
                                         maxWidth: '767px',
                                         properties: {
-                                            visible: false
+                                            visible: false,
+                                            maxWidth: '100%'
                                         }
                                     }
                                 ] }),
@@ -1805,7 +2110,17 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                                 padding: { top: '0.375rem', bottom: '0.375rem', left: '0.5rem', right: '0.5rem' },
                                                 height: '2.25rem',
                                                 cursor: 'pointer'
-                                            }, onCellClick: this.onCellClick }))))))),
+                                            }, onCellClick: this.onCellClick })))),
+                            this.$render("i-panel", { id: "bdPreview", width: 1, cursor: 'col-resize', zIndex: 15, background: { color: Theme.colors.secondary.light }, visible: false, mediaQueries: [
+                                    {
+                                        maxWidth: '767px',
+                                        properties: {
+                                            visible: false,
+                                            maxWidth: '100%'
+                                        }
+                                    }
+                                ] }),
+                            this.$render("i-scom-ipfs--preview", { id: "iePreview", width: '100%', height: '100%', display: 'block', visible: false })))),
                 this.$render("i-button", { boxShadow: '0 10px 25px -5px rgba(44, 179, 240, 0.6)', border: { radius: '50%' }, background: { color: Theme.colors.primary.light }, lineHeight: '3.375rem', width: '3.375rem', height: '3.375rem', icon: { name: 'plus', width: '1.125rem', height: ' 1.125rem', fill: Theme.colors.primary.contrastText }, position: 'absolute', bottom: '3.125rem', right: '3.125rem', zIndex: 100, onClick: this.onOpenUploadModal, mediaQueries: [
                         {
                             maxWidth: '767px',
@@ -1819,7 +2134,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
     };
     ScomStorage = __decorate([
-        (0, components_8.customElements)('i-scom-storage')
+        (0, components_10.customElements)('i-scom-storage')
     ], ScomStorage);
     exports.ScomStorage = ScomStorage;
 });
