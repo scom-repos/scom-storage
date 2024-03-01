@@ -1247,7 +1247,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                 try {
                     for (let i = 0; i < this.fileListData.length; i++) {
                         const file = this.fileListData[i];
-                        const filePath = this.folderPath ? `${this.folderPath}/${file.file.name}` : file.file.name;
+                        const filePath = this.folderPath ? `${this.folderPath}${file.file.path}` : file.file.path;
                         await this.manager.addFile(filePath, file.file);
                     }
                     await this.manager.applyUpdates();
