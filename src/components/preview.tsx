@@ -242,12 +242,25 @@ export class ScomIPFSPreview extends Module {
     if (this.onClose) this.onClose()
   }
 
-  private downloadFile() {
-    let a = document.createElement('a');
-    a.href = `${this.transportEndpoint}/ipfs/${this._data.path}`;
-    a.download = this._data.name;
-    a.target = '_blank';
-    a.click();
+  private async downloadFile() {
+    let url = `${this.transportEndpoint}/ipfs/${this._data.path}`;
+    try {
+      let response = await fetch(url);
+      let blob = await response.blob();
+      var objectUrl = window.URL.createObjectURL(blob); 
+      var a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = this._data.name;
+      a.target = '_blank';
+      a.click();
+    } catch (err) {
+      console.error("download file error: ", err);
+    }
+    // let a = document.createElement('a');
+    // a.href = `${this.transportEndpoint}/ipfs/${this._data.path}`;
+    // a.download = this._data.name;
+    // a.target = '_blank';
+    // a.click();
   }
 
   init() {
