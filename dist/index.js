@@ -1994,6 +1994,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 closeIcon: { name: 'times', fill: Theme.text.primary, position: 'absolute', top: '1rem', right: '1rem', zIndex: 2 },
                 zIndex: 1000,
                 padding: {},
+                maxHeight: '100vh',
+                overflow: { y: 'auto' },
                 onClose: () => this.uploadModal.reset(),
                 mediaQueries: [
                     {
