@@ -17,7 +17,7 @@ import {
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
 import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal } from './components';
-import customStyles from './index.css';
+import customStyles, { previewModalStyle } from './index.css';
 import { ScomIPFSPreview } from './components/preview';
 
 declare var require: any
@@ -483,7 +483,7 @@ export class ScomStorage extends Module {
 
     private async onActiveChange(parent: TreeView, prevNode?: TreeNode) {
         const ipfsData = parent.activeItem?.tag;
-        if (!prevNode?.isSameNode(parent.activeItem)) this.pnlPreview.visible = false;
+        if (!prevNode?.isSameNode(parent.activeItem)) this.closePreview();
         await this.onOpenFolder(ipfsData, true);
     }
 
@@ -549,7 +549,7 @@ export class ScomStorage extends Module {
     private onCellClick(target: Table, rowIndex: number, columnIdx: number, record: ITableData) {
         this.iePreview.clear();
         if (record.type === 'dir') {
-            this.pnlPreview.visible = false;
+            this.closePreview();
             this.onOpenFolder(record, true);
         } else {
             this.previewFile(record);
@@ -567,11 +567,11 @@ export class ScomStorage extends Module {
                 padding: {top: 0, bottom: 0, left: 0, right: 0},
                 border: {radius: 0},
                 overflow: 'auto',
+                class: previewModalStyle,
+                title: 'File Preview',
                 closeIcon: {
                     name: 'times',
-                    width: '1rem', height: '1rem',
-                    fill: Theme.text.primary,
-                    margin: {top: '1rem', right: '1rem', bottom: '1rem', left: '1rem'}
+                    width: '1rem', height: '1rem'
                 },
                 onClose: () => {
                     if (!window.matchMedia('(max-width: 767px)').matches) {
@@ -607,7 +607,7 @@ export class ScomStorage extends Module {
     private onBreadcrumbClick({ cid, path }: { cid: string; path: string }) {
         if (this.uploadedFileTree.activeItem)
             this.uploadedFileTree.activeItem.expanded = true;
-        this.pnlPreview.visible = false;
+        this.closePreview();
         this.onOpenFolder({ cid, path }, false);
     }
 

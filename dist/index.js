@@ -1307,6 +1307,7 @@ define("@scom/scom-storage/components/index.ts", ["require", "exports", "@scom/s
 define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_7) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.previewModalStyle = void 0;
     const Theme = components_7.Styles.Theme.ThemeVars;
     exports.default = components_7.Styles.style({
         $nest: {
@@ -1318,6 +1319,13 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
             },
             'i-table .i-table-cell': {
                 background: Theme.background.main
+            }
+        }
+    });
+    exports.previewModalStyle = components_7.Styles.style({
+        $nest: {
+            '.i-modal_header': {
+                padding: '1rem'
             }
         }
     });
@@ -2010,7 +2018,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         async onActiveChange(parent, prevNode) {
             const ipfsData = parent.activeItem?.tag;
             if (!prevNode?.isSameNode(parent.activeItem))
-                this.pnlPreview.visible = false;
+                this.closePreview();
             await this.onOpenFolder(ipfsData, true);
         }
         async onOpenFolder(ipfsData, toggle) {
@@ -2075,7 +2083,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         onCellClick(target, rowIndex, columnIdx, record) {
             this.iePreview.clear();
             if (record.type === 'dir') {
-                this.pnlPreview.visible = false;
+                this.closePreview();
                 this.onOpenFolder(record, true);
             }
             else {
@@ -2093,11 +2101,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     padding: { top: 0, bottom: 0, left: 0, right: 0 },
                     border: { radius: 0 },
                     overflow: 'auto',
+                    class: index_css_5.previewModalStyle,
+                    title: 'File Preview',
                     closeIcon: {
                         name: 'times',
-                        width: '1rem', height: '1rem',
-                        fill: Theme.text.primary,
-                        margin: { top: '1rem', right: '1rem', bottom: '1rem', left: '1rem' }
+                        width: '1rem', height: '1rem'
                     },
                     onClose: () => {
                         if (!window.matchMedia('(max-width: 767px)').matches) {
@@ -2133,7 +2141,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         onBreadcrumbClick({ cid, path }) {
             if (this.uploadedFileTree.activeItem)
                 this.uploadedFileTree.activeItem.expanded = true;
-            this.pnlPreview.visible = false;
+            this.closePreview();
             this.onOpenFolder({ cid, path }, false);
         }
         init() {

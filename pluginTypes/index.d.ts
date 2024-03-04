@@ -298,6 +298,7 @@ declare module "@scom/scom-storage/components/index.ts" {
 declare module "@scom/scom-storage/index.css.ts" {
     const _default_1: string;
     export default _default_1;
+    export const previewModalStyle: string;
 }
 /// <amd-module name="@scom/scom-storage/utils.ts" />
 declare module "@scom/scom-storage/utils.ts" {
