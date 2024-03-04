@@ -370,6 +370,7 @@ declare module "@scom/scom-storage" {
         private iePreview;
         private pnlPreview;
         private uploadModal;
+        private btnUpload;
         tag: any;
         private _data;
         private fileTable;

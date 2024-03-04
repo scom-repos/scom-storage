@@ -2009,6 +2009,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         async onActiveChange(parent, prevNode) {
             const ipfsData = parent.activeItem?.tag;
+            if (!prevNode?.isSameNode(parent.activeItem))
+                this.pnlPreview.visible = false;
             await this.onOpenFolder(ipfsData, true);
         }
         async onOpenFolder(ipfsData, toggle) {
@@ -2073,6 +2075,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         onCellClick(target, rowIndex, columnIdx, record) {
             this.iePreview.clear();
             if (record.type === 'dir') {
+                this.pnlPreview.visible = false;
                 this.onOpenFolder(record, true);
             }
             else {
@@ -2108,6 +2111,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 if (!this.pnlPreview.contains(this.iePreview))
                     this.pnlPreview.appendChild(this.iePreview);
                 this.pnlPreview.visible = true;
+                this.btnUpload.right = '23.125rem';
                 // this.gridWrapper.templateColumns = [
                 //     '15rem',
                 //     '1px',
@@ -2119,6 +2123,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         closePreview() {
             this.pnlPreview.visible = false;
+            this.btnUpload.right = '3.125rem';
             // this.gridWrapper.templateColumns = [
             //     '15rem',
             //     '1px',
@@ -2128,6 +2133,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         onBreadcrumbClick({ cid, path }) {
             if (this.uploadedFileTree.activeItem)
                 this.uploadedFileTree.activeItem.expanded = true;
+            this.pnlPreview.visible = false;
             this.onOpenFolder({ cid, path }, false);
         }
         init() {
@@ -2183,7 +2189,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                             }, onCellClick: this.onCellClick })))),
                             this.$render("i-panel", { id: "pnlPreview", border: { left: { width: '1px', style: 'solid', color: Theme.divider } }, width: '20rem', dock: 'right', visible: false },
                                 this.$render("i-scom-ipfs--preview", { id: "iePreview", width: '100%', height: '100%', display: 'block', onClose: this.closePreview.bind(this) }))))),
-                this.$render("i-button", { boxShadow: '0 10px 25px -5px rgba(44, 179, 240, 0.6)', border: { radius: '50%' }, background: { color: Theme.colors.primary.light }, lineHeight: '3.375rem', width: '3.375rem', height: '3.375rem', icon: { name: 'plus', width: '1.125rem', height: ' 1.125rem', fill: Theme.colors.primary.contrastText }, position: 'absolute', bottom: '3.125rem', right: '3.125rem', zIndex: 100, onClick: this.onOpenUploadModal, mediaQueries: [
+                this.$render("i-button", { id: "btnUpload", boxShadow: '0 10px 25px -5px rgba(44, 179, 240, 0.6)', border: { radius: '50%' }, background: { color: Theme.colors.primary.light }, lineHeight: '3.375rem', width: '3.375rem', height: '3.375rem', icon: { name: 'plus', width: '1.125rem', height: ' 1.125rem', fill: Theme.colors.primary.contrastText }, position: 'absolute', bottom: '3.125rem', right: '3.125rem', zIndex: 100, onClick: this.onOpenUploadModal, mediaQueries: [
                         {
                             maxWidth: '767px',
                             properties: {

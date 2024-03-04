@@ -11,7 +11,8 @@ import {
     IDataSchema,
     Panel,
     GridLayout,
-    IPFS
+    IPFS,
+    Button
 } from '@ijstech/components';
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
@@ -77,6 +78,7 @@ export class ScomStorage extends Module {
     private iePreview: ScomIPFSPreview;
     private pnlPreview: Panel;
     private uploadModal: ScomIPFSUploadModal;
+    private btnUpload: Button;
 
     tag: any = {
         light: {},
@@ -481,6 +483,7 @@ export class ScomStorage extends Module {
 
     private async onActiveChange(parent: TreeView, prevNode?: TreeNode) {
         const ipfsData = parent.activeItem?.tag;
+        if (!prevNode?.isSameNode(parent.activeItem)) this.pnlPreview.visible = false;
         await this.onOpenFolder(ipfsData, true);
     }
 
@@ -546,6 +549,7 @@ export class ScomStorage extends Module {
     private onCellClick(target: Table, rowIndex: number, columnIdx: number, record: ITableData) {
         this.iePreview.clear();
         if (record.type === 'dir') {
+            this.pnlPreview.visible = false;
             this.onOpenFolder(record, true);
         } else {
             this.previewFile(record);
@@ -578,7 +582,8 @@ export class ScomStorage extends Module {
             })
         } else {
             if (!this.pnlPreview.contains(this.iePreview)) this.pnlPreview.appendChild(this.iePreview);
-            this.pnlPreview.visible = true
+            this.pnlPreview.visible = true;
+            this.btnUpload.right = '23.125rem';
             // this.gridWrapper.templateColumns = [
             //     '15rem',
             //     '1px',
@@ -591,6 +596,7 @@ export class ScomStorage extends Module {
 
     private closePreview() {
         this.pnlPreview.visible = false;
+        this.btnUpload.right = '3.125rem';
         // this.gridWrapper.templateColumns = [
         //     '15rem',
         //     '1px',
@@ -601,6 +607,7 @@ export class ScomStorage extends Module {
     private onBreadcrumbClick({ cid, path }: { cid: string; path: string }) {
         if (this.uploadedFileTree.activeItem)
             this.uploadedFileTree.activeItem.expanded = true;
+        this.pnlPreview.visible = false;
         this.onOpenFolder({ cid, path }, false);
     }
 
@@ -740,6 +747,7 @@ export class ScomStorage extends Module {
                     </i-panel>
                 </i-vstack>
                 <i-button
+                    id="btnUpload"
                     boxShadow='0 10px 25px -5px rgba(44, 179, 240, 0.6)'
                     border={{ radius: '50%' }}
                     background={{ color: Theme.colors.primary.light }}
