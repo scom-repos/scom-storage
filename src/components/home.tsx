@@ -19,6 +19,7 @@ interface ScomIPFSMobileHomeElement extends ControlElement {
     recents?: IIPFSData[];
     folders?: IIPFSData[];
     transportEndpoint?: string;
+    signer?: IPFS.ISigner;
     onPreview?: previewCallback;
 }
 
@@ -48,6 +49,7 @@ export class ScomIPFSMobileHome extends Module {
 
     private _data: IHomeData;
     private _transportEndpoint: string;
+    private _signer: IPFS.ISigner;
     private _currentCid: string;
     onPreview: previewCallback;
 
@@ -249,8 +251,10 @@ export class ScomIPFSMobileHome extends Module {
         const recents = this.getAttribute('recents', true);
         const folders = this.getAttribute('folders', true);
         this.transportEndpoint = this.getAttribute('transportEndpoint', true);
+        this._signer = this.getAttribute('signer', true);
         this._manager = new IPFS.FileManager({
-            endpoint: this.transportEndpoint
+            endpoint: this.transportEndpoint,
+            signer: this._signer
         });
         this.setData({ recents, folders });
     }

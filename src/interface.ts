@@ -1,3 +1,4 @@
+import {IPFS} from '@ijstech/components';
 export interface IIPFSData {
     cid: string;
     name?: string;
@@ -18,6 +19,7 @@ export type FileType = 'dir' | 'file';
 
 export interface IStorageConfig {
     transportEndpoint?: string;
+    signer?: IPFS.ISigner;
 }
 
 export interface IPreview extends IIPFSData {

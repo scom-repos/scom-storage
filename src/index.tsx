@@ -59,6 +59,7 @@ const defaultColors = {
 
 interface ScomStorageElement extends ControlElement {
     transportEndpoint?: string;
+    signer?: IPFS.ISigner;
 }
 
 declare global {
@@ -154,6 +155,7 @@ export class ScomStorage extends Module {
     private _uploadedTreeData: any = [];
     private _uploadedFileNodes: { [idx: string]: TreeNode } = {};
     private transportEndpoint: string;
+    private signer: IPFS.ISigner;
     private currentCid: string;
     private manager: any;
 
@@ -613,13 +615,15 @@ export class ScomStorage extends Module {
 
     init() {
         this.transportEndpoint = this.getAttribute('transportEndpoint', true) || window.location.origin;
+        this.signer = this.getAttribute('signer', true);
         super.init();
         this.classList.add(customStyles);
         this.setTag(defaultColors);
         this.manager = new IPFS.FileManager({
-            endpoint: this.transportEndpoint
+            endpoint: this.transportEndpoint,
+            signer: this.signer
         });
-        if (this.transportEndpoint) this.setData({ transportEndpoint: this.transportEndpoint });
+        if (this.transportEndpoint) this.setData({ transportEndpoint: this.transportEndpoint, signer: this.signer });
     }
 
     render() {
@@ -633,6 +637,7 @@ export class ScomStorage extends Module {
                     background={{ color: Theme.background.main }}
                     onPreview={this.previewFile.bind(this)}
                     transportEndpoint={this.transportEndpoint}
+                    signer={this.signer}
                     visible={false}
                     mediaQueries={[
                         {
