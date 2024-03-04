@@ -15,6 +15,7 @@
         "@scom/scom-markdown-editor": "^0.1.19",
         "@scom/scom-media-player": "^0.1.0",
         "@scom/scom-video": "^0.1.10",
+        "@scom/scom-editor": "^0.1.0",
         "@scom/scom-storage": "file:./ref"
     },
     "scripts": {
