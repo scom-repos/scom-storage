@@ -11,11 +11,14 @@ import { customLinkStyle } from './index.css'
 import { formatBytes } from '../data'
 import { getEmbedElement } from '../utils';
 import { IPreview } from '../interface';
+import { ScomIPFSEditor } from '../components/index';
 const Theme = Styles.Theme.ThemeVars
 
 interface ScomIPFSPreviewElement extends ControlElement {
   data?: IPreview;
-  onClose?: () => void
+  onClose?: () => void;
+  onOpenEditor?: () => void;
+  onCloseEditor?: () => void;
 }
 
 declare global {
@@ -28,19 +31,26 @@ declare global {
 
 @customElements('i-scom-ipfs--preview')
 export class ScomIPFSPreview extends Module {
-  private pnlPreview: Panel;
+  private previewer: Panel;
   private lblName: Label;
   private lblSize: Label;
+  private pnlEdit: Panel;
+  private previewerPanel: Panel;
+  private editorPanel: Panel;
+  private editor: ScomIPFSEditor;
 
   private _data: IPreview = {
     cid: '',
     name: ''
   }
+  private currentContent: string = '';
   onClose: () => void
+  onOpenEditor: () => void;
+  onCloseEditor: () => void;
 
   constructor(parent?: Container, options?: any) {
     super(parent, options)
-    this.onClosePreview = this.onClosePreview.bind(this)
+    this.closePreview = this.closePreview.bind(this)
   }
 
   static async create(options?: ScomIPFSPreviewElement, parent?: Container) {
@@ -69,7 +79,7 @@ export class ScomIPFSPreview extends Module {
   }
 
   clear() {
-    this.pnlPreview.clearInnerHTML()
+    this.previewer.clearInnerHTML()
     this.lblName.caption = ''
     this.lblSize.caption = ''
   }
@@ -86,10 +96,14 @@ export class ScomIPFSPreview extends Module {
   }
 
   private async previewFile() {
+    this.pnlEdit.visible = false;
     try {
       const moduleData = await this.getModuleFromExtension()
       if (moduleData?.module) {
-        await getEmbedElement(moduleData, this.pnlPreview)
+        await getEmbedElement(moduleData, this.previewer)
+        if (moduleData.module === '@scom/scom-markdown-editor') {
+          this.currentContent = moduleData.data?.properties?.content || '';
+        }
       } else if (moduleData?.data) {
         let content = moduleData.data || ''
         const isHTML = content.indexOf('<html') > -1
@@ -126,6 +140,14 @@ export class ScomIPFSPreview extends Module {
       moduleData = this.createVideoElement(mediaUrl)
     } else if (streamingExts.includes(ext)) {
       moduleData = this.createPlayerElement(mediaUrl)
+    } else if (mdExts.includes(ext)) {
+      let content = '';
+      this.pnlEdit.visible = true;
+      try {
+        const result = await fetch(mediaUrl);
+        content = await result.text();
+      } catch(err) {}
+      moduleData = this.createTextElement(content)
     } else {
       // const result = await getFileContent(cid)
       // if (!result) return null
@@ -158,7 +180,7 @@ export class ScomIPFSPreview extends Module {
         return ` <a href="${match}" target="_blank">${match}</a> `
       })
     label.caption = text
-    this.pnlPreview.appendChild(label)
+    this.previewer.appendChild(label)
   }
 
   private renderFilePreview() {
@@ -169,7 +191,7 @@ export class ScomIPFSPreview extends Module {
         <i-icon width={'3rem'} height={'3rem'} name="file"></i-icon>
       </i-hstack>
     </i-panel>
-    this.pnlPreview.appendChild(wrapper)
+    this.previewer.appendChild(wrapper)
   }
 
   private createTextElement(text: string) {
@@ -238,7 +260,7 @@ export class ScomIPFSPreview extends Module {
     }
   }
 
-  private onClosePreview() {
+  private closePreview() {
     if (this.onClose) this.onClose()
   }
 
@@ -263,97 +285,145 @@ export class ScomIPFSPreview extends Module {
     // a.click();
   }
 
+  private onEditClicked() {
+    this.editorPanel.visible = true;
+    this.previewerPanel.visible = false;
+    this.editor.setData({content: this.currentContent});
+    if (this.onOpenEditor) this.onOpenEditor();
+  }
+
+  private closeEditor() {
+    this.editorPanel.visible = false;
+    this.previewerPanel.visible = true;
+    if (this.onCloseEditor) this.onCloseEditor();
+  }
+
   init() {
     super.init()
     this.onClose = this.getAttribute('onClose', true) || this.onClose
+    this.onCloseEditor = this.getAttribute('onCloseEditor', true) || this.onCloseEditor
+    this.onOpenEditor = this.getAttribute('onOpenEditor', true) || this.onOpenEditor
     const data = this.getAttribute('data', true)
     if (data) this.setData(data)
   }
 
   render() {
     return (
-      <i-vstack
-        width={'100%'}
-        height={'100%'}
-        padding={{ left: '1rem', right: '1rem' }}
-      >
-        <i-hstack
-          width={'100%'} height={36}
-          verticalAlignment='center' horizontalAlignment='space-between'
-          border={{ bottom: { width: '1px', style: 'solid', color: Theme.divider } }}
-          mediaQueries={[
-            {
-              maxWidth: '767px',
-              properties: {
-                visible: false,
-                maxWidth: '100%'
-              }
-            }
-          ]}
-        >
-          <i-hstack
-            verticalAlignment='center'
-            gap="0.5rem"
-          >
-            <i-icon name="file-alt" width={'0.875rem'} height={'0.875rem'} stack={{ shrink: '0' }} opacity={0.7}></i-icon>
-            <i-label caption={'File Preview'} font={{ size: '1rem' }}></i-label>
-          </i-hstack>
-          <i-icon
-            name="times"
-            width={'0.875rem'}
-            height={'0.875rem'}
-            stack={{ shrink: '0' }}
-            opacity={0.7}
-            cursor='pointer'
-            onClick={this.onClosePreview}
-          ></i-icon>
-        </i-hstack>
+      <i-panel width={'100%'} height={'100%'}>
         <i-vstack
-          stack={{ shrink: '1', grow: '1' }}
-          overflow={{ y: 'auto' }}
-          padding={{ top: '1.5rem', bottom: '1.5rem' }}
-          gap={'1.5rem'}
+          id="previewerPanel"
+          width={'100%'}
+          height={'100%'}
+          padding={{ left: '1rem', right: '1rem' }}
         >
-          <i-panel
-            id={'pnlPreview'}
-            width={'100%'}
-          ></i-panel>
           <i-hstack
-            width={'100%'}
-            padding={{ bottom: '1.25rem', top: '1.25rem' }}
-            border={{ top: { width: '1px', style: 'solid', color: Theme.divider } }}
-            horizontalAlignment="space-between"
-            gap="0.5rem"
+            width={'100%'} height={36}
+            verticalAlignment='center' horizontalAlignment='space-between'
+            border={{ bottom: { width: '1px', style: 'solid', color: Theme.divider } }}
+            mediaQueries={[
+              {
+                maxWidth: '767px',
+                properties: {
+                  visible: false,
+                  maxWidth: '100%'
+                }
+              }
+            ]}
           >
-            <i-vstack width={'100%'} gap="0.5rem">
-              <i-label id="lblName"
-                font={{ size: '1rem', weight: 600 }}
-                wordBreak='break-all'
-                lineHeight={1.2}
-              ></i-label>
-              <i-label
-                id="lblSize"
-                font={{ size: `0.75rem` }}
-                opacity={0.7}
-              ></i-label>
-            </i-vstack>
             <i-hstack
-              width={35}
-              height={35}
-              border={{ radius: '50%' }}
-              horizontalAlignment="center"
-              verticalAlignment="center"
-              stack={{ shrink: "0" }}
-              cursor="pointer"
-              background={{ color: Theme.colors.secondary.main }}
-              hover={{ backgroundColor: Theme.action.hoverBackground }}
-              onClick={this.downloadFile}
+              verticalAlignment='center'
+              gap="0.5rem"
             >
-              <i-icon width={15} height={15} name='download' />
+              <i-icon name="file-alt" width={'0.875rem'} height={'0.875rem'} stack={{ shrink: '0' }} opacity={0.7}></i-icon>
+              <i-label caption={'File Preview'} font={{ size: '1rem' }}></i-label>
             </i-hstack>
+            <i-icon
+              name="times"
+              width={'0.875rem'}
+              height={'0.875rem'}
+              stack={{ shrink: '0' }}
+              opacity={0.7}
+              cursor='pointer'
+              onClick={this.closePreview}
+            ></i-icon>
           </i-hstack>
+          <i-hstack
+            id="pnlEdit"
+            verticalAlignment='center'
+            horizontalAlignment='end'
+            visible={false}
+            padding={{top: '1rem'}}
+          >
+            <i-button
+              padding={{top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem'}}
+              border={{radius: '0.25rem', width: '1px', style: 'solid', color: Theme.divider}}
+              background={{color: 'transparent'}}
+              icon={{name: 'edit', width: '1rem', height: '1rem', fill: Theme.text.primary}}
+              onClick={this.onEditClicked}
+            ></i-button>
+          </i-hstack>
+          <i-vstack
+            stack={{ shrink: '1', grow: '1' }}
+            overflow={{ y: 'auto' }}
+            margin={{ top: '1.5rem', bottom: '1.5rem' }}
+            gap={'1.5rem'}
+          >
+            <i-panel
+              id={'previewer'}
+              width={'100%'}
+            ></i-panel>
+            <i-hstack
+              width={'100%'}
+              padding={{ bottom: '1.25rem', top: '1.25rem' }}
+              border={{ top: { width: '1px', style: 'solid', color: Theme.divider } }}
+              horizontalAlignment="space-between"
+              gap="0.5rem"
+            >
+              <i-vstack width={'100%'} gap="0.5rem">
+                <i-label id="lblName"
+                  font={{ size: '1rem', weight: 600 }}
+                  wordBreak='break-all'
+                  lineHeight={1.2}
+                ></i-label>
+                <i-label
+                  id="lblSize"
+                  font={{ size: `0.75rem` }}
+                  opacity={0.7}
+                ></i-label>
+              </i-vstack>
+              <i-hstack
+                width={35}
+                height={35}
+                border={{ radius: '50%' }}
+                horizontalAlignment="center"
+                verticalAlignment="center"
+                stack={{ shrink: "0" }}
+                cursor="pointer"
+                background={{ color: Theme.colors.secondary.main }}
+                hover={{ backgroundColor: Theme.action.hoverBackground }}
+                onClick={this.downloadFile}
+              >
+                <i-icon width={15} height={15} name='download' />
+              </i-hstack>
+            </i-hstack>
+          </i-vstack>
         </i-vstack>
-      </i-vstack>
+        <i-vstack
+          id="editorPanel"
+          maxHeight={'100%'}
+          overflow={'hidden'}
+        >
+          <i-scom-ipfs--editor
+            id="editor"
+            stack={{ shrink: '1', grow: '1' }}
+            width={'100%'}
+            display='flex'
+            overflow={'hidden'}
+            onClose={this.closeEditor.bind(this)}
+          />
+        </i-vstack>
+      </i-panel>
+      
     )
   }
 }

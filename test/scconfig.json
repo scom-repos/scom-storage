@@ -20,7 +20,8 @@
       "@scom/scom-image",
       "@scom/scom-markdown-editor",
       "@scom/scom-media-player",
-      "@scom/scom-video"
+      "@scom/scom-video",
+      "@scom/scom-editor"
   ],
   "menus": [
     {

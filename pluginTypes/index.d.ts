@@ -292,22 +292,45 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         render(): any;
     }
 }
-/// <amd-module name="@scom/scom-storage/components/index.ts" />
-declare module "@scom/scom-storage/components/index.ts" {
-    export { ScomIPFSMobileHome } from "@scom/scom-storage/components/home.tsx";
-    export { ScomIPFSPath } from "@scom/scom-storage/components/path.tsx";
-    export { ScomIPFSUploadModal } from "@scom/scom-storage/components/uploadModal.tsx";
-}
-/// <amd-module name="@scom/scom-storage/index.css.ts" />
-declare module "@scom/scom-storage/index.css.ts" {
-    const _default_1: string;
-    export default _default_1;
-    export const previewModalStyle: string;
-}
 /// <amd-module name="@scom/scom-storage/utils.ts" />
 declare module "@scom/scom-storage/utils.ts" {
     import { Control } from "@ijstech/components";
     export const getEmbedElement: (moduleData: any, parent: Control, callback?: any) => Promise<any>;
+}
+/// <amd-module name="@scom/scom-storage/components/editor.tsx" />
+declare module "@scom/scom-storage/components/editor.tsx" {
+    import { Container, ControlElement, Module } from '@ijstech/components';
+    interface IEditor {
+        content?: string;
+    }
+    interface ScomIPFSEditorElement extends ControlElement {
+        data?: IEditor;
+        onClose?: () => void;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-scom-ipfs--editor']: ScomIPFSEditorElement;
+            }
+        }
+    }
+    export class ScomIPFSEditor extends Module {
+        private pnlEditor;
+        private editorEl;
+        private _data;
+        onClose: () => void;
+        constructor(parent?: Container, options?: any);
+        static create(options?: ScomIPFSEditorElement, parent?: Container): Promise<ScomIPFSEditor>;
+        get data(): IEditor;
+        set data(value: IEditor);
+        setData(value: IEditor): void;
+        private renderUI;
+        private createTextEditorElement;
+        private onCancel;
+        private onSubmit;
+        init(): void;
+        render(): any;
+    }
 }
 /// <amd-module name="@scom/scom-storage/components/preview.tsx" />
 declare module "@scom/scom-storage/components/preview.tsx" {
@@ -316,6 +339,8 @@ declare module "@scom/scom-storage/components/preview.tsx" {
     interface ScomIPFSPreviewElement extends ControlElement {
         data?: IPreview;
         onClose?: () => void;
+        onOpenEditor?: () => void;
+        onCloseEditor?: () => void;
     }
     global {
         namespace JSX {
@@ -325,11 +350,18 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         }
     }
     export class ScomIPFSPreview extends Module {
-        private pnlPreview;
+        private previewer;
         private lblName;
         private lblSize;
+        private pnlEdit;
+        private previewerPanel;
+        private editorPanel;
+        private editor;
         private _data;
+        private currentContent;
         onClose: () => void;
+        onOpenEditor: () => void;
+        onCloseEditor: () => void;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomIPFSPreviewElement, parent?: Container): Promise<ScomIPFSPreview>;
         get data(): IPreview;
@@ -348,11 +380,27 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         private createImageElement;
         private createVideoElement;
         private createPlayerElement;
-        private onClosePreview;
+        private closePreview;
         private downloadFile;
+        private onEditClicked;
+        private closeEditor;
         init(): void;
         render(): any;
     }
+}
+/// <amd-module name="@scom/scom-storage/components/index.ts" />
+declare module "@scom/scom-storage/components/index.ts" {
+    export { ScomIPFSMobileHome } from "@scom/scom-storage/components/home.tsx";
+    export { ScomIPFSPath } from "@scom/scom-storage/components/path.tsx";
+    export { ScomIPFSUploadModal } from "@scom/scom-storage/components/uploadModal.tsx";
+    export { ScomIPFSEditor } from "@scom/scom-storage/components/editor.tsx";
+    export { ScomIPFSPreview } from "@scom/scom-storage/components/preview.tsx";
+}
+/// <amd-module name="@scom/scom-storage/index.css.ts" />
+declare module "@scom/scom-storage/index.css.ts" {
+    const _default_1: string;
+    export default _default_1;
+    export const previewModalStyle: string;
 }
 /// <amd-module name="@scom/scom-storage" />
 declare module "@scom/scom-storage" {
@@ -376,6 +424,8 @@ declare module "@scom/scom-storage" {
         private iePreview;
         private pnlPreview;
         private uploadModal;
+        private ieContent;
+        private ieSidebar;
         private btnUpload;
         tag: any;
         private _data;
@@ -429,6 +479,8 @@ declare module "@scom/scom-storage" {
         private onCellClick;
         private previewFile;
         private closePreview;
+        private openEditor;
+        private closeEditor;
         private onBreadcrumbClick;
         init(): void;
         render(): any;

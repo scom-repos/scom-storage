@@ -16,9 +16,8 @@ import {
 } from '@ijstech/components';
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
-import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal } from './components';
+import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview } from './components';
 import customStyles, { previewModalStyle } from './index.css';
-import { ScomIPFSPreview } from './components/preview';
 
 declare var require: any
 
@@ -79,6 +78,8 @@ export class ScomStorage extends Module {
     private iePreview: ScomIPFSPreview;
     private pnlPreview: Panel;
     private uploadModal: ScomIPFSUploadModal;
+    private ieContent: Panel;
+    private ieSidebar: Panel;
     private btnUpload: Button;
 
     tag: any = {
@@ -580,6 +581,7 @@ export class ScomStorage extends Module {
                 onClose: () => {
                     if (!window.matchMedia('(max-width: 767px)').matches) {
                         this.pnlPreview.appendChild(this.iePreview);
+                        this.closeEditor();
                         this.closePreview();
                     }
                 }
@@ -606,6 +608,23 @@ export class ScomStorage extends Module {
         //     '1px',
         //     '1fr'
         // ]
+    }
+
+    private openEditor() {
+        this.ieSidebar.visible = false;
+        this.ieContent.visible = false;
+        this.pnlPreview.visible = true;
+        this.pnlPreview.width = '100%';
+        this.pnlPreview.left = 0;
+    }
+
+    private closeEditor() {
+        this.ieSidebar.visible = true;
+        this.ieSidebar.display = 'flex';
+        this.ieContent.visible = true;
+        this.pnlPreview.visible = false;
+        this.pnlPreview.width = '20rem';
+        this.pnlPreview.left = 'auto';
     }
 
     private onBreadcrumbClick({ cid, path }: { cid: string; path: string }) {
@@ -747,6 +766,8 @@ export class ScomStorage extends Module {
                                     height={'100%'}
                                     display='block'
                                     onClose={this.closePreview.bind(this)}
+                                    onOpenEditor={this.openEditor.bind(this)}
+                                    onCloseEditor={ this.closeEditor.bind(this)}
                                 />
                             </i-panel>
                         </i-grid-layout>
