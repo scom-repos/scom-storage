@@ -1,5 +1,6 @@
 /// <amd-module name="@scom/scom-storage/interface.ts" />
 declare module "@scom/scom-storage/interface.ts" {
+    import { IPFS } from '@ijstech/components';
     export interface IIPFSData {
         cid: string;
         name?: string;
@@ -17,6 +18,7 @@ declare module "@scom/scom-storage/interface.ts" {
     export type FileType = 'dir' | 'file';
     export interface IStorageConfig {
         transportEndpoint?: string;
+        signer?: IPFS.ISigner;
     }
     export interface IPreview extends IIPFSData {
         transportEndpoint?: string;
@@ -150,13 +152,14 @@ declare module "@scom/scom-storage/components/folder.tsx" {
 }
 /// <amd-module name="@scom/scom-storage/components/home.tsx" />
 declare module "@scom/scom-storage/components/home.tsx" {
-    import { Container, ControlElement, Module } from '@ijstech/components';
+    import { Container, ControlElement, Module, IPFS } from '@ijstech/components';
     import { IIPFSData, IPreview } from "@scom/scom-storage/interface.ts";
     type previewCallback = (data: IPreview) => void;
     interface ScomIPFSMobileHomeElement extends ControlElement {
         recents?: IIPFSData[];
         folders?: IIPFSData[];
         transportEndpoint?: string;
+        signer?: IPFS.ISigner;
         onPreview?: previewCallback;
     }
     global {
@@ -176,6 +179,7 @@ declare module "@scom/scom-storage/components/home.tsx" {
         private _manager;
         private _data;
         private _transportEndpoint;
+        private _signer;
         private _currentCid;
         onPreview: previewCallback;
         constructor(parent?: Container, options?: any);
@@ -186,7 +190,7 @@ declare module "@scom/scom-storage/components/home.tsx" {
         set folders(value: any[]);
         get transportEndpoint(): string;
         set transportEndpoint(value: string);
-        get manager(): any;
+        get manager(): IPFS.FileManager;
         get currentPath(): string;
         get currentCid(): string;
         setData(data: IHomeData): Promise<void>;
@@ -396,13 +400,15 @@ declare module "@scom/scom-storage/components/index.ts" {
 declare module "@scom/scom-storage/index.css.ts" {
     const _default_1: string;
     export default _default_1;
+    export const previewModalStyle: string;
 }
 /// <amd-module name="@scom/scom-storage" />
 declare module "@scom/scom-storage" {
-    import { Module, ControlElement, IDataSchema } from '@ijstech/components';
+    import { Module, ControlElement, IDataSchema, IPFS } from '@ijstech/components';
     import { IIPFSData } from "@scom/scom-storage/interface.ts";
     interface ScomStorageElement extends ControlElement {
         transportEndpoint?: string;
+        signer?: IPFS.ISigner;
     }
     global {
         namespace JSX {
@@ -420,6 +426,7 @@ declare module "@scom/scom-storage" {
         private uploadModal;
         private ieContent;
         private ieSidebar;
+        private btnUpload;
         tag: any;
         private _data;
         private fileTable;
@@ -428,6 +435,7 @@ declare module "@scom/scom-storage" {
         private _uploadedTreeData;
         private _uploadedFileNodes;
         private transportEndpoint;
+        private signer;
         private currentCid;
         private manager;
         private setData;

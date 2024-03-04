@@ -15,7 +15,8 @@ import {
     VStack,
     Container,
     HStack,
-    Progress
+    Progress,
+    IPFS,
 } from '@ijstech/components';
 import assets from '../assets';
 import { uploadModalStyle } from './index.css';
@@ -105,7 +106,7 @@ export class ScomIPFSUploadModal extends Module {
         percentage: number | string;
         url?: string;
     }[] = [];
-    private _manager: any;
+    private _manager: IPFS.FileManager;
     private folderPath: string;
 
     constructor(parent?: Container, options?: any) {
@@ -446,6 +447,10 @@ export class ScomIPFSUploadModal extends Module {
         this.renderFilterBar();
         this.renderFileList();
         this.renderPagination();
+
+        if (!this.fileListData.length) {
+            this.toggle(false);
+        }
     }
 
     private onCancel() {

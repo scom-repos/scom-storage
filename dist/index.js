@@ -734,7 +734,7 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
                 fileNode = await this.manager.getFileNode(ipfsData.path);
             }
             else {
-                fileNode = await this.manager.getRootCid();
+                fileNode = await this.manager.getRootNode();
             }
             if (!fileNode._cidInfo.links)
                 fileNode._cidInfo.links = [];
@@ -753,8 +753,7 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
         }
         onItemClicked(data) {
             if (data.type === 'file') {
-                const { cid, name } = data;
-                this.onPreview({ cid, name });
+                this.onPreview(data);
             }
             else {
                 this._currentCid = data.cid;
@@ -766,8 +765,10 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
             const recents = this.getAttribute('recents', true);
             const folders = this.getAttribute('folders', true);
             this.transportEndpoint = this.getAttribute('transportEndpoint', true);
+            this._signer = this.getAttribute('signer', true);
             this._manager = new components_5.IPFS.FileManager({
-                endpoint: this.transportEndpoint
+                endpoint: this.transportEndpoint,
+                signer: this._signer
             });
             this.setData({ recents, folders });
         }
@@ -1017,6 +1018,9 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             this.renderFilterBar();
             this.renderFileList();
             this.renderPagination();
+            if (!this.fileListData.length) {
+                this.toggle(false);
+            }
         }
         onCancel() {
             this.currentRequest.abort();
@@ -1699,6 +1703,7 @@ define("@scom/scom-storage/components/index.ts", ["require", "exports", "@scom/s
 define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_10) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
+    exports.previewModalStyle = void 0;
     const Theme = components_10.Styles.Theme.ThemeVars;
     exports.default = components_10.Styles.style({
         $nest: {
@@ -1710,6 +1715,13 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
             },
             'i-table .i-table-cell': {
                 background: Theme.background.main
+            }
+        }
+    });
+    exports.previewModalStyle = components_10.Styles.style({
+        $nest: {
+            '.i-modal_header': {
+                padding: '1rem'
             }
         }
     });
@@ -1932,7 +1944,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 return;
             let rootNode = await this.manager.getRootNode();
             this.currentCid = rootNode.cid;
-            const ipfsData = rootNode._cidInfo;
+            const ipfsData = rootNode.cidInfo;
             if (ipfsData) {
                 const parentNode = (({ links, ...o }) => o)(ipfsData);
                 parentNode.name = parentNode.name ? parentNode.name : components_11.FormatUtils.truncateWalletAddress(parentNode.cid);
@@ -2032,7 +2044,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         async onFilesUploaded(source, rootCid) {
             const rootNode = await this.manager.getRootNode();
-            const ipfsData = rootNode._cidInfo;
+            const ipfsData = rootNode.cidInfo;
             let path;
             if (window.matchMedia('(max-width: 767px)').matches) {
                 path = this.mobileHome.currentPath;
@@ -2099,6 +2111,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 closeIcon: { name: 'times', fill: Theme.text.primary, position: 'absolute', top: '1rem', right: '1rem', zIndex: 2 },
                 zIndex: 1000,
                 padding: {},
+                maxHeight: '100vh',
+                overflow: { y: 'auto' },
                 onClose: () => this.uploadModal.reset(),
                 mediaQueries: [
                     {
@@ -2124,6 +2138,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         async onActiveChange(parent, prevNode) {
             const ipfsData = parent.activeItem?.tag;
+            if (!prevNode?.isSameNode(parent.activeItem))
+                this.closePreview();
             await this.onOpenFolder(ipfsData, true);
         }
         async onOpenFolder(ipfsData, toggle) {
@@ -2188,6 +2204,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         onCellClick(target, rowIndex, columnIdx, record) {
             this.iePreview.clear();
             if (record.type === 'dir') {
+                this.closePreview();
                 this.onOpenFolder(record, true);
             }
             else {
@@ -2205,11 +2222,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     padding: { top: 0, bottom: 0, left: 0, right: 0 },
                     border: { radius: 0 },
                     overflow: 'auto',
+                    class: index_css_6.previewModalStyle,
+                    title: 'File Preview',
                     closeIcon: {
                         name: 'times',
-                        width: '1rem', height: '1rem',
-                        fill: Theme.text.primary,
-                        margin: { top: '1rem', right: '1rem', bottom: '1rem', left: '1rem' }
+                        width: '1rem', height: '1rem'
                     },
                     onClose: () => {
                         if (!window.matchMedia('(max-width: 767px)').matches) {
@@ -2224,6 +2241,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 if (!this.pnlPreview.contains(this.iePreview))
                     this.pnlPreview.appendChild(this.iePreview);
                 this.pnlPreview.visible = true;
+                this.btnUpload.right = '23.125rem';
                 // this.gridWrapper.templateColumns = [
                 //     '15rem',
                 //     '1px',
@@ -2235,6 +2253,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         closePreview() {
             this.pnlPreview.visible = false;
+            this.btnUpload.right = '3.125rem';
             // this.gridWrapper.templateColumns = [
             //     '15rem',
             //     '1px',
@@ -2259,22 +2278,25 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         onBreadcrumbClick({ cid, path }) {
             if (this.uploadedFileTree.activeItem)
                 this.uploadedFileTree.activeItem.expanded = true;
+            this.closePreview();
             this.onOpenFolder({ cid, path }, false);
         }
         init() {
             this.transportEndpoint = this.getAttribute('transportEndpoint', true) || window.location.origin;
+            this.signer = this.getAttribute('signer', true);
             super.init();
             this.classList.add(index_css_6.default);
             this.setTag(defaultColors);
             this.manager = new components_11.IPFS.FileManager({
-                endpoint: this.transportEndpoint
+                endpoint: this.transportEndpoint,
+                signer: this.signer
             });
             if (this.transportEndpoint)
-                this.setData({ transportEndpoint: this.transportEndpoint });
+                this.setData({ transportEndpoint: this.transportEndpoint, signer: this.signer });
         }
         render() {
             return (this.$render("i-panel", { height: '100%', width: '100%' },
-                this.$render("i-scom-ipfs--mobile-home", { id: "mobileHome", width: '100%', minHeight: '100vh', display: 'block', background: { color: Theme.background.main }, onPreview: this.previewFile.bind(this), transportEndpoint: this.transportEndpoint, visible: false, mediaQueries: [
+                this.$render("i-scom-ipfs--mobile-home", { id: "mobileHome", width: '100%', minHeight: '100vh', display: 'block', background: { color: Theme.background.main }, onPreview: this.previewFile.bind(this), transportEndpoint: this.transportEndpoint, signer: this.signer, visible: false, mediaQueries: [
                         {
                             maxWidth: '767px',
                             properties: {
@@ -2299,8 +2321,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                 this.$render("i-scom-ipfs--path", { id: "pnlPath", display: 'flex', width: '100%', padding: { left: '1rem', right: '1rem' }, onItemClicked: this.onBreadcrumbClick }),
                                 this.$render("i-panel", { width: '100%', height: 'auto', border: { radius: 1 } },
                                     this.$render("i-panel", { border: {
-                                            top: { width: '0.0625rem', style: 'solid', color: 'rgba(117, 122, 155, .15)' }
-                                        }, background: { color: Theme.colors.primary.contrastText } },
+                                            top: { width: '0.0625rem', style: 'solid', color: Theme.colors.primary.contrastText }
+                                        } },
                                         this.$render("i-table", { id: "fileTable", heading: true, columns: this.columns, headingStyles: {
                                                 font: { size: '0.75rem', weight: 700, color: Theme.text.primary },
                                                 padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' },
@@ -2314,7 +2336,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                             }, onCellClick: this.onCellClick })))),
                             this.$render("i-panel", { id: "pnlPreview", border: { left: { width: '1px', style: 'solid', color: Theme.divider } }, width: '20rem', dock: 'right', visible: false },
                                 this.$render("i-scom-ipfs--preview", { id: "iePreview", width: '100%', height: '100%', display: 'block', onClose: this.closePreview.bind(this), onOpenEditor: this.openEditor.bind(this), onCloseEditor: this.closeEditor.bind(this) }))))),
-                this.$render("i-button", { boxShadow: '0 10px 25px -5px rgba(44, 179, 240, 0.6)', border: { radius: '50%' }, background: { color: Theme.colors.primary.light }, lineHeight: '3.375rem', width: '3.375rem', height: '3.375rem', icon: { name: 'plus', width: '1.125rem', height: ' 1.125rem', fill: Theme.colors.primary.contrastText }, position: 'absolute', bottom: '3.125rem', right: '3.125rem', zIndex: 100, onClick: this.onOpenUploadModal, mediaQueries: [
+                this.$render("i-button", { id: "btnUpload", boxShadow: '0 10px 25px -5px rgba(44, 179, 240, 0.6)', border: { radius: '50%' }, background: { color: Theme.colors.primary.light }, lineHeight: '3.375rem', width: '3.375rem', height: '3.375rem', icon: { name: 'plus', width: '1.125rem', height: ' 1.125rem', fill: Theme.colors.primary.contrastText }, position: 'absolute', bottom: '3.125rem', right: '3.125rem', zIndex: 100, onClick: this.onOpenUploadModal, mediaQueries: [
                         {
                             maxWidth: '767px',
                             properties: {

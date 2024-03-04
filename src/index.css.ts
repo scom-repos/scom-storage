@@ -15,3 +15,10 @@ export default Styles.style({
     }
 })
 
+export const previewModalStyle = Styles.style({
+    $nest: {
+        '.i-modal_header': {
+            padding: '1rem'
+        }
+    }
+})

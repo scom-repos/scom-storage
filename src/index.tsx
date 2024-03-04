@@ -11,12 +11,13 @@ import {
     IDataSchema,
     Panel,
     GridLayout,
-    IPFS
+    IPFS,
+    Button
 } from '@ijstech/components';
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
 import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview } from './components';
-import customStyles from './index.css';
+import customStyles, { previewModalStyle } from './index.css';
 
 declare var require: any
 
@@ -57,6 +58,7 @@ const defaultColors = {
 
 interface ScomStorageElement extends ControlElement {
     transportEndpoint?: string;
+    signer?: IPFS.ISigner;
 }
 
 declare global {
@@ -78,6 +80,7 @@ export class ScomStorage extends Module {
     private uploadModal: ScomIPFSUploadModal;
     private ieContent: Panel;
     private ieSidebar: Panel;
+    private btnUpload: Button;
 
     tag: any = {
         light: {},
@@ -153,8 +156,9 @@ export class ScomStorage extends Module {
     private _uploadedTreeData: any = [];
     private _uploadedFileNodes: { [idx: string]: TreeNode } = {};
     private transportEndpoint: string;
+    private signer: IPFS.ISigner;
     private currentCid: string;
-    private manager: any;
+    private manager: IPFS.FileManager;
 
     private async setData(value: IStorageConfig) {
         this._data = value;
@@ -275,7 +279,7 @@ export class ScomStorage extends Module {
         if (!this.manager) return;
         let rootNode = await this.manager.getRootNode();
         this.currentCid = rootNode.cid;
-        const ipfsData = rootNode._cidInfo;
+        const ipfsData = rootNode.cidInfo as IIPFSData;
         if (ipfsData) {
             const parentNode = (({ links, ...o }) => o)(ipfsData);
             parentNode.name = parentNode.name ? parentNode.name : FormatUtils.truncateWalletAddress(parentNode.cid);
@@ -387,7 +391,7 @@ export class ScomStorage extends Module {
 
     private async onFilesUploaded(source: ScomIPFSUploadModal, rootCid: string) {
         const rootNode = await this.manager.getRootNode();
-        const ipfsData = rootNode._cidInfo;
+        const ipfsData = rootNode.cidInfo;
         
         let path;
         if (window.matchMedia('(max-width: 767px)').matches) {
@@ -398,13 +402,13 @@ export class ScomStorage extends Module {
 
         if (ipfsData) {
             this.currentCid = ipfsData.cid;
-            const parentNode = (({ links, ...o }) => o)(ipfsData);
+            const parentNode = (({ links, ...o }) => o)(ipfsData) as IIPFSData;
             parentNode.name = parentNode.name ? parentNode.name : FormatUtils.truncateWalletAddress(parentNode.cid);
             parentNode.path = '';
             parentNode.root = true;
             if (ipfsData.links?.length) {
                 await Promise.all(
-                    ipfsData.links.map(async (data) => {
+                    ipfsData.links.map(async (data: IIPFSData) => {
                         data.path = `${parentNode.path}/${data.name}`;
                         if (!data.type) {
                             let node = await this.manager.getFileNode(`/${data.name}`);
@@ -457,6 +461,8 @@ export class ScomStorage extends Module {
             closeIcon: { name: 'times', fill: Theme.text.primary, position: 'absolute', top: '1rem', right: '1rem', zIndex: 2 },
             zIndex: 1000,
             padding: {},
+            maxHeight: '100vh',
+            overflow: { y: 'auto' },
             onClose: () => this.uploadModal.reset(),
             mediaQueries: [
                 {
@@ -482,6 +488,7 @@ export class ScomStorage extends Module {
 
     private async onActiveChange(parent: TreeView, prevNode?: TreeNode) {
         const ipfsData = parent.activeItem?.tag;
+        if (!prevNode?.isSameNode(parent.activeItem)) this.closePreview();
         await this.onOpenFolder(ipfsData, true);
     }
 
@@ -547,6 +554,7 @@ export class ScomStorage extends Module {
     private onCellClick(target: Table, rowIndex: number, columnIdx: number, record: ITableData) {
         this.iePreview.clear();
         if (record.type === 'dir') {
+            this.closePreview();
             this.onOpenFolder(record, true);
         } else {
             this.previewFile(record);
@@ -564,11 +572,11 @@ export class ScomStorage extends Module {
                 padding: {top: 0, bottom: 0, left: 0, right: 0},
                 border: {radius: 0},
                 overflow: 'auto',
+                class: previewModalStyle,
+                title: 'File Preview',
                 closeIcon: {
                     name: 'times',
-                    width: '1rem', height: '1rem',
-                    fill: Theme.text.primary,
-                    margin: {top: '1rem', right: '1rem', bottom: '1rem', left: '1rem'}
+                    width: '1rem', height: '1rem'
                 },
                 onClose: () => {
                     if (!window.matchMedia('(max-width: 767px)').matches) {
@@ -580,7 +588,8 @@ export class ScomStorage extends Module {
             })
         } else {
             if (!this.pnlPreview.contains(this.iePreview)) this.pnlPreview.appendChild(this.iePreview);
-            this.pnlPreview.visible = true
+            this.pnlPreview.visible = true;
+            this.btnUpload.right = '23.125rem';
             // this.gridWrapper.templateColumns = [
             //     '15rem',
             //     '1px',
@@ -593,6 +602,7 @@ export class ScomStorage extends Module {
 
     private closePreview() {
         this.pnlPreview.visible = false;
+        this.btnUpload.right = '3.125rem';
         // this.gridWrapper.templateColumns = [
         //     '15rem',
         //     '1px',
@@ -620,18 +630,21 @@ export class ScomStorage extends Module {
     private onBreadcrumbClick({ cid, path }: { cid: string; path: string }) {
         if (this.uploadedFileTree.activeItem)
             this.uploadedFileTree.activeItem.expanded = true;
+        this.closePreview();
         this.onOpenFolder({ cid, path }, false);
     }
 
     init() {
         this.transportEndpoint = this.getAttribute('transportEndpoint', true) || window.location.origin;
+        this.signer = this.getAttribute('signer', true);
         super.init();
         this.classList.add(customStyles);
         this.setTag(defaultColors);
         this.manager = new IPFS.FileManager({
-            endpoint: this.transportEndpoint
+            endpoint: this.transportEndpoint,
+            signer: this.signer
         });
-        if (this.transportEndpoint) this.setData({ transportEndpoint: this.transportEndpoint });
+        if (this.transportEndpoint) this.setData({ transportEndpoint: this.transportEndpoint, signer: this.signer });
     }
 
     render() {
@@ -645,6 +658,7 @@ export class ScomStorage extends Module {
                     background={{ color: Theme.background.main }}
                     onPreview={this.previewFile.bind(this)}
                     transportEndpoint={this.transportEndpoint}
+                    signer={this.signer}
                     visible={false}
                     mediaQueries={[
                         {
@@ -715,9 +729,8 @@ export class ScomStorage extends Module {
                                 >
                                     <i-panel
                                         border={{
-                                            top: { width: '0.0625rem', style: 'solid', color: 'rgba(117, 122, 155, .15)' }
+                                            top: { width: '0.0625rem', style: 'solid', color: Theme.colors.primary.contrastText }
                                         }}
-                                        background={{ color: Theme.colors.primary.contrastText }}
                                     >
                                         <i-table
                                             id="fileTable"
@@ -761,6 +774,7 @@ export class ScomStorage extends Module {
                     </i-panel>
                 </i-vstack>
                 <i-button
+                    id="btnUpload"
                     boxShadow='0 10px 25px -5px rgba(44, 179, 240, 0.6)'
                     border={{ radius: '50%' }}
                     background={{ color: Theme.colors.primary.light }}
