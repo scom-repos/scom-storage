@@ -57,7 +57,6 @@ const defaultColors = {
 }
 
 interface ScomStorageElement extends ControlElement {
-    cid?: string;
     transportEndpoint?: string;
 }
 
@@ -83,7 +82,7 @@ export class ScomStorage extends Module {
         light: {},
         dark: {}
     }
-    private _data: IStorageConfig = { cid: '' }; 
+    private _data: IStorageConfig = {}; 
     private fileTable: Table;
     private filesColumns = [
         {
@@ -201,11 +200,11 @@ export class ScomStorage extends Module {
           name: 'Edit',
           icon: 'edit',
           command: (builder: any, userInputData: any) => {
-            let oldData = {cid: ''};
+            let oldData = {};
             return {
               execute: () => {
                 oldData = {...this._data};
-                if (userInputData?.cid) this._data.cid = userInputData.cid;
+                if (userInputData?.transportEndpoint) this._data.transportEndpoint = userInputData.transportEndpoint;
                 this.initContent();
                 if (builder?.setData) builder.setData(this._data);
               },
@@ -272,12 +271,10 @@ export class ScomStorage extends Module {
     }
 
     private async initContent() {
-        if (!this._data.cid) return;
-        this.currentCid = this._data.cid;
+        if (!this.manager) return;
         let rootNode = await this.manager.getRootNode();
+        this.currentCid = rootNode.cid;
         const ipfsData = rootNode._cidInfo;
-        // const ipfsData = await fetchData({ cid: this._data.cid });
-        // this._storedFileData = null;
         if (ipfsData) {
             const parentNode = (({ links, ...o }) => o)(ipfsData);
             parentNode.name = parentNode.name ? parentNode.name : FormatUtils.truncateWalletAddress(parentNode.cid);
@@ -388,9 +385,7 @@ export class ScomStorage extends Module {
     }
 
     private async onFilesUploaded(source: ScomIPFSUploadModal, rootCid: string) {
-        this._data.cid = rootCid;
-        const rootNode = await this.manager.setRootCid(rootCid);
-        console.log("new root node cid: ", rootNode.cid);
+        const rootNode = await this.manager.getRootNode();
         const ipfsData = rootNode._cidInfo;
         
         let path;
@@ -504,7 +499,7 @@ export class ScomStorage extends Module {
         if (ipfsData.path) {
             fileNode = await this.manager.getFileNode(ipfsData.path);
         } else {
-            fileNode = await this.manager.setRootCid(this._data.cid);
+            fileNode = await this.manager.getRootNode();
         }
         if (!fileNode._cidInfo.links) fileNode._cidInfo.links = [];
         if (fileNode._cidInfo.links.length) {
@@ -614,12 +609,10 @@ export class ScomStorage extends Module {
         super.init();
         this.classList.add(customStyles);
         this.setTag(defaultColors);
-        const cid = this.getAttribute('cid', true);
         this.manager = new IPFS.FileManager({
-            endpoint: this.transportEndpoint,
-            rootCid: cid
+            endpoint: this.transportEndpoint
         });
-        if (cid) this.setData({ cid });
+        if (this.transportEndpoint) this.setData({ transportEndpoint: this.transportEndpoint });
     }
 
     render() {

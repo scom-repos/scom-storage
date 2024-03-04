@@ -16,7 +16,7 @@ declare module "@scom/scom-storage/interface.ts" {
     }
     export type FileType = 'dir' | 'file';
     export interface IStorageConfig {
-        cid: string;
+        transportEndpoint?: string;
     }
     export interface IPreview extends IIPFSData {
         transportEndpoint?: string;
@@ -354,7 +354,6 @@ declare module "@scom/scom-storage" {
     import { Module, ControlElement, IDataSchema } from '@ijstech/components';
     import { IIPFSData } from "@scom/scom-storage/interface.ts";
     interface ScomStorageElement extends ControlElement {
-        cid?: string;
         transportEndpoint?: string;
     }
     global {

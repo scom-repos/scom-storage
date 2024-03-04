@@ -17,7 +17,7 @@ export interface ITableData extends IIPFSData {
 export type FileType = 'dir' | 'file';
 
 export interface IStorageConfig {
-    cid: string;
+    transportEndpoint?: string;
 }
 
 export interface IPreview extends IIPFSData {

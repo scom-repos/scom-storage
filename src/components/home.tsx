@@ -105,7 +105,6 @@ export class ScomIPFSMobileHome extends Module {
         if (this._data.parentNode) {
             this._currentCid = data.parentNode.cid;
             this.mobileFolder.updatePath({ ...this._data.parentNode, links: list });
-            await this.manager.setRootCid(this._data.parentNode.cid);
         }
         this.mobileFolder.setData({ list: list, type: 'dir' });
     }
@@ -216,7 +215,7 @@ export class ScomIPFSMobileHome extends Module {
         if (ipfsData.path) {
             fileNode = await this.manager.getFileNode(ipfsData.path);
         } else {
-            fileNode = await this.manager.setRootCid(this._data.parentNode.cid);
+            fileNode = await this.manager.getRootCid();
         }
         if (!fileNode._cidInfo.links) fileNode._cidInfo.links = [];
         if (fileNode._cidInfo.links.length) {
@@ -250,10 +249,10 @@ export class ScomIPFSMobileHome extends Module {
         const recents = this.getAttribute('recents', true);
         const folders = this.getAttribute('folders', true);
         this.transportEndpoint = this.getAttribute('transportEndpoint', true);
-        this.setData({ recents, folders });
         this._manager = new IPFS.FileManager({
             endpoint: this.transportEndpoint
         });
+        this.setData({ recents, folders });
     }
 
     render() {

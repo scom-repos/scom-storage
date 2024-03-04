@@ -630,7 +630,6 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
             if (this._data.parentNode) {
                 this._currentCid = data.parentNode.cid;
                 this.mobileFolder.updatePath({ ...this._data.parentNode, links: list });
-                await this.manager.setRootCid(this._data.parentNode.cid);
             }
             this.mobileFolder.setData({ list: list, type: 'dir' });
         }
@@ -735,7 +734,7 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
                 fileNode = await this.manager.getFileNode(ipfsData.path);
             }
             else {
-                fileNode = await this.manager.setRootCid(this._data.parentNode.cid);
+                fileNode = await this.manager.getRootCid();
             }
             if (!fileNode._cidInfo.links)
                 fileNode._cidInfo.links = [];
@@ -767,10 +766,10 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
             const recents = this.getAttribute('recents', true);
             const folders = this.getAttribute('folders', true);
             this.transportEndpoint = this.getAttribute('transportEndpoint', true);
-            this.setData({ recents, folders });
             this._manager = new components_5.IPFS.FileManager({
                 endpoint: this.transportEndpoint
             });
+            this.setData({ recents, folders });
         }
         render() {
             return (this.$render("i-panel", { width: '100%', minHeight: 'inherit' },
@@ -1644,7 +1643,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 light: {},
                 dark: {}
             };
-            this._data = { cid: '' };
+            this._data = {};
             this.filesColumns = [
                 {
                     title: '',
@@ -1746,12 +1745,12 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     name: 'Edit',
                     icon: 'edit',
                     command: (builder, userInputData) => {
-                        let oldData = { cid: '' };
+                        let oldData = {};
                         return {
                             execute: () => {
                                 oldData = { ...this._data };
-                                if (userInputData?.cid)
-                                    this._data.cid = userInputData.cid;
+                                if (userInputData?.transportEndpoint)
+                                    this._data.transportEndpoint = userInputData.transportEndpoint;
                                 this.initContent();
                                 if (builder?.setData)
                                     builder.setData(this._data);
@@ -1814,13 +1813,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.updateStyle('--action-hover', this.tag[themeVar]?.hover);
         }
         async initContent() {
-            if (!this._data.cid)
+            if (!this.manager)
                 return;
-            this.currentCid = this._data.cid;
             let rootNode = await this.manager.getRootNode();
+            this.currentCid = rootNode.cid;
             const ipfsData = rootNode._cidInfo;
-            // const ipfsData = await fetchData({ cid: this._data.cid });
-            // this._storedFileData = null;
             if (ipfsData) {
                 const parentNode = (({ links, ...o }) => o)(ipfsData);
                 parentNode.name = parentNode.name ? parentNode.name : components_10.FormatUtils.truncateWalletAddress(parentNode.cid);
@@ -1919,9 +1916,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.pnlPath.setData(node);
         }
         async onFilesUploaded(source, rootCid) {
-            this._data.cid = rootCid;
-            const rootNode = await this.manager.setRootCid(rootCid);
-            console.log("new root node cid: ", rootNode.cid);
+            const rootNode = await this.manager.getRootNode();
             const ipfsData = rootNode._cidInfo;
             let path;
             if (window.matchMedia('(max-width: 767px)').matches) {
@@ -2032,7 +2027,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 fileNode = await this.manager.getFileNode(ipfsData.path);
             }
             else {
-                fileNode = await this.manager.setRootCid(this._data.cid);
+                fileNode = await this.manager.getRootNode();
             }
             if (!fileNode._cidInfo.links)
                 fileNode._cidInfo.links = [];
@@ -2140,13 +2135,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             super.init();
             this.classList.add(index_css_5.default);
             this.setTag(defaultColors);
-            const cid = this.getAttribute('cid', true);
             this.manager = new components_10.IPFS.FileManager({
-                endpoint: this.transportEndpoint,
-                rootCid: cid
+                endpoint: this.transportEndpoint
             });
-            if (cid)
-                this.setData({ cid });
+            if (this.transportEndpoint)
+                this.setData({ transportEndpoint: this.transportEndpoint });
         }
         render() {
             return (this.$render("i-panel", { height: '100%', width: '100%' },
