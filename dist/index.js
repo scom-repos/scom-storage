@@ -342,7 +342,7 @@ define("@scom/scom-storage/components/path.tsx", ["require", "exports", "@ijstec
                 this.setData(data);
         }
         render() {
-            return (this.$render("i-hstack", { id: 'pnlAddress', class: index_css_1.addressPanelStyle, verticalAlignment: "center", padding: { top: '0.5rem', bottom: '0.5rem' }, height: '2.188rem', gap: '0.25rem', overflow: { x: 'auto', y: 'hidden' }, visible: false }));
+            return (this.$render("i-hstack", { id: 'pnlAddress', class: index_css_1.addressPanelStyle, verticalAlignment: "center", padding: { top: '0.5rem', bottom: '0.5rem' }, height: 35, gap: '0.25rem', overflow: { x: 'auto', y: 'hidden' }, visible: false }));
         }
     };
     ScomIPFSPath = __decorate([
@@ -627,6 +627,7 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
             // this.renderFolders();
             const list = [...this.folders];
             if (this._data.parentNode) {
+                this._currentCid = data.parentNode.cid;
                 this.mobileFolder.updatePath({ ...this._data.parentNode, links: list });
                 await this.manager.setRootCid(this._data.parentNode.cid);
             }
@@ -1571,7 +1572,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
         }
         render() {
             return (this.$render("i-vstack", { width: '100%', height: '100%', padding: { left: '1rem', right: '1rem' } },
-                this.$render("i-hstack", { width: '100%', height: '2.188rem', verticalAlignment: 'center', horizontalAlignment: 'space-between', border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } }, mediaQueries: [
+                this.$render("i-hstack", { width: '100%', height: 36, verticalAlignment: 'center', horizontalAlignment: 'space-between', border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } }, mediaQueries: [
                         {
                             maxWidth: '767px',
                             properties: {

@@ -278,7 +278,7 @@ export class ScomIPFSPreview extends Module {
         padding={{ left: '1rem', right: '1rem' }}
       >
         <i-hstack
-          width={'100%'} height={'2.188rem'}
+          width={'100%'} height={36}
           verticalAlignment='center' horizontalAlignment='space-between'
           border={{ bottom: { width: '1px', style: 'solid', color: Theme.divider } }}
           mediaQueries={[

@@ -152,7 +152,7 @@ export class ScomIPFSPath extends Module {
                 class={addressPanelStyle}
                 verticalAlignment="center"
                 padding={{ top: '0.5rem', bottom: '0.5rem' }}
-                height={'2.188rem'}
+                height={35}
                 gap={'0.25rem'}
                 overflow={{ x: 'auto', y: 'hidden' }}
                 visible={false}
