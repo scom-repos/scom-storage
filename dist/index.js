@@ -626,12 +626,12 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
             // this.renderRecent();
             // this.renderFolders();
             const list = [...this.folders];
+            this.mobileFolder.clear();
             if (this._data.parentNode) {
                 this._currentCid = data.parentNode.cid;
                 this.mobileFolder.updatePath({ ...this._data.parentNode, links: list });
                 await this.manager.setRootCid(this._data.parentNode.cid);
             }
-            this.mobileFolder.clear();
             this.mobileFolder.setData({ list: list, type: 'dir' });
         }
         // private renderFolders() {
