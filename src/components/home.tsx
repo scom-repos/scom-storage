@@ -238,8 +238,7 @@ export class ScomIPFSMobileHome extends Module {
 
     private onItemClicked(data: IIPFSData) {
         if (data.type === 'file') {
-            const { cid, name } = data;
-            this.onPreview({ cid, name });
+            this.onPreview(data);
         } else {
             this._currentCid = data.cid;
         }

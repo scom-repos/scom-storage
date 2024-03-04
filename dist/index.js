@@ -753,8 +753,7 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
         }
         onItemClicked(data) {
             if (data.type === 'file') {
-                const { cid, name } = data;
-                this.onPreview({ cid, name });
+                this.onPreview(data);
             }
             else {
                 this._currentCid = data.cid;
@@ -1019,6 +1018,9 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             this.renderFilterBar();
             this.renderFileList();
             this.renderPagination();
+            if (!this.fileListData.length) {
+                this.toggle(false);
+            }
         }
         onCancel() {
             this.currentRequest.abort();

@@ -447,6 +447,10 @@ export class ScomIPFSUploadModal extends Module {
         this.renderFilterBar();
         this.renderFileList();
         this.renderPagination();
+
+        if (!this.fileListData.length) {
+            this.toggle(false);
+        }
     }
 
     private onCancel() {
