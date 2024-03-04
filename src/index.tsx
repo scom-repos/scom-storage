@@ -708,9 +708,8 @@ export class ScomStorage extends Module {
                                 >
                                     <i-panel
                                         border={{
-                                            top: { width: '0.0625rem', style: 'solid', color: 'rgba(117, 122, 155, .15)' }
+                                            top: { width: '0.0625rem', style: 'solid', color: Theme.colors.primary.contrastText }
                                         }}
-                                        background={{ color: Theme.colors.primary.contrastText }}
                                     >
                                         <i-table
                                             id="fileTable"

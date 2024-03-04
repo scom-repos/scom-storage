@@ -2186,8 +2186,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                 this.$render("i-scom-ipfs--path", { id: "pnlPath", display: 'flex', width: '100%', padding: { left: '1rem', right: '1rem' }, onItemClicked: this.onBreadcrumbClick }),
                                 this.$render("i-panel", { width: '100%', height: 'auto', border: { radius: 1 } },
                                     this.$render("i-panel", { border: {
-                                            top: { width: '0.0625rem', style: 'solid', color: 'rgba(117, 122, 155, .15)' }
-                                        }, background: { color: Theme.colors.primary.contrastText } },
+                                            top: { width: '0.0625rem', style: 'solid', color: Theme.colors.primary.contrastText }
+                                        } },
                                         this.$render("i-table", { id: "fileTable", heading: true, columns: this.columns, headingStyles: {
                                                 font: { size: '0.75rem', weight: 700, color: Theme.text.primary },
                                                 padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' },
