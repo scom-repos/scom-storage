@@ -734,7 +734,7 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
                 fileNode = await this.manager.getFileNode(ipfsData.path);
             }
             else {
-                fileNode = await this.manager.getRootCid();
+                fileNode = await this.manager.getRootNode();
             }
             if (!fileNode._cidInfo.links)
                 fileNode._cidInfo.links = [];
@@ -1827,7 +1827,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 return;
             let rootNode = await this.manager.getRootNode();
             this.currentCid = rootNode.cid;
-            const ipfsData = rootNode._cidInfo;
+            const ipfsData = rootNode.cidInfo;
             if (ipfsData) {
                 const parentNode = (({ links, ...o }) => o)(ipfsData);
                 parentNode.name = parentNode.name ? parentNode.name : components_10.FormatUtils.truncateWalletAddress(parentNode.cid);
@@ -1927,7 +1927,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         async onFilesUploaded(source, rootCid) {
             const rootNode = await this.manager.getRootNode();
-            const ipfsData = rootNode._cidInfo;
+            const ipfsData = rootNode.cidInfo;
             let path;
             if (window.matchMedia('(max-width: 767px)').matches) {
                 path = this.mobileHome.currentPath;

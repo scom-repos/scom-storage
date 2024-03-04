@@ -45,7 +45,7 @@ export class ScomIPFSMobileHome extends Module {
     // private foldersSlider: CarouselSlider;
     private mobileFolder: ScomIPFSFolder;
     // private mobileMain: VStack;
-    private _manager: any;
+    private _manager: IPFS.FileManager;
 
     private _data: IHomeData;
     private _transportEndpoint: string;
@@ -217,7 +217,7 @@ export class ScomIPFSMobileHome extends Module {
         if (ipfsData.path) {
             fileNode = await this.manager.getFileNode(ipfsData.path);
         } else {
-            fileNode = await this.manager.getRootCid();
+            fileNode = await this.manager.getRootNode();
         }
         if (!fileNode._cidInfo.links) fileNode._cidInfo.links = [];
         if (fileNode._cidInfo.links.length) {

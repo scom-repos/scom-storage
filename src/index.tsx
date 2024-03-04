@@ -157,7 +157,7 @@ export class ScomStorage extends Module {
     private transportEndpoint: string;
     private signer: IPFS.ISigner;
     private currentCid: string;
-    private manager: any;
+    private manager: IPFS.FileManager;
 
     private async setData(value: IStorageConfig) {
         this._data = value;
@@ -278,7 +278,7 @@ export class ScomStorage extends Module {
         if (!this.manager) return;
         let rootNode = await this.manager.getRootNode();
         this.currentCid = rootNode.cid;
-        const ipfsData = rootNode._cidInfo;
+        const ipfsData = rootNode.cidInfo as IIPFSData;
         if (ipfsData) {
             const parentNode = (({ links, ...o }) => o)(ipfsData);
             parentNode.name = parentNode.name ? parentNode.name : FormatUtils.truncateWalletAddress(parentNode.cid);
@@ -390,7 +390,7 @@ export class ScomStorage extends Module {
 
     private async onFilesUploaded(source: ScomIPFSUploadModal, rootCid: string) {
         const rootNode = await this.manager.getRootNode();
-        const ipfsData = rootNode._cidInfo;
+        const ipfsData = rootNode.cidInfo;
         
         let path;
         if (window.matchMedia('(max-width: 767px)').matches) {
@@ -401,13 +401,13 @@ export class ScomStorage extends Module {
 
         if (ipfsData) {
             this.currentCid = ipfsData.cid;
-            const parentNode = (({ links, ...o }) => o)(ipfsData);
+            const parentNode = (({ links, ...o }) => o)(ipfsData) as IIPFSData;
             parentNode.name = parentNode.name ? parentNode.name : FormatUtils.truncateWalletAddress(parentNode.cid);
             parentNode.path = '';
             parentNode.root = true;
             if (ipfsData.links?.length) {
                 await Promise.all(
-                    ipfsData.links.map(async (data) => {
+                    ipfsData.links.map(async (data: IIPFSData) => {
                         data.path = `${parentNode.path}/${data.name}`;
                         if (!data.type) {
                             let node = await this.manager.getFileNode(`/${data.name}`);

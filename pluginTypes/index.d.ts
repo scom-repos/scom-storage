@@ -190,7 +190,7 @@ declare module "@scom/scom-storage/components/home.tsx" {
         set folders(value: any[]);
         get transportEndpoint(): string;
         set transportEndpoint(value: string);
-        get manager(): any;
+        get manager(): IPFS.FileManager;
         get currentPath(): string;
         get currentCid(): string;
         setData(data: IHomeData): Promise<void>;
