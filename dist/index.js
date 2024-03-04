@@ -766,8 +766,10 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
             const recents = this.getAttribute('recents', true);
             const folders = this.getAttribute('folders', true);
             this.transportEndpoint = this.getAttribute('transportEndpoint', true);
+            this._signer = this.getAttribute('signer', true);
             this._manager = new components_5.IPFS.FileManager({
-                endpoint: this.transportEndpoint
+                endpoint: this.transportEndpoint,
+                signer: this._signer
             });
             this.setData({ recents, folders });
         }
@@ -2138,18 +2140,20 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         init() {
             this.transportEndpoint = this.getAttribute('transportEndpoint', true) || window.location.origin;
+            this.signer = this.getAttribute('signer', true);
             super.init();
             this.classList.add(index_css_5.default);
             this.setTag(defaultColors);
             this.manager = new components_10.IPFS.FileManager({
-                endpoint: this.transportEndpoint
+                endpoint: this.transportEndpoint,
+                signer: this.signer
             });
             if (this.transportEndpoint)
-                this.setData({ transportEndpoint: this.transportEndpoint });
+                this.setData({ transportEndpoint: this.transportEndpoint, signer: this.signer });
         }
         render() {
             return (this.$render("i-panel", { height: '100%', width: '100%' },
-                this.$render("i-scom-ipfs--mobile-home", { id: "mobileHome", width: '100%', minHeight: '100vh', display: 'block', background: { color: Theme.background.main }, onPreview: this.previewFile.bind(this), transportEndpoint: this.transportEndpoint, visible: false, mediaQueries: [
+                this.$render("i-scom-ipfs--mobile-home", { id: "mobileHome", width: '100%', minHeight: '100vh', display: 'block', background: { color: Theme.background.main }, onPreview: this.previewFile.bind(this), transportEndpoint: this.transportEndpoint, signer: this.signer, visible: false, mediaQueries: [
                         {
                             maxWidth: '767px',
                             properties: {
