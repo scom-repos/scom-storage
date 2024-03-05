@@ -306,6 +306,7 @@ declare module "@scom/scom-storage/components/editor.tsx" {
     interface ScomIPFSEditorElement extends ControlElement {
         data?: IEditor;
         onClose?: () => void;
+        onChanged?: (content: string) => void;
     }
     global {
         namespace JSX {
@@ -319,6 +320,7 @@ declare module "@scom/scom-storage/components/editor.tsx" {
         private editorEl;
         private _data;
         onClose: () => void;
+        onChanged: (content: string) => void;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomIPFSEditorElement, parent?: Container): Promise<ScomIPFSEditor>;
         get data(): IEditor;
@@ -336,11 +338,13 @@ declare module "@scom/scom-storage/components/editor.tsx" {
 declare module "@scom/scom-storage/components/preview.tsx" {
     import { Container, ControlElement, Module } from '@ijstech/components';
     import { IPreview } from "@scom/scom-storage/interface.ts";
+    type fileChangedCallback = (filePath: string, content: string) => void;
     interface ScomIPFSPreviewElement extends ControlElement {
         data?: IPreview;
         onClose?: () => void;
         onOpenEditor?: () => void;
         onCloseEditor?: () => void;
+        onFileChanged?: fileChangedCallback;
     }
     global {
         namespace JSX {
@@ -362,6 +366,7 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         onClose: () => void;
         onOpenEditor: () => void;
         onCloseEditor: () => void;
+        onFileChanged: fileChangedCallback;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomIPFSPreviewElement, parent?: Container): Promise<ScomIPFSPreview>;
         get data(): IPreview;
@@ -384,6 +389,7 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         private downloadFile;
         private onEditClicked;
         private closeEditor;
+        private onChanged;
         init(): void;
         render(): any;
     }
@@ -481,6 +487,7 @@ declare module "@scom/scom-storage" {
         private closePreview;
         private openEditor;
         private closeEditor;
+        private onSubmit;
         private onBreadcrumbClick;
         init(): void;
         render(): any;

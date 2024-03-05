@@ -389,7 +389,7 @@ export class ScomStorage extends Module {
         this.pnlPath.setData(node);
     }
 
-    private async onFilesUploaded(source: ScomIPFSUploadModal, rootCid: string) {
+    private async onFilesUploaded() {
         const rootNode = await this.manager.getRootNode();
         const ipfsData = rootNode.cidInfo;
         
@@ -627,6 +627,12 @@ export class ScomStorage extends Module {
         this.pnlPreview.left = 'auto';
     }
 
+    private async onSubmit(filePath: string, content: string) {
+        await this.manager.addFileContent(filePath, content);
+        await this.manager.applyUpdates();
+        this.onFilesUploaded();
+    }
+
     private onBreadcrumbClick({ cid, path }: { cid: string; path: string }) {
         if (this.uploadedFileTree.activeItem)
             this.uploadedFileTree.activeItem.expanded = true;
@@ -768,6 +774,7 @@ export class ScomStorage extends Module {
                                     onClose={this.closePreview.bind(this)}
                                     onOpenEditor={this.openEditor.bind(this)}
                                     onCloseEditor={ this.closeEditor.bind(this)}
+                                    onFileChanged={this.onSubmit.bind(this)}
                                 />
                             </i-panel>
                         </i-grid-layout>

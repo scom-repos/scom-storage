@@ -14,11 +14,14 @@ import { IPreview } from '../interface';
 import { ScomIPFSEditor } from '../components/index';
 const Theme = Styles.Theme.ThemeVars
 
+type fileChangedCallback = (filePath: string, content: string) => void
+
 interface ScomIPFSPreviewElement extends ControlElement {
   data?: IPreview;
   onClose?: () => void;
   onOpenEditor?: () => void;
   onCloseEditor?: () => void;
+  onFileChanged?: fileChangedCallback;
 }
 
 declare global {
@@ -47,6 +50,7 @@ export class ScomIPFSPreview extends Module {
   onClose: () => void
   onOpenEditor: () => void;
   onCloseEditor: () => void;
+  onFileChanged: fileChangedCallback;
 
   constructor(parent?: Container, options?: any) {
     super(parent, options)
@@ -296,11 +300,16 @@ export class ScomIPFSPreview extends Module {
     if (this.onCloseEditor) this.onCloseEditor();
   }
 
+  private onChanged(content: string) {
+    if (this.onFileChanged) this.onFileChanged(this._data.path, content);
+  }
+
   init() {
     super.init()
     this.onClose = this.getAttribute('onClose', true) || this.onClose
     this.onCloseEditor = this.getAttribute('onCloseEditor', true) || this.onCloseEditor
     this.onOpenEditor = this.getAttribute('onOpenEditor', true) || this.onOpenEditor
+    this.onFileChanged = this.getAttribute('onFileChanged', true) || this.onFileChanged
     const data = this.getAttribute('data', true)
     if (data) this.setData(data)
   }
@@ -418,6 +427,7 @@ export class ScomIPFSPreview extends Module {
             display='flex'
             overflow={'hidden'}
             onClose={this.closeEditor.bind(this)}
+            onChanged = {this.onChanged.bind(this)}
           />
         </i-vstack>
       </i-panel>

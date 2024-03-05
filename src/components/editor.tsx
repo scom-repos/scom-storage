@@ -16,6 +16,7 @@ interface IEditor {
 interface ScomIPFSEditorElement extends ControlElement {
   data?: IEditor;
   onClose?: () => void
+  onChanged?: (content: string) => void
 }
 
 declare global {
@@ -35,9 +36,12 @@ export class ScomIPFSEditor extends Module {
     content: ''
   };
   onClose: () => void
+  onChanged: (content: string) => void
 
   constructor(parent?: Container, options?: any) {
     super(parent, options)
+    this.onSubmit = this.onSubmit.bind(this)
+    this.onCancel = this.onCancel.bind(this)
   }
 
   static async create(options?: ScomIPFSEditorElement, parent?: Container) {
@@ -62,8 +66,7 @@ export class ScomIPFSEditor extends Module {
     if (this.editorEl) {
       this.editorEl.setValue(this.data.content)
     } else {
-      this.editorEl = await getEmbedElement(this.createTextEditorElement(''), this.pnlEditor)
-      this.editorEl.setData({value: this.data.content})
+      this.editorEl = await getEmbedElement(this.createTextEditorElement(this.data.content), this.pnlEditor)
     }
   }
 
@@ -91,11 +94,13 @@ export class ScomIPFSEditor extends Module {
 
   private onSubmit() {
     if (this.onClose) this.onClose()
+    if (this.onChanged) this.onChanged(this.editorEl.value)
   }
 
   init() {
     super.init()
     this.onClose = this.getAttribute('onClose', true) || this.onClose
+    this.onChanged = this.getAttribute('onChanged', true) || this.onChanged
     const data = this.getAttribute('data', true)
     if (data) this.setData(data)
   }
