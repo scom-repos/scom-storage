@@ -101,9 +101,6 @@ export class ScomIPFSPreview extends Module {
       const moduleData = await this.getModuleFromExtension()
       if (moduleData?.module) {
         await getEmbedElement(moduleData, this.previewer)
-        if (moduleData.module === '@scom/scom-markdown-editor') {
-          this.currentContent = moduleData.data?.properties?.content || '';
-        }
       } else if (moduleData?.data) {
         let content = moduleData.data || ''
         const isHTML = content.indexOf('<html') > -1
@@ -147,6 +144,7 @@ export class ScomIPFSPreview extends Module {
         const result = await fetch(mediaUrl);
         content = await result.text();
       } catch(err) {}
+      this.currentContent = content;
       moduleData = this.createTextElement(content)
     } else {
       // const result = await getFileContent(cid)
@@ -358,7 +356,7 @@ export class ScomIPFSPreview extends Module {
               padding={{top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem'}}
               border={{radius: '0.25rem', width: '1px', style: 'solid', color: Theme.divider}}
               background={{color: 'transparent'}}
-              icon={{name: 'edit', width: '1rem', height: '1rem', fill: Theme.text.primary}}
+              icon={{name: 'pencil-alt', width: '1rem', height: '1rem', fill: Theme.text.primary}}
               onClick={this.onEditClicked}
             ></i-button>
           </i-hstack>

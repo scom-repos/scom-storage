@@ -59,10 +59,12 @@ export class ScomIPFSEditor extends Module {
   }
 
   private async renderUI() {
-    if (!this.editorEl) {
+    if (this.editorEl) {
+      this.editorEl.setValue(this.data.content)
+    } else {
       this.editorEl = await getEmbedElement(this.createTextEditorElement(''), this.pnlEditor)
+      this.editorEl.setData({value: this.data.content})
     }
-    this.editorEl.setData({ value: this.data.content })
   }
 
   private createTextEditorElement(value: string) {
