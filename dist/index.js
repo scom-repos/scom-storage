@@ -1226,6 +1226,8 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             this._data = {
                 content: ''
             };
+            this.onSubmit = this.onSubmit.bind(this);
+            this.onCancel = this.onCancel.bind(this);
         }
         static async create(options, parent) {
             let self = new this(parent, options);
@@ -1247,8 +1249,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
                 this.editorEl.setValue(this.data.content);
             }
             else {
-                this.editorEl = await (0, utils_1.getEmbedElement)(this.createTextEditorElement(''), this.pnlEditor);
-                this.editorEl.setData({ value: this.data.content });
+                this.editorEl = await (0, utils_1.getEmbedElement)(this.createTextEditorElement(this.data.content), this.pnlEditor);
             }
         }
         createTextEditorElement(value) {
@@ -1275,10 +1276,13 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
         onSubmit() {
             if (this.onClose)
                 this.onClose();
+            if (this.onChanged)
+                this.onChanged(this.editorEl.value);
         }
         init() {
             super.init();
             this.onClose = this.getAttribute('onClose', true) || this.onClose;
+            this.onChanged = this.getAttribute('onChanged', true) || this.onChanged;
             const data = this.getAttribute('data', true);
             if (data)
                 this.setData(data);
@@ -1533,12 +1537,19 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             this.previewerPanel.visible = true;
             if (this.onCloseEditor)
                 this.onCloseEditor();
+            if (this.onClose)
+                this.onClose();
+        }
+        onChanged(content) {
+            if (this.onFileChanged)
+                this.onFileChanged(this._data.path, content);
         }
         init() {
             super.init();
             this.onClose = this.getAttribute('onClose', true) || this.onClose;
             this.onCloseEditor = this.getAttribute('onCloseEditor', true) || this.onCloseEditor;
             this.onOpenEditor = this.getAttribute('onOpenEditor', true) || this.onOpenEditor;
+            this.onFileChanged = this.getAttribute('onFileChanged', true) || this.onFileChanged;
             const data = this.getAttribute('data', true);
             if (data)
                 this.setData(data);
@@ -1569,8 +1580,8 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                                 this.$render("i-label", { id: "lblSize", font: { size: `0.75rem` }, opacity: 0.7 })),
                             this.$render("i-hstack", { width: 35, height: 35, border: { radius: '50%' }, horizontalAlignment: "center", verticalAlignment: "center", stack: { shrink: "0" }, cursor: "pointer", background: { color: Theme.colors.secondary.main }, hover: { backgroundColor: Theme.action.hoverBackground }, onClick: this.downloadFile },
                                 this.$render("i-icon", { width: 15, height: 15, name: 'download' }))))),
-                this.$render("i-vstack", { id: "editorPanel", maxHeight: '100%', overflow: 'hidden' },
-                    this.$render("i-scom-ipfs--editor", { id: "editor", stack: { shrink: '1', grow: '1' }, width: '100%', display: 'flex', overflow: 'hidden', onClose: this.closeEditor.bind(this) }))));
+                this.$render("i-vstack", { id: "editorPanel", maxHeight: '100%', overflow: 'hidden', visible: false },
+                    this.$render("i-scom-ipfs--editor", { id: "editor", stack: { shrink: '1', grow: '1' }, width: '100%', display: 'flex', overflow: 'hidden', onClose: this.closeEditor.bind(this), onChanged: this.onChanged.bind(this) }))));
         }
     };
     ScomIPFSPreview = __decorate([
@@ -2169,6 +2180,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.pnlPreview.width = '20rem';
             this.pnlPreview.left = 'auto';
         }
+        async onSubmit(filePath, content) {
+            await this.manager.addFileContent(filePath, content);
+            await this.manager.applyUpdates();
+            this.onFilesUploaded();
+        }
         onBreadcrumbClick({ cid, path }) {
             if (this.uploadedFileTree.activeItem)
                 this.uploadedFileTree.activeItem.expanded = true;
@@ -2377,7 +2393,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                     this.$render("i-panel", { id: "pnlUploadMsg", width: "fit-content", class: "text-center", padding: { top: '0.75rem', bottom: '0.75rem', left: '1.5rem', right: '1.5rem' }, margin: { left: 'auto', right: 'auto' }, border: { radius: 6 }, background: { color: '#0288d1bf' }, lineHeight: 1.5, position: "absolute", top: "-1rem", left: 0, right: 0, visible: false },
                                         this.$render("i-label", { id: "lblUploadMsg", font: { size: '15px', color: '#fff' } })))),
                             this.$render("i-panel", { id: "pnlPreview", border: { left: { width: '1px', style: 'solid', color: Theme.divider } }, width: '20rem', dock: 'right', visible: false },
-                                this.$render("i-scom-ipfs--preview", { id: "iePreview", width: '100%', height: '100%', display: 'block', onClose: this.closePreview.bind(this), onOpenEditor: this.openEditor.bind(this), onCloseEditor: this.closeEditor.bind(this) }))))),
+                                this.$render("i-scom-ipfs--preview", { id: "iePreview", width: '100%', height: '100%', display: 'block', onClose: this.closePreview.bind(this), onOpenEditor: this.openEditor.bind(this), onCloseEditor: this.closeEditor.bind(this), onFileChanged: this.onSubmit.bind(this) }))))),
                 this.$render("i-button", { id: "btnUpload", boxShadow: '0 10px 25px -5px rgba(44, 179, 240, 0.6)', border: { radius: '50%' }, background: { color: Theme.colors.primary.light }, lineHeight: '3.375rem', width: '3.375rem', height: '3.375rem', icon: { name: 'plus', width: '1.125rem', height: ' 1.125rem', fill: Theme.colors.primary.contrastText }, position: 'absolute', bottom: '3.125rem', right: '3.125rem', zIndex: 100, onClick: this.onOpenUploadModal, mediaQueries: [
                         {
                             maxWidth: '767px',
