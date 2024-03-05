@@ -22,3 +22,8 @@ export const previewModalStyle = Styles.style({
         }
     }
 })
+
+export const dragAreaStyle = Styles.style({
+    border: `2px solid ${Theme.colors.info.dark}`,
+    opacity: 0.7
+})

@@ -265,6 +265,7 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         get manager(): any;
         set manager(value: any);
         show(path: string): void;
+        refresh(): void;
         private onBeforeDrop;
         private onBeforeUpload;
         private filteredFileListData;
@@ -407,6 +408,7 @@ declare module "@scom/scom-storage/index.css.ts" {
     const _default_1: string;
     export default _default_1;
     export const previewModalStyle: string;
+    export const dragAreaStyle: string;
 }
 /// <amd-module name="@scom/scom-storage" />
 declare module "@scom/scom-storage" {
@@ -435,6 +437,11 @@ declare module "@scom/scom-storage" {
         private btnUpload;
         tag: any;
         private _data;
+        private pnlFileTable;
+        private pnlUploadTo;
+        private lblDestinationFolder;
+        private pnlUploadMsg;
+        private lblUploadMsg;
         private fileTable;
         private filesColumns;
         private columns;
@@ -444,6 +451,7 @@ declare module "@scom/scom-storage" {
         private signer;
         private currentCid;
         private manager;
+        private counter;
         private setData;
         private getData;
         getConfigurators(): {
@@ -489,6 +497,15 @@ declare module "@scom/scom-storage" {
         private closeEditor;
         private onSubmit;
         private onBreadcrumbClick;
+        private getDestinationFolder;
+        private handleOnDragEnter;
+        private handleOnDragOver;
+        private handleOnDragLeave;
+        private handleOnDrop;
+        private readAllDirectoryEntries;
+        private readEntriesPromise;
+        private readEntryContentAsync;
+        private getAllFileEntries;
         init(): void;
         render(): any;
     }

@@ -140,6 +140,8 @@ export class ScomIPFSUploadModal extends Module {
         this.folderPath = path;
         this.updateBtnCaption();
     }
+    
+    refresh() {}
 
     private onBeforeDrop(target: Upload) {
         console.log('onBeforeDrop: ', target);
@@ -451,6 +453,7 @@ export class ScomIPFSUploadModal extends Module {
         if (!this.fileListData.length) {
             this.toggle(false);
         }
+        this.refresh();
     }
 
     private onCancel() {
@@ -476,6 +479,7 @@ export class ScomIPFSUploadModal extends Module {
             this.renderPagination();
             this.toggle(true);
             this.fileUploader.clear();
+            this.refresh();
         });
     }
 
@@ -495,6 +499,7 @@ export class ScomIPFSUploadModal extends Module {
         if (!this.fileListData.length) {
             this.toggle(false);
         }
+        this.refresh();
     }
 
     private getDirItems(cidItem: ICidInfo, result?: ICidInfo[]): ICidInfo[] {
@@ -523,133 +528,6 @@ export class ScomIPFSUploadModal extends Module {
         }
         return result;
     }
-
-    // private async onUpload() {
-    //     return new Promise(async (resolve, reject) => {
-    //         if (!this.fileListData.length) reject();
-    //         this.btnUpload.caption = 'Uploading files to IPFS...';
-    //         this.btnUpload.enabled = false;
-    //         this.isForcedCancelled = false;
-
-    //         // const cidItems: ICidInfo = await hashFiles(this.files);
-    //         const cidItems: ICidInfo = {} as ICidInfo;
-    //         console.dir('### IPFS Upload ###');
-    //         console.log('cidItems: ', cidItems);
-    //         let dirItems = this.getDirItems(cidItems);
-    //         console.log('dirItems: ', dirItems);
-
-    //         if (this.parentDir && this.rootCid) {
-    //             // uploadTo
-    //             const oldParentDirCID = cidItems.cid;
-    //             dirItems = dirItems.filter(
-    //                 (dirItem) => dirItem.cid !== oldParentDirCID
-    //             );
-    //             const items: IUploadItem[] = [];
-    //             for (let i = 0; i < dirItems.length; i++) {
-    //                 let item = dirItems[i];
-    //                 items.push({ cid: item });
-    //             }
-    //             for (let i = 0; i < this.fileListData.length; i++) {
-    //                 const file = this.fileListData[i];
-    //                 const cidItem = cidItems.links?.find(
-    //                     (cidItem) => cidItem.cid === file.file.cid?.cid
-    //                 );
-    //                 if (cidItem) items.push({ cid: cidItem, data: file.file });
-    //             }
-    //             try {
-    //                 const uploadResult = await application.uploadTo(
-    //                     this.parentDir.cid as string,
-    //                     items as any
-    //                 );
-    //                 console.log('uploadToResult: ', uploadResult);
-    //                 if (uploadResult && uploadResult.data) {
-    //                     uploadResult.data.name = this.parentDir.name as string;
-
-    //                     // Sync root folder
-    //                     if (this.parentDir.cid !== this.rootCid) {
-    //                         const syncResult = await application.uploadTo(this.rootCid, [
-    //                             { cid: uploadResult.data },
-    //                         ]);
-    //                         console.log('syncResult: ', syncResult);
-    //                         if (syncResult && syncResult.data) {
-    //                             if (this.onBeforeUploaded)
-    //                                 this.onBeforeUploaded(this, syncResult.data);
-    //                         }
-    //                     } else {
-    //                         if (this.onBeforeUploaded)
-    //                             this.onBeforeUploaded(this, uploadResult.data);
-    //                     }
-
-    //                     for (let i = 0; i < this.fileListData.length; i++) {
-    //                         const file = this.fileListData[i];
-    //                         if (this.onUploaded && file.file.cid)
-    //                             this.onUploaded(this, file.file, file.file.cid?.cid);
-    //                         file.status = FILE_STATUS.SUCCESS;
-    //                     }
-
-    //                     this.renderFilterBar();
-    //                     this.renderFileList();
-    //                 }
-    //             } catch (err) {
-    //                 console.log('Error! ', err);
-    //             }
-    //         } else {
-    //             // upload
-    //             if (this.onBeforeUploaded) this.onBeforeUploaded(this, cidItems);
-    //             let uploadUrl = await application.getUploadUrl(cidItems as any);
-
-    //             for (let i = 0; i < dirItems.length; i++) {
-    //                 let item = dirItems[i];
-    //                 if (uploadUrl[item.cid]) {
-    //                     await application.upload(uploadUrl[item.cid], JSON.stringify(item));
-    //                 }
-    //             }
-
-    //             for (let i = 0; i < this.fileListData.length; i++) {
-    //                 if (this.isForcedCancelled) {
-    //                     break;
-    //                 } else {
-    //                     const file = this.fileListData[i];
-    //                     file.url = `/ipfs/${cidItems.cid}${file.file.path || file.file.name
-    //                         }`;
-    //                     if (
-    //                         [FILE_STATUS.SUCCESS, FILE_STATUS.UPLOADING].includes(
-    //                             file.status
-    //                         ) ||
-    //                         !file.file.cid?.cid
-    //                     ) {
-    //                         continue;
-    //                     }
-    //                     this.fileListData[i].status = FILE_STATUS.UPLOADING;
-    //                     this.renderFilterBar();
-
-    //                     if (uploadUrl[file.file.cid?.cid]) {
-    //                         try {
-    //                             let result = await application.upload(
-    //                                 uploadUrl[file.file.cid?.cid],
-    //                                 file.file
-    //                             );
-    //                             console.log('uploaded fileListData result: ', result);
-    //                             if (this.onUploaded)
-    //                                 this.onUploaded(this, file.file, file.file.cid?.cid);
-    //                             this.fileListData[i].status = FILE_STATUS.SUCCESS;
-    //                             this.renderFilterBar();
-    //                             this.renderFileList();
-    //                         } catch (err) {
-    //                             console.log('Error! ', err);
-    //                             this.fileListData[i].status = FILE_STATUS.FAILED;
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //             this.renderFilterBar();
-    //             this.renderFileList();
-    //             this.renderPagination();
-    //             this.btnUpload.caption = 'Upload file to IPFS';
-    //             this.btnUpload.enabled = true;
-    //         }
-    //     });
-    // }
 
     private async onUpload() {
         return new Promise(async (resolve, reject) => {
@@ -682,6 +560,7 @@ export class ScomIPFSUploadModal extends Module {
                 this.renderPagination();
                 this.btnUpload.caption = 'Upload file to IPFS';
                 this.btnUpload.enabled = true;
+                this.refresh();
             } catch (err) {
                 console.log('Error! ', err);
             }
