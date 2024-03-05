@@ -492,6 +492,7 @@ export class ScomStorage extends Module {
                 }
             ]
         });
+        this.uploadModal.refresh = modal.refresh.bind(modal);
         let path;
         if (window.matchMedia('(max-width: 767px)').matches) {
             path = this.mobileHome.currentPath;

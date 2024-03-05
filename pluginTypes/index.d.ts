@@ -265,6 +265,7 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         get manager(): any;
         set manager(value: any);
         show(path: string): void;
+        refresh(): void;
         private onBeforeDrop;
         private onBeforeUpload;
         private filteredFileListData;
