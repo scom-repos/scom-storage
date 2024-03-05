@@ -417,7 +417,7 @@ export class ScomStorage extends Module {
         } else {
             path = this.pnlPath.data.path;
         }
-
+        console.log(path, rootNode, ipfsData)
         if (ipfsData) {
             this.currentCid = ipfsData.cid;
             const parentNode = (({ links, ...o }) => o)(ipfsData) as IIPFSData;

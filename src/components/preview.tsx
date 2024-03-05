@@ -298,6 +298,7 @@ export class ScomIPFSPreview extends Module {
     this.editorPanel.visible = false;
     this.previewerPanel.visible = true;
     if (this.onCloseEditor) this.onCloseEditor();
+    if (this.onClose) this.onClose();
   }
 
   private onChanged(content: string) {
@@ -419,6 +420,7 @@ export class ScomIPFSPreview extends Module {
           id="editorPanel"
           maxHeight={'100%'}
           overflow={'hidden'}
+          visible={false}
         >
           <i-scom-ipfs--editor
             id="editor"

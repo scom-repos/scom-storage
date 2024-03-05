@@ -1117,6 +1117,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                     this.renderPagination();
                     this.btnUpload.caption = 'Upload file to IPFS';
                     this.btnUpload.enabled = true;
+                    this.refresh();
                 }
                 catch (err) {
                     console.log('Error! ', err);
@@ -1536,6 +1537,8 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             this.previewerPanel.visible = true;
             if (this.onCloseEditor)
                 this.onCloseEditor();
+            if (this.onClose)
+                this.onClose();
         }
         onChanged(content) {
             if (this.onFileChanged)
@@ -1577,7 +1580,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                                 this.$render("i-label", { id: "lblSize", font: { size: `0.75rem` }, opacity: 0.7 })),
                             this.$render("i-hstack", { width: 35, height: 35, border: { radius: '50%' }, horizontalAlignment: "center", verticalAlignment: "center", stack: { shrink: "0" }, cursor: "pointer", background: { color: Theme.colors.secondary.main }, hover: { backgroundColor: Theme.action.hoverBackground }, onClick: this.downloadFile },
                                 this.$render("i-icon", { width: 15, height: 15, name: 'download' }))))),
-                this.$render("i-vstack", { id: "editorPanel", maxHeight: '100%', overflow: 'hidden' },
+                this.$render("i-vstack", { id: "editorPanel", maxHeight: '100%', overflow: 'hidden', visible: false },
                     this.$render("i-scom-ipfs--editor", { id: "editor", stack: { shrink: '1', grow: '1' }, width: '100%', display: 'flex', overflow: 'hidden', onClose: this.closeEditor.bind(this), onChanged: this.onChanged.bind(this) }))));
         }
     };
