@@ -1356,10 +1356,13 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             this.renderUI();
         }
         async renderUI() {
-            if (!this.editorEl) {
-                this.editorEl = await (0, utils_1.getEmbedElement)(this.createTextEditorElement(''), this.pnlEditor);
+            if (this.editorEl) {
+                this.editorEl.setValue(this.data.content);
             }
-            this.editorEl.setData({ value: this.data.content });
+            else {
+                this.editorEl = await (0, utils_1.getEmbedElement)(this.createTextEditorElement(''), this.pnlEditor);
+                this.editorEl.setData({ value: this.data.content });
+            }
         }
         createTextEditorElement(value) {
             return {
@@ -1462,9 +1465,6 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 const moduleData = await this.getModuleFromExtension();
                 if (moduleData?.module) {
                     await (0, utils_2.getEmbedElement)(moduleData, this.previewer);
-                    if (moduleData.module === '@scom/scom-markdown-editor') {
-                        this.currentContent = moduleData.data?.properties?.content || '';
-                    }
                 }
                 else if (moduleData?.data) {
                     let content = moduleData.data || '';
@@ -1515,6 +1515,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                     content = await result.text();
                 }
                 catch (err) { }
+                this.currentContent = content;
                 moduleData = this.createTextElement(content);
             }
             else {
@@ -1672,7 +1673,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                             this.$render("i-label", { caption: 'File Preview', font: { size: '1rem' } })),
                         this.$render("i-icon", { name: "times", width: '0.875rem', height: '0.875rem', stack: { shrink: '0' }, opacity: 0.7, cursor: 'pointer', onClick: this.closePreview })),
                     this.$render("i-hstack", { id: "pnlEdit", verticalAlignment: 'center', horizontalAlignment: 'end', visible: false, padding: { top: '1rem' } },
-                        this.$render("i-button", { padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, border: { radius: '0.25rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: 'transparent' }, icon: { name: 'edit', width: '1rem', height: '1rem', fill: Theme.text.primary }, onClick: this.onEditClicked })),
+                        this.$render("i-button", { padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, border: { radius: '0.25rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: 'transparent' }, icon: { name: 'pencil-alt', width: '1rem', height: '1rem', fill: Theme.text.primary }, onClick: this.onEditClicked })),
                     this.$render("i-vstack", { stack: { shrink: '1', grow: '1' }, overflow: { y: 'auto' }, margin: { top: '1.5rem', bottom: '1.5rem' }, gap: '1.5rem' },
                         this.$render("i-panel", { id: 'previewer', width: '100%' }),
                         this.$render("i-hstack", { width: '100%', padding: { bottom: '1.25rem', top: '1.25rem' }, border: { top: { width: '1px', style: 'solid', color: Theme.divider } }, horizontalAlignment: "space-between", gap: "0.5rem" },
