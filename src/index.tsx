@@ -583,7 +583,7 @@ export class ScomStorage extends Module {
     private previewFile(record: IPreview) {
         this.pnlPreview.visible = true;
         const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
-        this.iePreview.setData({...record, transportEndpoint: this.transportEndpoint, path: `${currentCid}/${record.name}`});
+        this.iePreview.setData({...record, transportEndpoint: this.transportEndpoint, parentCid: currentCid});
         if (window.matchMedia('(max-width: 767px)').matches) {
             this.iePreview.openModal({
                 width: '100vw',

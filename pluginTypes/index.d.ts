@@ -22,6 +22,7 @@ declare module "@scom/scom-storage/interface.ts" {
     }
     export interface IPreview extends IIPFSData {
         transportEndpoint?: string;
+        parentCid?: string;
     }
 }
 /// <amd-module name="@scom/scom-storage/data.ts" />

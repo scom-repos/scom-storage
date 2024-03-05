@@ -1117,6 +1117,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                     this.renderPagination();
                     this.btnUpload.caption = 'Upload file to IPFS';
                     this.btnUpload.enabled = true;
+                    this.refresh();
                 }
                 catch (err) {
                     console.log('Error! ', err);
@@ -1367,7 +1368,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             catch (error) { }
         }
         async getModuleFromExtension() {
-            const { cid, name, path } = this._data;
+            const { cid, name, parentCid } = this._data;
             if (!cid)
                 return null;
             let moduleData = {
@@ -1380,7 +1381,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             const audioExts = ['mp3', 'wav', 'ogg'];
             const streamingExts = ['m3u8'];
             const mdExts = ['md'];
-            const mediaUrl = `${this.transportEndpoint}/ipfs/${path}`;
+            const mediaUrl = `${this.transportEndpoint}/ipfs/${parentCid}/${name}`;
             if (imgExts.includes(ext)) {
                 moduleData = this.createImageElement(mediaUrl);
             }
@@ -1500,7 +1501,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 this.onClose();
         }
         async downloadFile() {
-            let url = `${this.transportEndpoint}/ipfs/${this._data.path}`;
+            let url = `${this.transportEndpoint}/ipfs/${this._data.parentCid}/${this._data.name}`;
             try {
                 let response = await fetch(url);
                 let blob = await response.blob();
@@ -2107,7 +2108,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         previewFile(record) {
             this.pnlPreview.visible = true;
             const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
-            this.iePreview.setData({ ...record, transportEndpoint: this.transportEndpoint, path: `${currentCid}/${record.name}` });
+            this.iePreview.setData({ ...record, transportEndpoint: this.transportEndpoint, parentCid: currentCid });
             if (window.matchMedia('(max-width: 767px)').matches) {
                 this.iePreview.openModal({
                     width: '100vw',

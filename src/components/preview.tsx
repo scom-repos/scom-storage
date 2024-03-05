@@ -115,7 +115,7 @@ export class ScomIPFSPreview extends Module {
   }
 
   private async getModuleFromExtension() {
-    const { cid, name, path } = this._data;
+    const { cid, name, parentCid } = this._data;
     if (!cid) return null
     let moduleData = {
       module: '',
@@ -127,7 +127,7 @@ export class ScomIPFSPreview extends Module {
     const audioExts = ['mp3', 'wav', 'ogg']
     const streamingExts = ['m3u8']
     const mdExts = ['md']
-    const mediaUrl = `${this.transportEndpoint}/ipfs/${path}`
+    const mediaUrl = `${this.transportEndpoint}/ipfs/${parentCid}/${name}`
 
     if (imgExts.includes(ext)) {
       moduleData = this.createImageElement(mediaUrl)
@@ -263,7 +263,7 @@ export class ScomIPFSPreview extends Module {
   }
 
   private async downloadFile() {
-    let url = `${this.transportEndpoint}/ipfs/${this._data.path}`;
+    let url = `${this.transportEndpoint}/ipfs/${this._data.parentCid}/${this._data.name}`;
     try {
       let response = await fetch(url);
       let blob = await response.blob();
