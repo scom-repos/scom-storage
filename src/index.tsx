@@ -12,12 +12,14 @@ import {
     Panel,
     GridLayout,
     IPFS,
-    Button
+    Button,
+    TableColumn,
+    Label
 } from '@ijstech/components';
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
 import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview } from './components';
-import customStyles, { previewModalStyle } from './index.css';
+import customStyles, { dragAreaStyle, previewModalStyle } from './index.css';
 
 declare var require: any
 
@@ -61,6 +63,16 @@ interface ScomStorageElement extends ControlElement {
     signer?: IPFS.ISigner;
 }
 
+
+interface UploadRawFile extends File {
+    uid?: number;
+    path?: string;
+    cid?: {
+      cid: string;
+      size: number;
+    };
+  }
+
 declare global {
     namespace JSX {
         interface IntrinsicElements {
@@ -87,6 +99,11 @@ export class ScomStorage extends Module {
         dark: {}
     }
     private _data: IStorageConfig = {}; 
+    private pnlFileTable: Panel;
+    private pnlUploadTo: Panel;
+    private lblDestinationFolder: Label;
+    private pnlUploadMsg: Panel;
+    private lblUploadMsg: Label;
     private fileTable: Table;
     private filesColumns = [
         {
@@ -159,6 +176,7 @@ export class ScomStorage extends Module {
     private signer: IPFS.ISigner;
     private currentCid: string;
     private manager: IPFS.FileManager;
+    private counter: number = 0;
 
     private async setData(value: IStorageConfig) {
         this._data = value;
@@ -389,7 +407,7 @@ export class ScomStorage extends Module {
         this.pnlPath.setData(node);
     }
 
-    private async onFilesUploaded(source: ScomIPFSUploadModal, rootCid: string) {
+    private async onFilesUploaded() {
         const rootNode = await this.manager.getRootNode();
         const ipfsData = rootNode.cidInfo;
         
@@ -634,6 +652,153 @@ export class ScomStorage extends Module {
         this.onOpenFolder({ cid, path }, false);
     }
 
+    private getDestinationFolder(event: DragEvent) {
+        const folder = { path: '', name: '' };
+        const target = event.target as Control;
+        if (target) {
+            let tableColumn: TableColumn;
+            if (target.nodeName === 'TD') {
+                tableColumn = target.childNodes?.[0] as TableColumn;
+            } else {
+                tableColumn = target.closest('i-table-column') as TableColumn;
+            }
+            const rowData: any = tableColumn?.rowData;
+            if (rowData?.type === 'dir') {
+                folder.path = rowData.path;
+                folder.name = rowData.name || FormatUtils.truncateWalletAddress(rowData.cid);
+            }
+        }
+        if (!folder.path) {
+            if (window.matchMedia('(max-width: 767px)').matches) {
+                folder.path = this.mobileHome.currentPath;
+            } else {
+                folder.path = this.pnlPath.data.path;
+            }
+            const arr = folder.path.split('/');
+            folder.name = arr[arr.length - 1] || 'root';
+        }
+        return folder;
+    }
+
+    private handleOnDragEnter(event: DragEvent) {
+        event.preventDefault();
+        this.counter++;
+        this.pnlFileTable.classList.add(dragAreaStyle);
+    }
+
+    private handleOnDragOver(event: DragEvent) {
+        event.preventDefault();
+        const folder = this.getDestinationFolder(event);
+        this.lblDestinationFolder.caption = folder.name || "root";
+        this.pnlUploadTo.visible = true;
+    }
+
+    private handleOnDragLeave(event: DragEvent) {
+        this.counter--;
+        if (this.counter === 0) {
+            this.pnlFileTable.classList.remove(dragAreaStyle);
+            this.pnlUploadTo.visible = false;
+        }
+    }
+    
+    private async handleOnDrop(event: DragEvent) {
+        event.preventDefault();
+        this.counter = 0;
+        this.pnlFileTable.classList.remove(dragAreaStyle);
+        this.pnlUploadTo.visible = false;
+        const folder = this.getDestinationFolder(event);
+        try {
+            const files = await this.getAllFileEntries(event.dataTransfer.items);
+            const flattenFiles = files.reduce((acc, val) => acc.concat(val), []);
+            this.lblUploadMsg.caption = `Uploading ${flattenFiles.length} file${flattenFiles.length > 1 ? 's' : ''}`;
+            this.pnlUploadMsg.visible = true;
+            for (let i = 0; i < flattenFiles.length; i++) {
+                const file = flattenFiles[i];
+                const filePath = folder.path ? `${folder.path}${file.path}` : file.path;
+                await this.manager.addFile(filePath, file);
+            }
+
+            await this.manager.applyUpdates();
+
+            this.lblUploadMsg.caption = ` ${flattenFiles.length} upload${flattenFiles.length > 1 ? 's' : ''} complete`;
+
+            this.onFilesUploaded();
+        } catch (err) {
+            console.log('Error! ', err);
+            this.lblUploadMsg.caption = 'Failed to upload file';
+        }
+        setTimeout(() => this.pnlUploadMsg.visible = false, 1500);
+    }
+
+    // Get all the entries (files or sub-directories) in a directory by calling readEntries until it returns empty array
+    private async readAllDirectoryEntries(
+      directoryReader: FileSystemDirectoryReader
+    ) {
+      let entries = [];
+      let readEntries: any = await this.readEntriesPromise(directoryReader);
+      while (readEntries.length > 0) {
+        entries.push(...readEntries);
+        readEntries = await this.readEntriesPromise(directoryReader);
+      }
+      return entries;
+    }
+  
+    // Wrap readEntries in a promise to make working with readEntries easier
+    private async readEntriesPromise(directoryReader: FileSystemDirectoryReader) {
+      try {
+        return await new Promise((resolve, reject) => {
+          directoryReader.readEntries(resolve, reject);
+        });
+      } catch (err) {
+        console.log(err);
+      }
+    }
+
+    private async readEntryContentAsync(entry: FileSystemEntry | any) {
+      return new Promise<UploadRawFile[]>((resolve, reject) => {
+        let reading = 0;
+        const contents: UploadRawFile[] = [];
+  
+        reading++;
+        entry.file(async (file: any) => {
+          reading--;
+          const rawFile = file as UploadRawFile;
+          rawFile.path = entry.fullPath;
+          rawFile.cid = await IPFS.hashFile(file);
+          contents.push(rawFile);
+  
+          if (reading === 0) {
+            resolve(contents);
+          }
+        });
+      });
+    }
+
+    private async getAllFileEntries(dataTransferItemList: DataTransferItemList) {
+      let fileEntries = [];
+      // Use BFS to traverse entire directory/file structure
+      let queue = [];
+      // Unfortunately dataTransferItemList is not iterable i.e. no forEach
+      for (let i = 0; i < dataTransferItemList.length; i++) {
+        // Note webkitGetAsEntry a non-standard feature and may change
+        // Usage is necessary for handling directories
+        queue.push(dataTransferItemList[i].webkitGetAsEntry());
+      }
+      while (queue.length > 0) {
+        let entry = queue.shift();
+        if (entry?.isFile) {
+          fileEntries.push(entry);
+        } else if (entry?.isDirectory) {
+          let reader: any = (entry as any).createReader();
+          queue.push(...(await this.readAllDirectoryEntries(reader)));
+        }
+      }
+  
+      return Promise.all(
+        fileEntries.map((entry) => this.readEntryContentAsync(entry))
+      );
+    }
+    
     init() {
         this.transportEndpoint = this.getAttribute('transportEndpoint', true) || window.location.origin;
         this.signer = this.getAttribute('signer', true);
@@ -645,6 +810,14 @@ export class ScomStorage extends Module {
             signer: this.signer
         });
         if (this.transportEndpoint) this.setData({ transportEndpoint: this.transportEndpoint, signer: this.signer });
+        this.handleOnDragEnter = this.handleOnDragEnter.bind(this);
+        this.handleOnDragOver = this.handleOnDragOver.bind(this);
+        this.handleOnDragLeave = this.handleOnDragLeave.bind(this);
+        this.handleOnDrop = this.handleOnDrop.bind(this);
+        this.pnlFileTable.addEventListener('dragenter', this.handleOnDragEnter);
+        this.pnlFileTable.addEventListener('dragover', this.handleOnDragOver);
+        this.pnlFileTable.addEventListener('dragleave', this.handleOnDragLeave);
+        this.pnlFileTable.addEventListener('drop', this.handleOnDrop);
     }
 
     render() {
@@ -725,12 +898,15 @@ export class ScomStorage extends Module {
                                 />
                                 <i-panel
                                     width={'100%'} height={'auto'}
-                                    border={{ radius: 1 }}
+                                    stack={{ grow: "1" }}
+                                    position="relative"
+                                    border={{
+                                        top: { width: '0.0625rem', style: 'solid', color: Theme.colors.primary.contrastText }
+                                    }}
                                 >
                                     <i-panel
-                                        border={{
-                                            top: { width: '0.0625rem', style: 'solid', color: Theme.colors.primary.contrastText }
-                                        }}
+                                        id="pnlFileTable"
+                                        height="100%"
                                     >
                                         <i-table
                                             id="fileTable"
@@ -750,6 +926,44 @@ export class ScomStorage extends Module {
                                             }}
                                             onCellClick={this.onCellClick}
                                         ></i-table>
+                                    </i-panel>
+                                    <i-panel
+                                        id="pnlUploadTo"
+                                        width="fit-content"
+                                        class="text-center"
+                                        padding={{ top: '0.75rem', bottom: '0.75rem', left: '1.5rem', right: '1.5rem' }}
+                                        margin={{ left: 'auto', right: 'auto' }}
+                                        border={{ radius: 6 }}
+                                        background={{ color: '#0288d1' }}
+                                        lineHeight={1.5}
+                                        position="absolute"
+                                        bottom="1.5rem"
+                                        left={0}
+                                        right={0}
+                                        visible={false}
+                                    >
+                                        <i-label caption="Upload files to" font={{ size: '15px', color: '#fff' }}></i-label>
+                                        <i-hstack horizontalAlignment="center" verticalAlignment="center" gap="0.375rem">
+                                            <i-icon name="folder" width={'0.875rem'} height={'0.875rem'} display="inline-flex" fill='#fff'></i-icon>
+                                            <i-label id="lblDestinationFolder" font={{ size: '15px', color: '#fff' }}></i-label>
+                                        </i-hstack>
+                                    </i-panel>
+                                    <i-panel
+                                        id="pnlUploadMsg"
+                                        width="fit-content"
+                                        class="text-center"
+                                        padding={{ top: '0.75rem', bottom: '0.75rem', left: '1.5rem', right: '1.5rem' }}
+                                        margin={{ left: 'auto', right: 'auto' }}
+                                        border={{ radius: 6 }}
+                                        background={{ color: '#0288d1bf' }}
+                                        lineHeight={1.5}
+                                        position="absolute"
+                                        top="-1rem"
+                                        left={0}
+                                        right={0}
+                                        visible={false}
+                                    >
+                                        <i-label id="lblUploadMsg" font={{ size: '15px', color: '#fff' }}></i-label>
                                     </i-panel>
                                 </i-panel>
                             </i-vstack>

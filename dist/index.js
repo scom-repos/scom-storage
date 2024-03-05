@@ -1704,7 +1704,7 @@ define("@scom/scom-storage/components/index.ts", ["require", "exports", "@scom/s
 define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_10) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.previewModalStyle = void 0;
+    exports.dragAreaStyle = exports.previewModalStyle = void 0;
     const Theme = components_10.Styles.Theme.ThemeVars;
     exports.default = components_10.Styles.style({
         $nest: {
@@ -1725,6 +1725,10 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
                 padding: '1rem'
             }
         }
+    });
+    exports.dragAreaStyle = components_10.Styles.style({
+        border: `2px solid ${Theme.colors.info.dark}`,
+        opacity: 0.7
     });
 });
 define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_11, data_3, components_12, index_css_6) {
@@ -1831,6 +1835,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.columns = this.filesColumns.slice();
             this._uploadedTreeData = [];
             this._uploadedFileNodes = {};
+            this.counter = 0;
         }
         async setData(value) {
             this._data = value;
@@ -2043,7 +2048,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         onUpdateBreadcumbs(node) {
             this.pnlPath.setData(node);
         }
-        async onFilesUploaded(source, rootCid) {
+        async onFilesUploaded() {
             const rootNode = await this.manager.getRootNode();
             const ipfsData = rootNode.cidInfo;
             let path;
@@ -2282,6 +2287,139 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.closePreview();
             this.onOpenFolder({ cid, path }, false);
         }
+        getDestinationFolder(event) {
+            const folder = { path: '', name: '' };
+            const target = event.target;
+            if (target) {
+                let tableColumn;
+                if (target.nodeName === 'TD') {
+                    tableColumn = target.childNodes?.[0];
+                }
+                else {
+                    tableColumn = target.closest('i-table-column');
+                }
+                const rowData = tableColumn?.rowData;
+                if (rowData?.type === 'dir') {
+                    folder.path = rowData.path;
+                    folder.name = rowData.name || components_11.FormatUtils.truncateWalletAddress(rowData.cid);
+                }
+            }
+            if (!folder.path) {
+                if (window.matchMedia('(max-width: 767px)').matches) {
+                    folder.path = this.mobileHome.currentPath;
+                }
+                else {
+                    folder.path = this.pnlPath.data.path;
+                }
+                const arr = folder.path.split('/');
+                folder.name = arr[arr.length - 1] || 'root';
+            }
+            return folder;
+        }
+        handleOnDragEnter(event) {
+            event.preventDefault();
+            this.counter++;
+            this.pnlFileTable.classList.add(index_css_6.dragAreaStyle);
+        }
+        handleOnDragOver(event) {
+            event.preventDefault();
+            const folder = this.getDestinationFolder(event);
+            this.lblDestinationFolder.caption = folder.name || "root";
+            this.pnlUploadTo.visible = true;
+        }
+        handleOnDragLeave(event) {
+            this.counter--;
+            if (this.counter === 0) {
+                this.pnlFileTable.classList.remove(index_css_6.dragAreaStyle);
+                this.pnlUploadTo.visible = false;
+            }
+        }
+        async handleOnDrop(event) {
+            event.preventDefault();
+            this.counter = 0;
+            this.pnlFileTable.classList.remove(index_css_6.dragAreaStyle);
+            this.pnlUploadTo.visible = false;
+            const folder = this.getDestinationFolder(event);
+            try {
+                const files = await this.getAllFileEntries(event.dataTransfer.items);
+                const flattenFiles = files.reduce((acc, val) => acc.concat(val), []);
+                this.lblUploadMsg.caption = `Uploading ${flattenFiles.length} file${flattenFiles.length > 1 ? 's' : ''}`;
+                this.pnlUploadMsg.visible = true;
+                for (let i = 0; i < flattenFiles.length; i++) {
+                    const file = flattenFiles[i];
+                    const filePath = folder.path ? `${folder.path}${file.path}` : file.path;
+                    await this.manager.addFile(filePath, file);
+                }
+                await this.manager.applyUpdates();
+                this.lblUploadMsg.caption = ` ${flattenFiles.length} upload${flattenFiles.length > 1 ? 's' : ''} complete`;
+                this.onFilesUploaded();
+            }
+            catch (err) {
+                console.log('Error! ', err);
+                this.lblUploadMsg.caption = 'Failed to upload file';
+            }
+            setTimeout(() => this.pnlUploadMsg.visible = false, 1500);
+        }
+        // Get all the entries (files or sub-directories) in a directory by calling readEntries until it returns empty array
+        async readAllDirectoryEntries(directoryReader) {
+            let entries = [];
+            let readEntries = await this.readEntriesPromise(directoryReader);
+            while (readEntries.length > 0) {
+                entries.push(...readEntries);
+                readEntries = await this.readEntriesPromise(directoryReader);
+            }
+            return entries;
+        }
+        // Wrap readEntries in a promise to make working with readEntries easier
+        async readEntriesPromise(directoryReader) {
+            try {
+                return await new Promise((resolve, reject) => {
+                    directoryReader.readEntries(resolve, reject);
+                });
+            }
+            catch (err) {
+                console.log(err);
+            }
+        }
+        async readEntryContentAsync(entry) {
+            return new Promise((resolve, reject) => {
+                let reading = 0;
+                const contents = [];
+                reading++;
+                entry.file(async (file) => {
+                    reading--;
+                    const rawFile = file;
+                    rawFile.path = entry.fullPath;
+                    rawFile.cid = await components_11.IPFS.hashFile(file);
+                    contents.push(rawFile);
+                    if (reading === 0) {
+                        resolve(contents);
+                    }
+                });
+            });
+        }
+        async getAllFileEntries(dataTransferItemList) {
+            let fileEntries = [];
+            // Use BFS to traverse entire directory/file structure
+            let queue = [];
+            // Unfortunately dataTransferItemList is not iterable i.e. no forEach
+            for (let i = 0; i < dataTransferItemList.length; i++) {
+                // Note webkitGetAsEntry a non-standard feature and may change
+                // Usage is necessary for handling directories
+                queue.push(dataTransferItemList[i].webkitGetAsEntry());
+            }
+            while (queue.length > 0) {
+                let entry = queue.shift();
+                if (entry?.isFile) {
+                    fileEntries.push(entry);
+                }
+                else if (entry?.isDirectory) {
+                    let reader = entry.createReader();
+                    queue.push(...(await this.readAllDirectoryEntries(reader)));
+                }
+            }
+            return Promise.all(fileEntries.map((entry) => this.readEntryContentAsync(entry)));
+        }
         init() {
             this.transportEndpoint = this.getAttribute('transportEndpoint', true) || window.location.origin;
             this.signer = this.getAttribute('signer', true);
@@ -2294,6 +2432,14 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             });
             if (this.transportEndpoint)
                 this.setData({ transportEndpoint: this.transportEndpoint, signer: this.signer });
+            this.handleOnDragEnter = this.handleOnDragEnter.bind(this);
+            this.handleOnDragOver = this.handleOnDragOver.bind(this);
+            this.handleOnDragLeave = this.handleOnDragLeave.bind(this);
+            this.handleOnDrop = this.handleOnDrop.bind(this);
+            this.pnlFileTable.addEventListener('dragenter', this.handleOnDragEnter);
+            this.pnlFileTable.addEventListener('dragover', this.handleOnDragOver);
+            this.pnlFileTable.addEventListener('dragleave', this.handleOnDragLeave);
+            this.pnlFileTable.addEventListener('drop', this.handleOnDrop);
         }
         render() {
             return (this.$render("i-panel", { height: '100%', width: '100%' },
@@ -2320,10 +2466,10 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                 this.$render("i-tree-view", { id: "uploadedFileTree", class: "file-manager-tree uploaded", onActiveChange: this.onActiveChange, stack: { grow: '1' }, maxHeight: '100%', overflow: 'auto' })),
                             this.$render("i-vstack", { id: 'ieContent', dock: 'fill', height: '100%', overflow: { y: 'auto' } },
                                 this.$render("i-scom-ipfs--path", { id: "pnlPath", display: 'flex', width: '100%', padding: { left: '1rem', right: '1rem' }, onItemClicked: this.onBreadcrumbClick }),
-                                this.$render("i-panel", { width: '100%', height: 'auto', border: { radius: 1 } },
-                                    this.$render("i-panel", { border: {
-                                            top: { width: '0.0625rem', style: 'solid', color: Theme.colors.primary.contrastText }
-                                        } },
+                                this.$render("i-panel", { width: '100%', height: 'auto', stack: { grow: "1" }, position: "relative", border: {
+                                        top: { width: '0.0625rem', style: 'solid', color: Theme.colors.primary.contrastText }
+                                    } },
+                                    this.$render("i-panel", { id: "pnlFileTable", height: "100%" },
                                         this.$render("i-table", { id: "fileTable", heading: true, columns: this.columns, headingStyles: {
                                                 font: { size: '0.75rem', weight: 700, color: Theme.text.primary },
                                                 padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' },
@@ -2334,7 +2480,14 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                                 padding: { top: '0.375rem', bottom: '0.375rem', left: '0.5rem', right: '0.5rem' },
                                                 height: '2.25rem',
                                                 cursor: 'pointer'
-                                            }, onCellClick: this.onCellClick })))),
+                                            }, onCellClick: this.onCellClick })),
+                                    this.$render("i-panel", { id: "pnlUploadTo", width: "fit-content", class: "text-center", padding: { top: '0.75rem', bottom: '0.75rem', left: '1.5rem', right: '1.5rem' }, margin: { left: 'auto', right: 'auto' }, border: { radius: 6 }, background: { color: '#0288d1' }, lineHeight: 1.5, position: "absolute", bottom: "1.5rem", left: 0, right: 0, visible: false },
+                                        this.$render("i-label", { caption: "Upload files to", font: { size: '15px', color: '#fff' } }),
+                                        this.$render("i-hstack", { horizontalAlignment: "center", verticalAlignment: "center", gap: "0.375rem" },
+                                            this.$render("i-icon", { name: "folder", width: '0.875rem', height: '0.875rem', display: "inline-flex", fill: '#fff' }),
+                                            this.$render("i-label", { id: "lblDestinationFolder", font: { size: '15px', color: '#fff' } }))),
+                                    this.$render("i-panel", { id: "pnlUploadMsg", width: "fit-content", class: "text-center", padding: { top: '0.75rem', bottom: '0.75rem', left: '1.5rem', right: '1.5rem' }, margin: { left: 'auto', right: 'auto' }, border: { radius: 6 }, background: { color: '#0288d1bf' }, lineHeight: 1.5, position: "absolute", top: "-1rem", left: 0, right: 0, visible: false },
+                                        this.$render("i-label", { id: "lblUploadMsg", font: { size: '15px', color: '#fff' } })))),
                             this.$render("i-panel", { id: "pnlPreview", border: { left: { width: '1px', style: 'solid', color: Theme.divider } }, width: '20rem', dock: 'right', visible: false },
                                 this.$render("i-scom-ipfs--preview", { id: "iePreview", width: '100%', height: '100%', display: 'block', onClose: this.closePreview.bind(this), onOpenEditor: this.openEditor.bind(this), onCloseEditor: this.closeEditor.bind(this) }))))),
                 this.$render("i-button", { id: "btnUpload", boxShadow: '0 10px 25px -5px rgba(44, 179, 240, 0.6)', border: { radius: '50%' }, background: { color: Theme.colors.primary.light }, lineHeight: '3.375rem', width: '3.375rem', height: '3.375rem', icon: { name: 'plus', width: '1.125rem', height: ' 1.125rem', fill: Theme.colors.primary.contrastText }, position: 'absolute', bottom: '3.125rem', right: '3.125rem', zIndex: 100, onClick: this.onOpenUploadModal, mediaQueries: [
