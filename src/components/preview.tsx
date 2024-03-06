@@ -8,7 +8,7 @@ import {
   Styles,
 } from '@ijstech/components'
 import { customLinkStyle } from './index.css'
-import { formatBytes } from '../data'
+import { formatBytes, getFileContent } from '../data'
 import { getEmbedElement } from '../utils';
 import { IPreview } from '../interface';
 import { ScomIPFSEditor } from '../components/index';
@@ -151,13 +151,13 @@ export class ScomIPFSPreview extends Module {
       this.currentContent = content;
       moduleData = this.createTextElement(content)
     } else {
-      // const result = await getFileContent(cid)
-      // if (!result) return null
-      // if (mdExts.includes(ext)) {
-      //   moduleData = this.createTextElement(result)
-      // } else {
-      //   moduleData = { module: '', data: result }
-      // }
+      const result = await getFileContent(mediaUrl)
+      if (!result) return null
+      if (mdExts.includes(ext)) {
+        moduleData = this.createTextElement(result)
+      } else {
+        moduleData = { module: '', data: result }
+      }
     }
     return moduleData
   }
@@ -371,7 +371,8 @@ export class ScomIPFSPreview extends Module {
             ></i-button>
           </i-hstack>
           <i-vstack
-            stack={{ shrink: '1', grow: '1' }}
+            minHeight="3rem"
+            stack={{ shrink: '1' }}
             overflow={{ y: 'auto' }}
             margin={{ top: '1.5rem', bottom: '1.5rem' }}
             gap={'1.5rem'}
@@ -380,41 +381,41 @@ export class ScomIPFSPreview extends Module {
               id={'previewer'}
               width={'100%'}
             ></i-panel>
-            <i-hstack
-              width={'100%'}
-              padding={{ bottom: '1.25rem', top: '1.25rem' }}
-              border={{ top: { width: '1px', style: 'solid', color: Theme.divider } }}
-              horizontalAlignment="space-between"
-              gap="0.5rem"
-            >
-              <i-vstack width={'100%'} gap="0.5rem">
-                <i-label id="lblName"
-                  font={{ size: '1rem', weight: 600 }}
-                  wordBreak='break-all'
-                  lineHeight={1.2}
-                ></i-label>
-                <i-label
-                  id="lblSize"
-                  font={{ size: `0.75rem` }}
-                  opacity={0.7}
-                ></i-label>
-              </i-vstack>
-              <i-hstack
-                width={35}
-                height={35}
-                border={{ radius: '50%' }}
-                horizontalAlignment="center"
-                verticalAlignment="center"
-                stack={{ shrink: "0" }}
-                cursor="pointer"
-                background={{ color: Theme.colors.secondary.main }}
-                hover={{ backgroundColor: Theme.action.hoverBackground }}
-                onClick={this.downloadFile}
-              >
-                <i-icon width={15} height={15} name='download' />
-              </i-hstack>
-            </i-hstack>
           </i-vstack>
+          <i-hstack
+            width={'100%'}
+            padding={{ bottom: '1.25rem', top: '1.25rem' }}
+            border={{ top: { width: '1px', style: 'solid', color: Theme.divider } }}
+            horizontalAlignment="space-between"
+            gap="0.5rem"
+          >
+            <i-vstack width={'100%'} gap="0.5rem">
+              <i-label id="lblName"
+                font={{ size: '1rem', weight: 600 }}
+                wordBreak='break-all'
+                lineHeight={1.2}
+              ></i-label>
+              <i-label
+                id="lblSize"
+                font={{ size: `0.75rem` }}
+                opacity={0.7}
+              ></i-label>
+            </i-vstack>
+            <i-hstack
+              width={35}
+              height={35}
+              border={{ radius: '50%' }}
+              horizontalAlignment="center"
+              verticalAlignment="center"
+              stack={{ shrink: "0" }}
+              cursor="pointer"
+              background={{ color: Theme.colors.secondary.main }}
+              hover={{ backgroundColor: Theme.action.hoverBackground }}
+              onClick={this.downloadFile}
+            >
+              <i-icon width={15} height={15} name='download' />
+            </i-hstack>
+          </i-hstack>
         </i-vstack>
         <i-vstack
           id="editorPanel"

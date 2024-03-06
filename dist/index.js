@@ -11,7 +11,7 @@ define("@scom/scom-storage/interface.ts", ["require", "exports"], function (requ
 define("@scom/scom-storage/data.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.formatBytes = void 0;
+    exports.getFileContent = exports.formatBytes = void 0;
     ///<amd-module name='@scom/scom-storage/data.ts'/> 
     const formatBytes = (bytes, decimals = 2) => {
         if (!+bytes)
@@ -23,6 +23,20 @@ define("@scom/scom-storage/data.ts", ["require", "exports"], function (require, 
         return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
     };
     exports.formatBytes = formatBytes;
+    const getFileContent = async (url) => {
+        let result = '';
+        if (url) {
+            const response = await fetch(url);
+            try {
+                if (response.ok) {
+                    result = await response.text();
+                }
+            }
+            catch (err) { }
+        }
+        return result;
+    };
+    exports.getFileContent = getFileContent;
 });
 define("@scom/scom-storage/assets.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
     "use strict";
@@ -1410,13 +1424,15 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 moduleData = this.createTextElement(content);
             }
             else {
-                // const result = await getFileContent(cid)
-                // if (!result) return null
-                // if (mdExts.includes(ext)) {
-                //   moduleData = this.createTextElement(result)
-                // } else {
-                //   moduleData = { module: '', data: result }
-                // }
+                const result = await (0, data_2.getFileContent)(mediaUrl);
+                if (!result)
+                    return null;
+                if (mdExts.includes(ext)) {
+                    moduleData = this.createTextElement(result);
+                }
+                else {
+                    moduleData = { module: '', data: result };
+                }
             }
             return moduleData;
         }
@@ -1572,14 +1588,14 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                         this.$render("i-icon", { name: "times", width: '0.875rem', height: '0.875rem', stack: { shrink: '0' }, opacity: 0.7, cursor: 'pointer', onClick: this.closePreview })),
                     this.$render("i-hstack", { id: "pnlEdit", verticalAlignment: 'center', horizontalAlignment: 'end', visible: false, padding: { top: '1rem' } },
                         this.$render("i-button", { padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, border: { radius: '0.25rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: 'transparent' }, icon: { name: 'pencil-alt', width: '1rem', height: '1rem', fill: Theme.text.primary }, onClick: this.onEditClicked })),
-                    this.$render("i-vstack", { stack: { shrink: '1', grow: '1' }, overflow: { y: 'auto' }, margin: { top: '1.5rem', bottom: '1.5rem' }, gap: '1.5rem' },
-                        this.$render("i-panel", { id: 'previewer', width: '100%' }),
-                        this.$render("i-hstack", { width: '100%', padding: { bottom: '1.25rem', top: '1.25rem' }, border: { top: { width: '1px', style: 'solid', color: Theme.divider } }, horizontalAlignment: "space-between", gap: "0.5rem" },
-                            this.$render("i-vstack", { width: '100%', gap: "0.5rem" },
-                                this.$render("i-label", { id: "lblName", font: { size: '1rem', weight: 600 }, wordBreak: 'break-all', lineHeight: 1.2 }),
-                                this.$render("i-label", { id: "lblSize", font: { size: `0.75rem` }, opacity: 0.7 })),
-                            this.$render("i-hstack", { width: 35, height: 35, border: { radius: '50%' }, horizontalAlignment: "center", verticalAlignment: "center", stack: { shrink: "0" }, cursor: "pointer", background: { color: Theme.colors.secondary.main }, hover: { backgroundColor: Theme.action.hoverBackground }, onClick: this.downloadFile },
-                                this.$render("i-icon", { width: 15, height: 15, name: 'download' }))))),
+                    this.$render("i-vstack", { minHeight: "3rem", stack: { shrink: '1' }, overflow: { y: 'auto' }, margin: { top: '1.5rem', bottom: '1.5rem' }, gap: '1.5rem' },
+                        this.$render("i-panel", { id: 'previewer', width: '100%' })),
+                    this.$render("i-hstack", { width: '100%', padding: { bottom: '1.25rem', top: '1.25rem' }, border: { top: { width: '1px', style: 'solid', color: Theme.divider } }, horizontalAlignment: "space-between", gap: "0.5rem" },
+                        this.$render("i-vstack", { width: '100%', gap: "0.5rem" },
+                            this.$render("i-label", { id: "lblName", font: { size: '1rem', weight: 600 }, wordBreak: 'break-all', lineHeight: 1.2 }),
+                            this.$render("i-label", { id: "lblSize", font: { size: `0.75rem` }, opacity: 0.7 })),
+                        this.$render("i-hstack", { width: 35, height: 35, border: { radius: '50%' }, horizontalAlignment: "center", verticalAlignment: "center", stack: { shrink: "0" }, cursor: "pointer", background: { color: Theme.colors.secondary.main }, hover: { backgroundColor: Theme.action.hoverBackground }, onClick: this.downloadFile },
+                            this.$render("i-icon", { width: 15, height: 15, name: 'download' })))),
                 this.$render("i-vstack", { id: "editorPanel", maxHeight: '100%', overflow: 'hidden', visible: false },
                     this.$render("i-scom-ipfs--editor", { id: "editor", stack: { shrink: '1', grow: '1' }, width: '100%', display: 'flex', overflow: 'hidden', onClose: this.closeEditor.bind(this), onChanged: this.onChanged.bind(this) }))));
         }
@@ -1602,7 +1618,7 @@ define("@scom/scom-storage/components/index.ts", ["require", "exports", "@scom/s
 define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_10) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.dragAreaStyle = exports.previewModalStyle = void 0;
+    exports.selectedRowStyle = exports.dragAreaStyle = exports.previewModalStyle = void 0;
     const Theme = components_10.Styles.Theme.ThemeVars;
     exports.default = components_10.Styles.style({
         $nest: {
@@ -1627,6 +1643,13 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
     exports.dragAreaStyle = components_10.Styles.style({
         border: `2px solid ${Theme.colors.info.dark}`,
         opacity: 0.7
+    });
+    exports.selectedRowStyle = components_10.Styles.style({
+        $nest: {
+            '& > .i-table-cell': {
+                background: `${Theme.action.focusBackground} !important`
+            }
+        }
     });
 });
 define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_11, data_3, components_12, index_css_6) {
@@ -2082,6 +2105,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 const childrenData = await this.onFetchData(ipfsData);
                 this.onUpdateContent({ data: { ...childrenData }, toggle });
                 this.fileTable.data = this.processTableData({ ...childrenData });
+                this.selectedRow = null;
             }
         }
         async onFetchData(ipfsData) {
@@ -2136,6 +2160,10 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.onOpenFolder(record, true);
             }
             else {
+                if (this.selectedRow)
+                    this.selectedRow.classList.remove(index_css_6.selectedRowStyle);
+                this.selectedRow = this.fileTable.querySelector(`tr[data-index="${rowIndex}"]`);
+                this.selectedRow.classList.add(index_css_6.selectedRowStyle);
                 this.previewFile(record);
             }
         }

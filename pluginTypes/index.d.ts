@@ -28,6 +28,7 @@ declare module "@scom/scom-storage/interface.ts" {
 /// <amd-module name="@scom/scom-storage/data.ts" />
 declare module "@scom/scom-storage/data.ts" {
     export const formatBytes: (bytes: any, decimals?: number) => string;
+    export const getFileContent: (url: string) => Promise<string>;
 }
 /// <amd-module name="@scom/scom-storage/assets.ts" />
 declare module "@scom/scom-storage/assets.ts" {
@@ -410,6 +411,7 @@ declare module "@scom/scom-storage/index.css.ts" {
     export default _default_1;
     export const previewModalStyle: string;
     export const dragAreaStyle: string;
+    export const selectedRowStyle: string;
 }
 /// <amd-module name="@scom/scom-storage" />
 declare module "@scom/scom-storage" {
@@ -454,6 +456,7 @@ declare module "@scom/scom-storage" {
         private currentCid;
         private rootCid;
         private _baseUrl;
+        private selectedRow;
         private manager;
         private counter;
         get baseUrl(): string;

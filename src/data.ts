@@ -9,3 +9,16 @@ export const formatBytes = (bytes: any, decimals = 2) => {
 
     return `${parseFloat((bytes / Math.pow(k, i)).toFixed(dm))} ${sizes[i]}`;
 };
+
+export const getFileContent = async (url: string) => {
+    let result = '';
+    if (url) {
+        const response = await fetch(url);
+        try {
+            if (response.ok) {
+                result = await response.text();
+            }
+        } catch(err) {}
+    }
+    return result;
+}

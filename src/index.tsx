@@ -19,7 +19,7 @@ import {
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
 import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview } from './components';
-import customStyles, { dragAreaStyle, previewModalStyle } from './index.css';
+import customStyles, { dragAreaStyle, previewModalStyle, selectedRowStyle } from './index.css';
 
 declare var require: any
 
@@ -178,6 +178,7 @@ export class ScomStorage extends Module {
     private currentCid: string;
     private rootCid: string;
     private _baseUrl: string;
+    private selectedRow: HTMLElement;
     private manager: IPFS.FileManager;
     private counter: number = 0;
 
@@ -544,6 +545,7 @@ export class ScomStorage extends Module {
             const childrenData = await this.onFetchData(ipfsData);
             this.onUpdateContent({ data: { ...childrenData }, toggle });
             this.fileTable.data = this.processTableData({ ...childrenData });
+            this.selectedRow = null;
         }
     }
 
@@ -595,6 +597,9 @@ export class ScomStorage extends Module {
             this.closePreview();
             this.onOpenFolder(record, true);
         } else {
+            if (this.selectedRow) this.selectedRow.classList.remove(selectedRowStyle);
+            this.selectedRow = this.fileTable.querySelector(`tr[data-index="${rowIndex}"]`);
+            this.selectedRow.classList.add(selectedRowStyle);
             this.previewFile(record);
         }
     }
