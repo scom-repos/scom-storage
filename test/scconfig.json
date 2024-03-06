@@ -24,15 +24,10 @@
       "@scom/scom-editor"
   ],
   "menus": [
-    {
-      "caption": "Module 1",
-      "url": "/module1",
-      "module": "@modules/module1"
-    }
   ],
   "routes": [
     {
-      "url": "/module1",
+      "url": "/storage/(.*)?",
       "module": "@modules/module1",
       "default": true
     }

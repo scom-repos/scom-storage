@@ -418,6 +418,7 @@ declare module "@scom/scom-storage" {
     interface ScomStorageElement extends ControlElement {
         transportEndpoint?: string;
         signer?: IPFS.ISigner;
+        baseUrl?: string;
     }
     global {
         namespace JSX {
@@ -451,8 +452,12 @@ declare module "@scom/scom-storage" {
         private transportEndpoint;
         private signer;
         private currentCid;
+        private rootCid;
+        private _baseUrl;
         private manager;
         private counter;
+        get baseUrl(): string;
+        set baseUrl(url: string);
         private setData;
         private getData;
         getConfigurators(): {
@@ -480,7 +485,10 @@ declare module "@scom/scom-storage" {
         private setTag;
         private updateStyle;
         private updateTheme;
+        private updateUrlPath;
         private initContent;
+        private constructLinks;
+        private renderUI;
         renderUploadedFileTreeUI(needReset?: boolean, path?: string): Promise<void>;
         addUploadedFileNode(nodeData: IIPFSData, path?: string): Promise<void>;
         private onUpdateContent;

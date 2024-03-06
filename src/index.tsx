@@ -61,6 +61,7 @@ const defaultColors = {
 interface ScomStorageElement extends ControlElement {
     transportEndpoint?: string;
     signer?: IPFS.ISigner;
+    baseUrl?: string;
 }
 
 
@@ -175,8 +176,18 @@ export class ScomStorage extends Module {
     private transportEndpoint: string;
     private signer: IPFS.ISigner;
     private currentCid: string;
+    private rootCid: string;
+    private _baseUrl: string;
     private manager: IPFS.FileManager;
     private counter: number = 0;
+
+    get baseUrl(): string {
+        return this._baseUrl;
+    }
+
+    set baseUrl(url: string) {
+        this._baseUrl = url;
+    }
 
     private async setData(value: IStorageConfig) {
         this._data = value;
@@ -293,42 +304,98 @@ export class ScomStorage extends Module {
         this.updateStyle('--action-hover', this.tag[themeVar]?.hover);
     }
 
+    private updateUrlPath(path?: string) {
+        let baseUrl = this.baseUrl ? this.baseUrl + (this.baseUrl[this.baseUrl.length - 1] == '/' ? '' : '/') : '#/';
+        let url = baseUrl + this.rootCid;
+        if (path) url += path;
+        history.replaceState({}, "", url);
+    }
+
     private async initContent() {
         if (!this.manager) return;
         let rootNode = await this.manager.getRootNode();
-        this.currentCid = rootNode.cid;
+        this.rootCid = this.currentCid = rootNode.cid;
         const ipfsData = rootNode.cidInfo as IIPFSData;
-        if (ipfsData) {
-            const parentNode = (({ links, ...o }) => o)(ipfsData);
-            parentNode.name = parentNode.name ? parentNode.name : FormatUtils.truncateWalletAddress(parentNode.cid);
-            parentNode.path = '';
-            parentNode.root = true;
-            if (ipfsData.links?.length) {
-                await Promise.all(
-                    ipfsData.links.map(async (data) => {
-                        data.path = `${parentNode.path}/${data.name}`;
-                        if (!data.type) {
-                            let node = await this.manager.getFileNode(`/${data.name}`);
-                            let isFolder = await node.isFolder();
-                            data.type = isFolder ? 'dir' : 'file'
-                        }
-                    })
-                );
+        let path;
+        if (window.location.hash.includes(this.rootCid)) {
+            if (this.baseUrl && window.location.hash.startsWith(this.baseUrl)) {
+                let length = this.baseUrl[this.baseUrl.length - 1] == '/' ? this.baseUrl.length : this.baseUrl.length + 1;
+                path = decodeURI(window.location.hash.substring(length + this.rootCid.length));
+            } else {
+                path = decodeURI(window.location.hash.substring(2 + this.rootCid.length));
             }
-            const data = ipfsData.links ? [parentNode, ...ipfsData.links] : [parentNode];
-            this._uploadedTreeData = [...data];
-            this.renderUploadedFileTreeUI();
-            this.fileTable.data = this.processTableData(ipfsData);
-            // this.mobileFolder.setData({ list: ipfsData.links ?? [] });
-            this.mobileHome.setData({
-                recents: [...ipfsData.links].filter(item => item.type === 'file'),
-                folders: ipfsData.links ?? [],
-                parentNode: parentNode
-            })
-
-            if (parentNode.name)
-                this.pnlPath.setData(parentNode);
+        } else {
+            this.updateUrlPath();
         }
+        if (ipfsData) {
+            this.renderUI(ipfsData, path);
+        }
+    }
+    
+    private async constructLinks(ipfsData: IIPFSData, links: IIPFSData[]) {
+        return await Promise.all(
+            links.map(async (data) => {
+                data.path = `${ipfsData.path}/${data.name}`;
+                if (!data.type) {
+                    let node = await this.manager.getFileNode(data.path);
+                    let isFolder = await node.isFolder();
+                    data.type = isFolder ? 'dir' : 'file'
+                }
+                return data;
+            })
+        );
+    }
+
+    private async renderUI(ipfsData: IIPFSData, path?: string) {
+        if (!ipfsData) return;
+        const parentNode = (({ links, ...o }) => o)(ipfsData) as IIPFSData;
+        parentNode.name = parentNode.name ? parentNode.name : FormatUtils.truncateWalletAddress(parentNode.cid);
+        parentNode.path = '';
+        parentNode.root = true;
+        if (ipfsData.links?.length) {
+            ipfsData.links = await this.constructLinks(parentNode, ipfsData.links);
+        }
+        let data = ipfsData.links ? [parentNode, ...ipfsData.links] : [parentNode];
+        let tableData = ipfsData;
+        this.pnlPath.clear();
+        if (parentNode.name) this.pnlPath.setData(parentNode);
+        if (path) {
+            let items = path.split('/');
+            for (let i = 1; i < items.length; i++) {
+                if (!items[i]) continue;
+                let filePath = items.slice(0, i + 1).join('/');
+                let fileNode = await this.manager.getFileNode(filePath);
+                let isFolder = await fileNode.isFolder();
+                if (isFolder) {
+                    const cidInfo = fileNode.cidInfo as IIPFSData;
+                    cidInfo.path = filePath;
+                    if (!cidInfo.name) cidInfo.name = fileNode.name || items[i];
+                    cidInfo.links = await this.constructLinks(cidInfo, cidInfo.links);
+                    this.currentCid = cidInfo.cid;
+                    data.push(...cidInfo.links);
+                    tableData = { ...cidInfo };
+                    let pathData = (({ links, ...o }) => o)(tableData);
+                    pathData.name = pathData.name ? pathData.name : pathData.cid;
+                    pathData.path = `${cidInfo.path}`;
+                    this.pnlPath.setData(pathData);
+                    if (i === items.length - 2) {
+                        let record = cidInfo.links.find(link => link.type === 'file' && link.name === items[i + 1]);
+                        if (record) {
+                            this.previewFile(record);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        this._uploadedTreeData = [...data];
+        this.renderUploadedFileTreeUI(true, path);
+        this.fileTable.data = this.processTableData(tableData);
+        this.mobileHome.setData({
+            recents: [...ipfsData.links].filter(item => item.type === 'file'),
+            folders: ipfsData.links ?? [],
+            parentNode: parentNode
+        });
     }
 
     async renderUploadedFileTreeUI(needReset = true, path?: string) {
@@ -417,51 +484,10 @@ export class ScomStorage extends Module {
         } else {
             path = this.pnlPath.data.path;
         }
-        console.log(path, rootNode, ipfsData)
         if (ipfsData) {
-            this.currentCid = ipfsData.cid;
-            const parentNode = (({ links, ...o }) => o)(ipfsData) as IIPFSData;
-            parentNode.name = parentNode.name ? parentNode.name : FormatUtils.truncateWalletAddress(parentNode.cid);
-            parentNode.path = '';
-            parentNode.root = true;
-            if (ipfsData.links?.length) {
-                await Promise.all(
-                    ipfsData.links.map(async (data: IIPFSData) => {
-                        data.path = `${parentNode.path}/${data.name}`;
-                        if (!data.type) {
-                            let node = await this.manager.getFileNode(`/${data.name}`);
-                            let isFolder = await node.isFolder();
-                            data.type = isFolder ? 'dir' : 'file'
-                        }
-                    })
-                );
-            }
-            let data = ipfsData.links ? [parentNode, ...ipfsData.links] : [parentNode];
-            let tableData;
-            this.pnlPath.clear();
-            if (parentNode.name) this.pnlPath.setData(parentNode);
-            if (path) {
-                const childrenData = await this.onFetchData({ path: path });
-                this.currentCid = childrenData.cid;
-                childrenData.links.map((child) => (child.path = `${parentNode.path}/${child.name}`));
-                data.push(...childrenData.links);
-                tableData = { ...childrenData };
-                let pathData = (({ links, ...o }) => o)(tableData);
-                pathData.name = pathData.name ? pathData.name : pathData.cid;
-                pathData.path = `${childrenData.path}`;
-                this.pnlPath.setData(pathData);
-            } else {
-                tableData = ipfsData;
-            }
-            this._uploadedTreeData = [...data];
-            this.renderUploadedFileTreeUI(true, path);
-            this.fileTable.data = this.processTableData(tableData);
-            this.mobileHome.setData({
-                recents: [...ipfsData.links].filter(item => item.type === 'file'),
-                folders: ipfsData.links ?? [],
-                parentNode: parentNode
-            })
-
+            this.rootCid = this.currentCid = ipfsData.cid;
+            this.renderUI(ipfsData, path);
+            this.updateUrlPath(path);
         }
     }
 
@@ -508,6 +534,7 @@ export class ScomStorage extends Module {
     private async onActiveChange(parent: TreeView, prevNode?: TreeNode) {
         const ipfsData = parent.activeItem?.tag;
         if (!prevNode?.isSameNode(parent.activeItem)) this.closePreview();
+        this.updateUrlPath(ipfsData.path);
         await this.onOpenFolder(ipfsData, true);
     }
 
@@ -516,7 +543,6 @@ export class ScomStorage extends Module {
             this.currentCid = ipfsData.cid;
             const childrenData = await this.onFetchData(ipfsData);
             this.onUpdateContent({ data: { ...childrenData }, toggle });
-            if (childrenData.links) childrenData.links.map((child) => (child.path = `${ipfsData.path}/${child.name}`));
             this.fileTable.data = this.processTableData({ ...childrenData });
         }
     }
@@ -530,16 +556,7 @@ export class ScomStorage extends Module {
         }
         if (!fileNode._cidInfo.links) fileNode._cidInfo.links = [];
         if (fileNode._cidInfo.links.length) {
-            await Promise.all(
-                fileNode._cidInfo.links.map(async (data) => {
-                    data.path = `${ipfsData.path}/${data.name}`;
-                    if (!data.type) {
-                        let node = await this.manager.getFileNode(data.path);
-                        let isFolder = await node.isFolder();
-                        data.type = isFolder ? 'dir' : 'file'
-                    }
-                })
-            );
+            fileNode._cidInfo.links = await this.constructLinks(ipfsData, fileNode._cidInfo.links);
         }
         if (!fileNode._cidInfo.name) {
             if (ipfsData.name) fileNode._cidInfo.name = ipfsData.name;
@@ -572,6 +589,8 @@ export class ScomStorage extends Module {
 
     private onCellClick(target: Table, rowIndex: number, columnIdx: number, record: ITableData) {
         this.iePreview.clear();
+        if (!record) return;
+        this.updateUrlPath(record.path);
         if (record.type === 'dir') {
             this.closePreview();
             this.onOpenFolder(record, true);
@@ -656,6 +675,7 @@ export class ScomStorage extends Module {
         if (this.uploadedFileTree.activeItem)
             this.uploadedFileTree.activeItem.expanded = true;
         this.closePreview();
+        this.updateUrlPath(path);
         this.onOpenFolder({ cid, path }, false);
     }
 
@@ -809,6 +829,7 @@ export class ScomStorage extends Module {
     init() {
         this.transportEndpoint = this.getAttribute('transportEndpoint', true) || window.location.origin;
         this.signer = this.getAttribute('signer', true);
+        this.baseUrl = this.getAttribute('baseUrl', true);
         super.init();
         this.classList.add(customStyles);
         this.setTag(defaultColors);
