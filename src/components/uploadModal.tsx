@@ -136,9 +136,19 @@ export class ScomIPFSUploadModal extends Module {
         this._manager = value;
     }
 
-    show(path: string) {
+    show(path: string, files?: File[]) {
         this.folderPath = path;
         this.updateBtnCaption();
+        if (files?.length) {
+            for (let i = 0; i < files.length; i++) {
+                this.fileListData.push({ file: files[i], status: 0, percentage: 0 });
+                this.files.push(files[i]);
+            }
+            this.renderFileList();
+            this.renderFilterBar();
+            this.renderPagination();
+            this.toggle(true);
+        }
     }
     
     refresh() {}

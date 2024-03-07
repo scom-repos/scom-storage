@@ -266,7 +266,7 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         set parentDir(value: Partial<ICidInfo>);
         get manager(): any;
         set manager(value: any);
-        show(path: string): void;
+        show(path: string, files?: File[]): void;
         refresh(): void;
         private onBeforeDrop;
         private onBeforeUpload;
@@ -444,8 +444,6 @@ declare module "@scom/scom-storage" {
         private pnlFileTable;
         private pnlUploadTo;
         private lblDestinationFolder;
-        private pnlUploadMsg;
-        private lblUploadMsg;
         private fileTable;
         private filesColumns;
         private columns;
@@ -497,6 +495,7 @@ declare module "@scom/scom-storage" {
         private onUpdateContent;
         private onUpdateBreadcumbs;
         private onFilesUploaded;
+        private handleUploadButtonClick;
         private onOpenUploadModal;
         private onActiveChange;
         private onOpenFolder;

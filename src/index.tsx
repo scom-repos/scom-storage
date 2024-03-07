@@ -103,8 +103,6 @@ export class ScomStorage extends Module {
     private pnlFileTable: Panel;
     private pnlUploadTo: Panel;
     private lblDestinationFolder: Label;
-    private pnlUploadMsg: Panel;
-    private lblUploadMsg: Label;
     private fileTable: Table;
     private filesColumns = [
         {
@@ -492,7 +490,11 @@ export class ScomStorage extends Module {
         }
     }
 
-    private onOpenUploadModal() {
+    private handleUploadButtonClick() {
+        this.onOpenUploadModal();
+    }
+
+    private onOpenUploadModal(path?: string, files?: File[]) {
         if (!this.uploadModal) {
             this.uploadModal = new ScomIPFSUploadModal();
             this.uploadModal.onUploaded = this.onFilesUploaded.bind(this);
@@ -520,15 +522,14 @@ export class ScomStorage extends Module {
             ]
         });
         this.uploadModal.refresh = modal.refresh.bind(modal);
-        let path;
         if (window.matchMedia('(max-width: 767px)').matches) {
-            path = this.mobileHome.currentPath;
+            if (path == null) path = this.mobileHome.currentPath;
             this.uploadModal.manager = this.mobileHome.manager;
         } else {
-            path = this.pnlPath.data.path;
+            if (path == null) path = this.pnlPath.data.path;
             this.uploadModal.manager = this.manager;
         }
-        this.uploadModal.show(path);
+        this.uploadModal.show(path, files);
         modal.refresh();
     }
 
@@ -742,24 +743,20 @@ export class ScomStorage extends Module {
         try {
             const files = await this.getAllFileEntries(event.dataTransfer.items);
             const flattenFiles = files.reduce((acc, val) => acc.concat(val), []);
-            this.lblUploadMsg.caption = `Uploading ${flattenFiles.length} file${flattenFiles.length > 1 ? 's' : ''}`;
-            this.pnlUploadMsg.visible = true;
-            for (let i = 0; i < flattenFiles.length; i++) {
-                const file = flattenFiles[i];
-                const filePath = folder.path ? `${folder.path}${file.path}` : file.path;
-                await this.manager.addFile(filePath, file);
-            }
+            this.onOpenUploadModal(folder.path, flattenFiles);
+            // for (let i = 0; i < flattenFiles.length; i++) {
+            //     const file = flattenFiles[i];
+            //     const filePath = folder.path ? `${folder.path}${file.path}` : file.path;
+            //     await this.manager.addFile(filePath, file);
+            // }
 
-            await this.manager.applyUpdates();
+            // await this.manager.applyUpdates();
 
-            this.lblUploadMsg.caption = ` ${flattenFiles.length} upload${flattenFiles.length > 1 ? 's' : ''} complete`;
 
-            this.onFilesUploaded();
+            // this.onFilesUploaded();
         } catch (err) {
             console.log('Error! ', err);
-            this.lblUploadMsg.caption = 'Failed to upload file';
         }
-        setTimeout(() => this.pnlUploadMsg.visible = false, 1500);
     }
 
     // Get all the entries (files or sub-directories) in a directory by calling readEntries until it returns empty array
@@ -981,23 +978,6 @@ export class ScomStorage extends Module {
                                             <i-label id="lblDestinationFolder" font={{ size: '15px', color: '#fff' }}></i-label>
                                         </i-hstack>
                                     </i-panel>
-                                    <i-panel
-                                        id="pnlUploadMsg"
-                                        width="fit-content"
-                                        class="text-center"
-                                        padding={{ top: '0.75rem', bottom: '0.75rem', left: '1.5rem', right: '1.5rem' }}
-                                        margin={{ left: 'auto', right: 'auto' }}
-                                        border={{ radius: 6 }}
-                                        background={{ color: '#0288d1bf' }}
-                                        lineHeight={1.5}
-                                        position="absolute"
-                                        top="-1rem"
-                                        left={0}
-                                        right={0}
-                                        visible={false}
-                                    >
-                                        <i-label id="lblUploadMsg" font={{ size: '15px', color: '#fff' }}></i-label>
-                                    </i-panel>
                                 </i-panel>
                             </i-vstack>
                             <i-panel
@@ -1030,7 +1010,7 @@ export class ScomStorage extends Module {
                     width={'3.375rem'} height={'3.375rem'}
                     icon={{ name: 'plus', width: '1.125rem', height: ' 1.125rem', fill: Theme.colors.primary.contrastText }}
                     position='absolute' bottom={'3.125rem'} right={'3.125rem'} zIndex={100}
-                    onClick={this.onOpenUploadModal}
+                    onClick={this.handleUploadButtonClick}
                     mediaQueries={[
                         {
                             maxWidth: '767px',

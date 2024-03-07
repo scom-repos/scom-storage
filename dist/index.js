@@ -842,9 +842,19 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
         set manager(value) {
             this._manager = value;
         }
-        show(path) {
+        show(path, files) {
             this.folderPath = path;
             this.updateBtnCaption();
+            if (files?.length) {
+                for (let i = 0; i < files.length; i++) {
+                    this.fileListData.push({ file: files[i], status: 0, percentage: 0 });
+                    this.files.push(files[i]);
+                }
+                this.renderFileList();
+                this.renderFilterBar();
+                this.renderPagination();
+                this.toggle(true);
+            }
         }
         refresh() { }
         onBeforeDrop(target) {
@@ -2052,7 +2062,10 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.updateUrlPath(path);
             }
         }
-        onOpenUploadModal() {
+        handleUploadButtonClick() {
+            this.onOpenUploadModal();
+        }
+        onOpenUploadModal(path, files) {
             if (!this.uploadModal) {
                 this.uploadModal = new components_12.ScomIPFSUploadModal();
                 this.uploadModal.onUploaded = this.onFilesUploaded.bind(this);
@@ -2080,16 +2093,17 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 ]
             });
             this.uploadModal.refresh = modal.refresh.bind(modal);
-            let path;
             if (window.matchMedia('(max-width: 767px)').matches) {
-                path = this.mobileHome.currentPath;
+                if (path == null)
+                    path = this.mobileHome.currentPath;
                 this.uploadModal.manager = this.mobileHome.manager;
             }
             else {
-                path = this.pnlPath.data.path;
+                if (path == null)
+                    path = this.pnlPath.data.path;
                 this.uploadModal.manager = this.manager;
             }
-            this.uploadModal.show(path);
+            this.uploadModal.show(path, files);
             modal.refresh();
         }
         async onActiveChange(parent, prevNode) {
@@ -2299,22 +2313,18 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             try {
                 const files = await this.getAllFileEntries(event.dataTransfer.items);
                 const flattenFiles = files.reduce((acc, val) => acc.concat(val), []);
-                this.lblUploadMsg.caption = `Uploading ${flattenFiles.length} file${flattenFiles.length > 1 ? 's' : ''}`;
-                this.pnlUploadMsg.visible = true;
-                for (let i = 0; i < flattenFiles.length; i++) {
-                    const file = flattenFiles[i];
-                    const filePath = folder.path ? `${folder.path}${file.path}` : file.path;
-                    await this.manager.addFile(filePath, file);
-                }
-                await this.manager.applyUpdates();
-                this.lblUploadMsg.caption = ` ${flattenFiles.length} upload${flattenFiles.length > 1 ? 's' : ''} complete`;
-                this.onFilesUploaded();
+                this.onOpenUploadModal(folder.path, flattenFiles);
+                // for (let i = 0; i < flattenFiles.length; i++) {
+                //     const file = flattenFiles[i];
+                //     const filePath = folder.path ? `${folder.path}${file.path}` : file.path;
+                //     await this.manager.addFile(filePath, file);
+                // }
+                // await this.manager.applyUpdates();
+                // this.onFilesUploaded();
             }
             catch (err) {
                 console.log('Error! ', err);
-                this.lblUploadMsg.caption = 'Failed to upload file';
             }
-            setTimeout(() => this.pnlUploadMsg.visible = false, 1500);
         }
         // Get all the entries (files or sub-directories) in a directory by calling readEntries until it returns empty array
         async readAllDirectoryEntries(directoryReader) {
@@ -2442,12 +2452,10 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                         this.$render("i-label", { caption: "Upload files to", font: { size: '15px', color: '#fff' } }),
                                         this.$render("i-hstack", { horizontalAlignment: "center", verticalAlignment: "center", gap: "0.375rem" },
                                             this.$render("i-icon", { name: "folder", width: '0.875rem', height: '0.875rem', display: "inline-flex", fill: '#fff' }),
-                                            this.$render("i-label", { id: "lblDestinationFolder", font: { size: '15px', color: '#fff' } }))),
-                                    this.$render("i-panel", { id: "pnlUploadMsg", width: "fit-content", class: "text-center", padding: { top: '0.75rem', bottom: '0.75rem', left: '1.5rem', right: '1.5rem' }, margin: { left: 'auto', right: 'auto' }, border: { radius: 6 }, background: { color: '#0288d1bf' }, lineHeight: 1.5, position: "absolute", top: "-1rem", left: 0, right: 0, visible: false },
-                                        this.$render("i-label", { id: "lblUploadMsg", font: { size: '15px', color: '#fff' } })))),
+                                            this.$render("i-label", { id: "lblDestinationFolder", font: { size: '15px', color: '#fff' } }))))),
                             this.$render("i-panel", { id: "pnlPreview", border: { left: { width: '1px', style: 'solid', color: Theme.divider } }, width: '20rem', dock: 'right', visible: false },
                                 this.$render("i-scom-ipfs--preview", { id: "iePreview", width: '100%', height: '100%', display: 'block', onClose: this.closePreview.bind(this), onOpenEditor: this.openEditor.bind(this), onCloseEditor: this.closeEditor.bind(this), onFileChanged: this.onSubmit.bind(this) }))))),
-                this.$render("i-button", { id: "btnUpload", boxShadow: '0 10px 25px -5px rgba(44, 179, 240, 0.6)', border: { radius: '50%' }, background: { color: Theme.colors.primary.light }, lineHeight: '3.375rem', width: '3.375rem', height: '3.375rem', icon: { name: 'plus', width: '1.125rem', height: ' 1.125rem', fill: Theme.colors.primary.contrastText }, position: 'absolute', bottom: '3.125rem', right: '3.125rem', zIndex: 100, onClick: this.onOpenUploadModal, mediaQueries: [
+                this.$render("i-button", { id: "btnUpload", boxShadow: '0 10px 25px -5px rgba(44, 179, 240, 0.6)', border: { radius: '50%' }, background: { color: Theme.colors.primary.light }, lineHeight: '3.375rem', width: '3.375rem', height: '3.375rem', icon: { name: 'plus', width: '1.125rem', height: ' 1.125rem', fill: Theme.colors.primary.contrastText }, position: 'absolute', bottom: '3.125rem', right: '3.125rem', zIndex: 100, onClick: this.handleUploadButtonClick, mediaQueries: [
                         {
                             maxWidth: '767px',
                             properties: {
