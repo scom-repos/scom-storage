@@ -47,6 +47,24 @@ export class ScomIPFSPreview extends Module {
     name: ''
   }
   private currentContent: string = '';
+  private typesMapping = {
+    'image': {
+      fileLimit: 5 * 1024 * 1024,
+      extensions: ['jpg', 'jpeg', 'png', 'gif', 'svg']
+    },
+    'playlist': {
+      fileLimit: 100 * 1024,
+      extensions: ['m3u8']
+    },
+    'audio': {
+      fileLimit: 100 * 1024,
+      extensions: ['mp3', 'wav', 'ogg']
+    },
+    'video': {
+      fileLimit: 100 * 1024,
+      extensions: ['mp4', 'webm', 'mov']
+    }
+  }
   onClose: () => void
   onOpenEditor: () => void;
   onCloseEditor: () => void;
@@ -118,39 +136,50 @@ export class ScomIPFSPreview extends Module {
     } catch (error) { }
   }
 
-  private async getModuleFromExtension() {
-    const { cid, name, parentCid } = this._data;
-    if (!cid) return null
-    let moduleData = {
-      module: '',
-      data: null,
-    }
-    const ext = (name || '').split('.').pop().toLowerCase()
-    const imgExts = ['jpg', 'jpeg', 'png', 'gif', 'svg']
-    const videodExts = ['mp4', 'webm', 'mov']
-    const audioExts = ['mp3', 'wav', 'ogg']
-    const streamingExts = ['m3u8']
-    const mdExts = ['md']
-    const mediaUrl = `${this.transportEndpoint}/ipfs/${parentCid}/${name}`
-
-    if (imgExts.includes(ext)) {
-      moduleData = this.createImageElement(mediaUrl)
-    } else if (videodExts.includes(ext)) {
-      moduleData = this.createVideoElement(mediaUrl)
-    } else if (audioExts.includes(ext)) {
-      moduleData = this.createVideoElement(mediaUrl)
-    } else if (streamingExts.includes(ext)) {
-      moduleData = this.createPlayerElement(mediaUrl)
-    } else {
-      const result = await getFileContent(mediaUrl)
-      if (!result) return null
-      if (mdExts.includes(ext)) {
-        this.pnlEdit.visible = true;
-        moduleData = this.createTextElement(result)
-        this.currentContent = result;
-      } else {
-        moduleData = { module: '', data: result }
+  private getFileType(ext: string) {
+    let result = '';
+    const extensions = Object.keys(this.typesMapping);
+    for (let i = 0; i < extensions.length; i++) {
+      const e = extensions[i];
+      if (this.typesMapping[e].extensions.includes(ext)) {
+        result = e;
+        break;
       }
+    }
+    return result;
+  }
+
+  private async getModuleFromExtension() {
+    const { cid, name, parentCid, size } = this._data;
+    if (!cid) return null
+    let moduleData = null;
+    const ext = (name || '').split('.').pop().toLowerCase();
+    const fileType = this.getFileType(ext);
+    const fileLimit = this.typesMapping[fileType]?.fileLimit || 100 * 1024;
+    if (size > fileLimit) return null;
+    const mediaUrl = `${this.transportEndpoint}/ipfs/${parentCid}/${name}`
+    switch (fileType) {
+      case 'image':
+        moduleData = this.createImageElement(mediaUrl)
+        break;
+      case 'playlist':
+        moduleData = this.createPlayerElement(mediaUrl)
+        break;
+      case 'audio':
+      case 'video':
+        moduleData = this.createVideoElement(mediaUrl)
+        break;
+      default:
+        const result = await getFileContent(mediaUrl)
+        if (!result) return null
+        if (ext === 'md') {
+          this.pnlEdit.visible = true;
+          moduleData = this.createTextElement(result)
+          this.currentContent = result;
+        } else {
+          moduleData = { module: '', data: result }
+        }
+        break;
     }
     return moduleData
   }
@@ -317,7 +346,7 @@ export class ScomIPFSPreview extends Module {
           padding={{ left: '1rem', right: '1rem' }}
         >
           <i-hstack
-            width={'100%'} height={36}
+            width={'100%'} height={36} stack={{shrink: '0'}}
             verticalAlignment='center' horizontalAlignment='space-between'
             border={{ bottom: { width: '1px', style: 'solid', color: Theme.divider } }}
             mediaQueries={[
