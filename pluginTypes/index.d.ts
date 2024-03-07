@@ -366,6 +366,7 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         private editor;
         private _data;
         private currentContent;
+        private typesMapping;
         onClose: () => void;
         onOpenEditor: () => void;
         onCloseEditor: () => void;
@@ -381,6 +382,7 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         private renderUI;
         private renderFileInfo;
         private previewFile;
+        private getFileType;
         private getModuleFromExtension;
         private appendLabel;
         private renderFilePreview;
