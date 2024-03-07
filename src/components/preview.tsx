@@ -141,20 +141,13 @@ export class ScomIPFSPreview extends Module {
       moduleData = this.createVideoElement(mediaUrl)
     } else if (streamingExts.includes(ext)) {
       moduleData = this.createPlayerElement(mediaUrl)
-    } else if (mdExts.includes(ext)) {
-      let content = '';
-      this.pnlEdit.visible = true;
-      try {
-        const result = await fetch(mediaUrl);
-        content = await result.text();
-      } catch(err) {}
-      this.currentContent = content;
-      moduleData = this.createTextElement(content)
     } else {
       const result = await getFileContent(mediaUrl)
       if (!result) return null
       if (mdExts.includes(ext)) {
+        this.pnlEdit.visible = true;
         moduleData = this.createTextElement(result)
+        this.currentContent = result;
       } else {
         moduleData = { module: '', data: result }
       }
@@ -167,7 +160,6 @@ export class ScomIPFSPreview extends Module {
       <i-label
         width={'100%'}
         overflowWrap='anywhere'
-        class={customLinkStyle}
         lineHeight={1.2}
         display='block'
         maxHeight={'100%'}
@@ -317,7 +309,7 @@ export class ScomIPFSPreview extends Module {
 
   render() {
     return (
-      <i-panel width={'100%'} height={'100%'}>
+      <i-panel width={'100%'} height={'100%'} class={customLinkStyle}>
         <i-vstack
           id="previewerPanel"
           width={'100%'}
