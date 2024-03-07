@@ -744,16 +744,6 @@ export class ScomStorage extends Module {
             const files = await this.getAllFileEntries(event.dataTransfer.items);
             const flattenFiles = files.reduce((acc, val) => acc.concat(val), []);
             this.onOpenUploadModal(folder.path, flattenFiles);
-            // for (let i = 0; i < flattenFiles.length; i++) {
-            //     const file = flattenFiles[i];
-            //     const filePath = folder.path ? `${folder.path}${file.path}` : file.path;
-            //     await this.manager.addFile(filePath, file);
-            // }
-
-            // await this.manager.applyUpdates();
-
-
-            // this.onFilesUploaded();
         } catch (err) {
             console.log('Error! ', err);
         }
