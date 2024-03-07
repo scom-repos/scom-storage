@@ -89,12 +89,14 @@ export class ScomIPFSEditor extends Module {
   }
 
   private onCancel() {
+    this.editorEl.setValue('')
     if (this.onClose) this.onClose()
   }
 
   private onSubmit() {
     if (this.onClose) this.onClose()
     if (this.onChanged) this.onChanged(this.editorEl.value)
+    this.editorEl.setValue('')
   }
 
   init() {

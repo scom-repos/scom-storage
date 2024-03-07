@@ -1284,6 +1284,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             };
         }
         onCancel() {
+            this.editorEl.setValue('');
             if (this.onClose)
                 this.onClose();
         }
@@ -1292,6 +1293,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
                 this.onClose();
             if (this.onChanged)
                 this.onChanged(this.editorEl.value);
+            this.editorEl.setValue('');
         }
         init() {
             super.init();
@@ -1412,23 +1414,14 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             else if (streamingExts.includes(ext)) {
                 moduleData = this.createPlayerElement(mediaUrl);
             }
-            else if (mdExts.includes(ext)) {
-                let content = '';
-                this.pnlEdit.visible = true;
-                try {
-                    const result = await fetch(mediaUrl);
-                    content = await result.text();
-                }
-                catch (err) { }
-                this.currentContent = content;
-                moduleData = this.createTextElement(content);
-            }
             else {
                 const result = await (0, data_2.getFileContent)(mediaUrl);
                 if (!result)
                     return null;
                 if (mdExts.includes(ext)) {
+                    this.pnlEdit.visible = true;
                     moduleData = this.createTextElement(result);
+                    this.currentContent = result;
                 }
                 else {
                     moduleData = { module: '', data: result };
@@ -1437,7 +1430,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             return moduleData;
         }
         appendLabel(text) {
-            const label = (this.$render("i-label", { width: '100%', overflowWrap: 'anywhere', class: index_css_5.customLinkStyle, lineHeight: 1.2, display: 'block', maxHeight: '100%', font: { size: '0.875rem' } }));
+            const label = (this.$render("i-label", { width: '100%', overflowWrap: 'anywhere', lineHeight: 1.2, display: 'block', maxHeight: '100%', font: { size: '0.875rem' } }));
             const hrefRegex = /https?:\/\/\S+/g;
             text = text
                 .replace(/\n/gm, ' <br> ')
@@ -1571,7 +1564,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 this.setData(data);
         }
         render() {
-            return (this.$render("i-panel", { width: '100%', height: '100%' },
+            return (this.$render("i-panel", { width: '100%', height: '100%', class: index_css_5.customLinkStyle },
                 this.$render("i-vstack", { id: "previewerPanel", width: '100%', height: '100%', padding: { left: '1rem', right: '1rem' } },
                     this.$render("i-hstack", { width: '100%', height: 36, verticalAlignment: 'center', horizontalAlignment: 'space-between', border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } }, mediaQueries: [
                             {
