@@ -1809,14 +1809,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             return this._data;
         }
         async onShow() {
-            const { cid } = this.extractUrl();
-            if (!cid) {
-                this.manager.reset();
-                try {
-                    await this.manager.setRootCid('');
-                }
-                catch (err) { }
+            this.manager.reset();
+            try {
+                await this.manager.setRootCid('');
             }
+            catch (err) { }
             await this.initContent();
         }
         getConfigurators() {
