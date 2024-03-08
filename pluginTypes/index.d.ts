@@ -409,8 +409,41 @@ declare module "@scom/scom-storage/components/index.ts" {
 }
 /// <amd-module name="@scom/scom-storage/index.css.ts" />
 declare module "@scom/scom-storage/index.css.ts" {
+    export const defaultColors: {
+        light: {
+            primaryColor: string;
+            primaryLightColor: string;
+            primaryDarkColor: string;
+            secondaryColor: string;
+            borderColor: string;
+            fontColor: string;
+            backgroundColor: string;
+            secondaryLight: string;
+            secondaryMain: string;
+            hover: string;
+            hoverBackground: string;
+            selected: string;
+            selectedBackground: string;
+        };
+        dark: {
+            primaryColor: string;
+            primaryLightColor: string;
+            primaryDarkColor: string;
+            secondaryColor: string;
+            borderColor: string;
+            fontColor: string;
+            backgroundColor: string;
+            secondaryLight: string;
+            secondaryMain: string;
+            hover: string;
+            hoverBackground: string;
+            selected: string;
+            selectedBackground: string;
+        };
+    };
     const _default_1: string;
     export default _default_1;
+    export const iconButtonStyled: string;
     export const previewModalStyle: string;
     export const dragAreaStyle: string;
     export const selectedRowStyle: string;
@@ -441,6 +474,8 @@ declare module "@scom/scom-storage" {
         private ieContent;
         private ieSidebar;
         private btnUpload;
+        private currentItem;
+        private mdActions;
         tag: any;
         private _data;
         private pnlFileTable;
@@ -505,7 +540,12 @@ declare module "@scom/scom-storage" {
         private onFilesUploaded;
         private handleUploadButtonClick;
         private onOpenUploadModal;
+        private onShowActions;
+        private initModalActions;
         private onActiveChange;
+        private onActionButton;
+        private onNameChange;
+        private onRename;
         private onOpenFolder;
         private onFetchData;
         private processTableData;
