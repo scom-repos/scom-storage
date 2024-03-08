@@ -459,10 +459,15 @@ declare module "@scom/scom-storage" {
         private selectedRow;
         private manager;
         private counter;
+        private _readOnly;
+        private isInitializing;
         get baseUrl(): string;
         set baseUrl(url: string);
+        private get readOnly();
+        private set readOnly(value);
         private setData;
         private getData;
+        onShow(): Promise<void>;
         getConfigurators(): {
             name: string;
             target: string;
@@ -489,6 +494,7 @@ declare module "@scom/scom-storage" {
         private updateStyle;
         private updateTheme;
         private updateUrlPath;
+        private extractUrl;
         private initContent;
         private constructLinks;
         private renderUI;

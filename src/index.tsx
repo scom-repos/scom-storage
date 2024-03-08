@@ -179,6 +179,8 @@ export class ScomStorage extends Module {
     private selectedRow: HTMLElement;
     private manager: IPFS.FileManager;
     private counter: number = 0;
+    private _readOnly = false;
+    private isInitializing = false;
 
     get baseUrl(): string {
         return this._baseUrl;
@@ -186,6 +188,14 @@ export class ScomStorage extends Module {
 
     set baseUrl(url: string) {
         this._baseUrl = url;
+    }
+    
+    private get readOnly(): boolean {
+        return this._readOnly;
+    };
+    private set readOnly(value: boolean) {
+        this._readOnly = value;
+        this.btnUpload.visible = this.btnUpload.enabled = !value;
     }
 
     private async setData(value: IStorageConfig) {
@@ -195,6 +205,17 @@ export class ScomStorage extends Module {
 
     private getData() {
         return this._data;
+    }
+
+    async onShow() {
+        const { cid } = this.extractUrl();
+        if (!cid) {
+            this.manager.reset();
+            try {
+                await this.manager.setRootCid('');
+            } catch (err) {}
+        }
+        await this.initContent();
     }
 
     getConfigurators() {
@@ -310,25 +331,37 @@ export class ScomStorage extends Module {
         history.replaceState({}, "", url);
     }
 
+    private extractUrl() {
+        let path: string;
+        if (this.baseUrl && window.location.hash.startsWith(this.baseUrl)) {
+            let length = this.baseUrl[this.baseUrl.length - 1] == '/' ? this.baseUrl.length : this.baseUrl.length + 1;
+            path = window.location.hash.substring(length);
+        } else {
+            path = window.location.hash.substring(2);
+        }
+        let arr = path?.split('/');
+        const [ cid, ...paths ] = arr;
+        return { cid, path: paths.length ? '/' + paths.join('/') : '' };
+    }
+
     private async initContent() {
-        if (!this.manager) return;
+        if (!this.manager || this.isInitializing) return;
+        this.isInitializing = true;
+        const { cid, path } = this.extractUrl();
         let rootNode = await this.manager.getRootNode();
         this.rootCid = this.currentCid = rootNode.cid;
-        const ipfsData = rootNode.cidInfo as IIPFSData;
-        let path;
-        if (window.location.hash.includes(this.rootCid)) {
-            if (this.baseUrl && window.location.hash.startsWith(this.baseUrl)) {
-                let length = this.baseUrl[this.baseUrl.length - 1] == '/' ? this.baseUrl.length : this.baseUrl.length + 1;
-                path = decodeURI(window.location.hash.substring(length + this.rootCid.length));
-            } else {
-                path = decodeURI(window.location.hash.substring(2 + this.rootCid.length));
-            }
-        } else {
+        this.readOnly = cid && cid !== this.rootCid;
+        if (this.readOnly) {
+            rootNode = await this.manager.setRootCid(cid);
+            if (rootNode) this.rootCid = cid;
+        } else if (!cid) {
             this.updateUrlPath();
         }
+        const ipfsData = rootNode.cidInfo as IIPFSData;
         if (ipfsData) {
             this.renderUI(ipfsData, path);
         }
+        this.isInitializing = false;
     }
     
     private async constructLinks(ipfsData: IIPFSData, links: IIPFSData[]) {
@@ -495,6 +528,7 @@ export class ScomStorage extends Module {
     }
 
     private onOpenUploadModal(path?: string, files?: File[]) {
+        if (this.readOnly) return;
         if (!this.uploadModal) {
             this.uploadModal = new ScomIPFSUploadModal();
             this.uploadModal.onUploaded = this.onFilesUploaded.bind(this);
@@ -714,12 +748,14 @@ export class ScomStorage extends Module {
     }
 
     private handleOnDragEnter(event: DragEvent) {
+        if (this.readOnly) return;
         event.preventDefault();
         this.counter++;
         this.pnlFileTable.classList.add(dragAreaStyle);
     }
 
     private handleOnDragOver(event: DragEvent) {
+        if (this.readOnly) return;
         event.preventDefault();
         const folder = this.getDestinationFolder(event);
         this.lblDestinationFolder.caption = folder.name || "root";
@@ -727,6 +763,7 @@ export class ScomStorage extends Module {
     }
 
     private handleOnDragLeave(event: DragEvent) {
+        if (this.readOnly) return;
         this.counter--;
         if (this.counter === 0) {
             this.pnlFileTable.classList.remove(dragAreaStyle);
@@ -735,6 +772,7 @@ export class ScomStorage extends Module {
     }
     
     private async handleOnDrop(event: DragEvent) {
+        if (this.readOnly) return;
         event.preventDefault();
         this.counter = 0;
         this.pnlFileTable.classList.remove(dragAreaStyle);

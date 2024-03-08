@@ -1784,6 +1784,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this._uploadedTreeData = [];
             this._uploadedFileNodes = {};
             this.counter = 0;
+            this._readOnly = false;
+            this.isInitializing = false;
         }
         get baseUrl() {
             return this._baseUrl;
@@ -1791,12 +1793,31 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         set baseUrl(url) {
             this._baseUrl = url;
         }
+        get readOnly() {
+            return this._readOnly;
+        }
+        ;
+        set readOnly(value) {
+            this._readOnly = value;
+            this.btnUpload.visible = this.btnUpload.enabled = !value;
+        }
         async setData(value) {
             this._data = value;
             await this.initContent();
         }
         getData() {
             return this._data;
+        }
+        async onShow() {
+            const { cid } = this.extractUrl();
+            if (!cid) {
+                this.manager.reset();
+                try {
+                    await this.manager.setRootCid('');
+                }
+                catch (err) { }
+            }
+            await this.initContent();
         }
         getConfigurators() {
             return [
@@ -1906,28 +1927,40 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 url += path;
             history.replaceState({}, "", url);
         }
-        async initContent() {
-            if (!this.manager)
-                return;
-            let rootNode = await this.manager.getRootNode();
-            this.rootCid = this.currentCid = rootNode.cid;
-            const ipfsData = rootNode.cidInfo;
+        extractUrl() {
             let path;
-            if (window.location.hash.includes(this.rootCid)) {
-                if (this.baseUrl && window.location.hash.startsWith(this.baseUrl)) {
-                    let length = this.baseUrl[this.baseUrl.length - 1] == '/' ? this.baseUrl.length : this.baseUrl.length + 1;
-                    path = decodeURI(window.location.hash.substring(length + this.rootCid.length));
-                }
-                else {
-                    path = decodeURI(window.location.hash.substring(2 + this.rootCid.length));
-                }
+            if (this.baseUrl && window.location.hash.startsWith(this.baseUrl)) {
+                let length = this.baseUrl[this.baseUrl.length - 1] == '/' ? this.baseUrl.length : this.baseUrl.length + 1;
+                path = window.location.hash.substring(length);
             }
             else {
+                path = window.location.hash.substring(2);
+            }
+            let arr = path?.split('/');
+            const [cid, ...paths] = arr;
+            return { cid, path: paths.length ? '/' + paths.join('/') : '' };
+        }
+        async initContent() {
+            if (!this.manager || this.isInitializing)
+                return;
+            this.isInitializing = true;
+            const { cid, path } = this.extractUrl();
+            let rootNode = await this.manager.getRootNode();
+            this.rootCid = this.currentCid = rootNode.cid;
+            this.readOnly = cid && cid !== this.rootCid;
+            if (this.readOnly) {
+                rootNode = await this.manager.setRootCid(cid);
+                if (rootNode)
+                    this.rootCid = cid;
+            }
+            else if (!cid) {
                 this.updateUrlPath();
             }
+            const ipfsData = rootNode.cidInfo;
             if (ipfsData) {
                 this.renderUI(ipfsData, path);
             }
+            this.isInitializing = false;
         }
         async constructLinks(ipfsData, links) {
             return await Promise.all(links.map(async (data) => {
@@ -2083,6 +2116,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.onOpenUploadModal();
         }
         onOpenUploadModal(path, files) {
+            if (this.readOnly)
+                return;
             if (!this.uploadModal) {
                 this.uploadModal = new components_12.ScomIPFSUploadModal();
                 this.uploadModal.onUploaded = this.onFilesUploaded.bind(this);
@@ -2304,17 +2339,23 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             return folder;
         }
         handleOnDragEnter(event) {
+            if (this.readOnly)
+                return;
             event.preventDefault();
             this.counter++;
             this.pnlFileTable.classList.add(index_css_6.dragAreaStyle);
         }
         handleOnDragOver(event) {
+            if (this.readOnly)
+                return;
             event.preventDefault();
             const folder = this.getDestinationFolder(event);
             this.lblDestinationFolder.caption = folder.name || "root";
             this.pnlUploadTo.visible = true;
         }
         handleOnDragLeave(event) {
+            if (this.readOnly)
+                return;
             this.counter--;
             if (this.counter === 0) {
                 this.pnlFileTable.classList.remove(index_css_6.dragAreaStyle);
@@ -2322,6 +2363,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             }
         }
         async handleOnDrop(event) {
+            if (this.readOnly)
+                return;
             event.preventDefault();
             this.counter = 0;
             this.pnlFileTable.classList.remove(index_css_6.dragAreaStyle);
@@ -2331,13 +2374,6 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 const files = await this.getAllFileEntries(event.dataTransfer.items);
                 const flattenFiles = files.reduce((acc, val) => acc.concat(val), []);
                 this.onOpenUploadModal(folder.path, flattenFiles);
-                // for (let i = 0; i < flattenFiles.length; i++) {
-                //     const file = flattenFiles[i];
-                //     const filePath = folder.path ? `${folder.path}${file.path}` : file.path;
-                //     await this.manager.addFile(filePath, file);
-                // }
-                // await this.manager.applyUpdates();
-                // this.onFilesUploaded();
             }
             catch (err) {
                 console.log('Error! ', err);
