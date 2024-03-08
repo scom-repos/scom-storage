@@ -14,49 +14,18 @@ import {
     IPFS,
     Button,
     TableColumn,
-    Label
+    Label,
+    Modal,
+    VStack
 } from '@ijstech/components';
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
 import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview } from './components';
-import customStyles, { dragAreaStyle, previewModalStyle, selectedRowStyle } from './index.css';
+import customStyles, { defaultColors, dragAreaStyle, iconButtonStyled, previewModalStyle, selectedRowStyle } from './index.css';
 
 declare var require: any
 
 const Theme = Styles.Theme.ThemeVars;
-
-const defaultColors = {
-    light: {
-        primaryColor: '#3f51b5',
-        primaryLightColor: '#69c4cd',
-        primaryDarkColor: '#0b3a53',
-        secondaryColor: 'hsl(0,0%,57%)',
-        borderColor: '#0000001f',
-        fontColor: '#34373f',
-        backgroundColor: '#fbfbfb',
-        secondaryLight: '#dee2e6',
-        secondaryMain: 'rgba(255, 255, 255, .15)',
-        hover: '#69c4cd',
-        hoverBackground: 'rgba(0, 0, 0, 0.04)',
-        selected: '#fff',
-        selectedBackground: '#0b3a53'
-    },
-    dark: {
-        primaryColor: '#3f51b5',
-        primaryLightColor: '#69c4cd',
-        primaryDarkColor: '#0b3a53',
-        secondaryColor: '#666666',
-        borderColor: '#ffffff1f',
-        fontColor: '#fff',
-        backgroundColor: '#121212',
-        secondaryLight: '#aaaaaa',
-        secondaryMain: 'rgba(255, 255, 255, .15)',
-        hover: '#69c4cd',
-        hoverBackground: '#222222',
-        selected: '#fff',
-        selectedBackground: '#0b3a53'
-    }
-}
 
 interface ScomStorageElement extends ControlElement {
     transportEndpoint?: string;
@@ -94,6 +63,8 @@ export class ScomStorage extends Module {
     private ieContent: Panel;
     private ieSidebar: Panel;
     private btnUpload: Button;
+    private currentItem: TreeNode;
+    private mdActions: Modal;
 
     tag: any = {
         light: {},
@@ -506,12 +477,14 @@ export class ScomStorage extends Module {
         this.pnlPath.setData(node);
     }
 
-    private async onFilesUploaded() {
+    private async onFilesUploaded(newPath?: string) {
         const rootNode = await this.manager.getRootNode();
         const ipfsData = rootNode.cidInfo;
         
-        let path;
-        if (window.matchMedia('(max-width: 767px)').matches) {
+        let path: string;
+        if (newPath) {
+            path = newPath;
+        } else if (window.matchMedia('(max-width: 767px)').matches) {
             path = this.mobileHome.currentPath;
         } else {
             path = this.pnlPath.data.path;
@@ -531,7 +504,7 @@ export class ScomStorage extends Module {
         if (this.readOnly) return;
         if (!this.uploadModal) {
             this.uploadModal = new ScomIPFSUploadModal();
-            this.uploadModal.onUploaded = this.onFilesUploaded.bind(this);
+            this.uploadModal.onUploaded = () => this.onFilesUploaded();
         }
         const modal = this.uploadModal.openModal({
             width: 800,
@@ -567,11 +540,61 @@ export class ScomStorage extends Module {
         modal.refresh();
     }
 
+    private onShowActions(top: number, left: number) {
+        const mdWrapper = this.mdActions.querySelector('.modal-wrapper') as HTMLElement;
+        mdWrapper.style.top = `${top}px`;
+        mdWrapper.style.left = `${left}px`;
+        this.mdActions.visible = true;
+    }
+
+    private async initModalActions() {
+        this.mdActions = await Modal.create({
+          visible: false,
+          showBackdrop: false,
+          minWidth: '7rem',
+          height: 'auto',
+          popupPlacement: 'bottomRight'
+        });
+        const itemActions = new VStack(undefined, { gap: 8, border: { radius: 8 } });
+        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'folder-plus', width: 12, height: 12 }} caption="New folder" class={iconButtonStyled} enabled={false} />);
+        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'edit', width: 12, height: 12 }} caption="Rename" class={iconButtonStyled} onClick={() => this.onRename()} />);
+        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'trash', width: 12, height: 12 }} caption="Delete" class={iconButtonStyled} enabled={false} />);
+        this.mdActions.item = itemActions;
+        document.body.appendChild(this.mdActions);
+    }
+
     private async onActiveChange(parent: TreeView, prevNode?: TreeNode) {
         const ipfsData = parent.activeItem?.tag;
         if (!prevNode?.isSameNode(parent.activeItem)) this.closePreview();
         this.updateUrlPath(ipfsData.path);
         await this.onOpenFolder(ipfsData, true);
+    }
+
+    private onActionButton(target: TreeView, actionButton: Button, event: MouseEvent) {
+        this.currentItem = target.activeItem;
+        if (actionButton.tag === 'folder') {
+            // TODO
+        } else {
+            const { pageX, pageY, screenX } = event;
+            let x = pageX;
+            if (pageX + 112 >= screenX) {
+              x = screenX - 112;
+            }
+            this.onShowActions(pageY + 5, x);
+        }
+    }
+
+    private async onNameChange(target: TreeView, node: TreeNode, oldValue: string, newValue: string) {
+        const path = node.tag.path;
+        const fileNode = await this.manager.getFileNode(path);
+        await this.manager.updateFolderName(fileNode, newValue);
+        await this.manager.applyUpdates();
+        this.onFilesUploaded(`/${fileNode.name}`);
+    }
+
+    private onRename() {
+        this.mdActions.visible = false;
+        this.currentItem.edit();
     }
 
     private async onOpenFolder(ipfsData: any, toggle: boolean) {
@@ -876,6 +899,7 @@ export class ScomStorage extends Module {
         this.pnlFileTable.addEventListener('dragover', this.handleOnDragOver);
         this.pnlFileTable.addEventListener('dragleave', this.handleOnDragLeave);
         this.pnlFileTable.addEventListener('drop', this.handleOnDrop);
+        this.initModalActions();
     }
 
     render() {
@@ -937,10 +961,26 @@ export class ScomStorage extends Module {
                                 <i-tree-view
                                     id="uploadedFileTree"
                                     class="file-manager-tree uploaded"
-                                    onActiveChange={this.onActiveChange}
                                     stack={{ grow: '1' }}
-                                    maxHeight={'100%'} overflow={'auto'}
-                                ></i-tree-view>
+                                    maxHeight={'100%'}
+                                    overflow={'auto'}
+                                    editable
+                                    actionButtons={[
+                                        {
+                                            caption: `<i-icon name="ellipsis-h" width=${14} height=${14} class="inline-flex"></i-icon>`,
+                                            tag: 'actions',
+                                            class: 'btn-actions'
+                                        },
+                                        // {
+                                        //     caption: `<i-icon name="folder-plus" width=${14} height=${14} class="inline-flex"></i-icon>`,
+                                        //     tag: 'folder',
+                                        //     class: 'btn-folder'
+                                        // }
+                                    ]}
+                                    onActionButtonClick={this.onActionButton}
+                                    onActiveChange={this.onActiveChange}
+                                    onChange={this.onNameChange}
+                                />
                             </i-vstack>
                             <i-vstack
                                 id={'ieContent'}
