@@ -2378,6 +2378,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.pnlPreview.visible = true;
             this.pnlPreview.width = '100%';
             this.pnlPreview.left = 0;
+            this.btnUpload.visible = false;
         }
         closeEditor() {
             this.ieSidebar.visible = true;
@@ -2386,6 +2387,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.pnlPreview.visible = false;
             this.pnlPreview.width = '20rem';
             this.pnlPreview.left = 'auto';
+            this.btnUpload.visible = true;
         }
         async onSubmit(filePath, content) {
             await this.manager.addFileContent(filePath, content);
