@@ -1632,21 +1632,56 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
     ], ScomIPFSPreview);
     exports.ScomIPFSPreview = ScomIPFSPreview;
 });
-define("@scom/scom-storage/components/index.ts", ["require", "exports", "@scom/scom-storage/components/home.tsx", "@scom/scom-storage/components/path.tsx", "@scom/scom-storage/components/uploadModal.tsx", "@scom/scom-storage/components/editor.tsx", "@scom/scom-storage/components/preview.tsx"], function (require, exports, home_1, path_1, uploadModal_1, editor_1, preview_1) {
+define("@scom/scom-storage/components/loadingSpinner.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_10) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ScomIPFSPreview = exports.ScomIPFSEditor = exports.ScomIPFSUploadModal = exports.ScomIPFSPath = exports.ScomIPFSMobileHome = void 0;
+    exports.LoadingSpinner = void 0;
+    const Theme = components_10.Styles.Theme.ThemeVars;
+    let LoadingSpinner = class LoadingSpinner extends components_10.Module {
+        async init() {
+            await super.init();
+        }
+        setProperties(value) {
+            this.pnlLoadingSpinner.height = value.height || '100%';
+            this.pnlLoadingSpinner.top = value.top || 0;
+            this.pnlLoadingSpinner.minHeight = value.minHeight || 200;
+            this.pnlLoadingSpinner.style.background = value.background || Theme.background.default;
+        }
+        render() {
+            return (this.$render("i-vstack", { id: "pnlLoadingSpinner", width: "100%", minHeight: 200, position: "absolute", bottom: 0, zIndex: 1000, background: { color: Theme.background.main }, class: "i-loading-overlay", opacity: 0.7, mediaQueries: [
+                    {
+                        maxWidth: '767px',
+                        properties: {
+                            height: 'calc(100% - 3.125rem)',
+                            top: 0
+                        }
+                    }
+                ] },
+                this.$render("i-vstack", { horizontalAlignment: "center", verticalAlignment: "center", position: "absolute", top: "calc(50% - 0.75rem)", left: "calc(50% - 0.75rem)" },
+                    this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main }))));
+        }
+    };
+    LoadingSpinner = __decorate([
+        (0, components_10.customElements)('scom-storage--loading-spinner')
+    ], LoadingSpinner);
+    exports.LoadingSpinner = LoadingSpinner;
+});
+define("@scom/scom-storage/components/index.ts", ["require", "exports", "@scom/scom-storage/components/home.tsx", "@scom/scom-storage/components/path.tsx", "@scom/scom-storage/components/uploadModal.tsx", "@scom/scom-storage/components/editor.tsx", "@scom/scom-storage/components/preview.tsx", "@scom/scom-storage/components/loadingSpinner.tsx"], function (require, exports, home_1, path_1, uploadModal_1, editor_1, preview_1, loadingSpinner_1) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.LoadingSpinner = exports.ScomIPFSPreview = exports.ScomIPFSEditor = exports.ScomIPFSUploadModal = exports.ScomIPFSPath = exports.ScomIPFSMobileHome = void 0;
     Object.defineProperty(exports, "ScomIPFSMobileHome", { enumerable: true, get: function () { return home_1.ScomIPFSMobileHome; } });
     Object.defineProperty(exports, "ScomIPFSPath", { enumerable: true, get: function () { return path_1.ScomIPFSPath; } });
     Object.defineProperty(exports, "ScomIPFSUploadModal", { enumerable: true, get: function () { return uploadModal_1.ScomIPFSUploadModal; } });
     Object.defineProperty(exports, "ScomIPFSEditor", { enumerable: true, get: function () { return editor_1.ScomIPFSEditor; } });
     Object.defineProperty(exports, "ScomIPFSPreview", { enumerable: true, get: function () { return preview_1.ScomIPFSPreview; } });
+    Object.defineProperty(exports, "LoadingSpinner", { enumerable: true, get: function () { return loadingSpinner_1.LoadingSpinner; } });
 });
-define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_10) {
+define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_11) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.selectedRowStyle = exports.dragAreaStyle = exports.previewModalStyle = exports.iconButtonStyled = exports.defaultColors = void 0;
-    const Theme = components_10.Styles.Theme.ThemeVars;
+    const Theme = components_11.Styles.Theme.ThemeVars;
     exports.defaultColors = {
         light: {
             primaryColor: '#3f51b5',
@@ -1679,7 +1714,7 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
             selectedBackground: '#0b3a53'
         }
     };
-    exports.default = components_10.Styles.style({
+    exports.default = components_11.Styles.style({
         $nest: {
             '.storage-meter-uploaded': {
                 backgroundSize: '410%',
@@ -1722,7 +1757,7 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
             }
         }
     });
-    exports.iconButtonStyled = components_10.Styles.style({
+    exports.iconButtonStyled = components_11.Styles.style({
         fontSize: '0.75rem',
         justifyContent: 'start',
         padding: '4px 8px',
@@ -1733,18 +1768,18 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
             }
         }
     });
-    exports.previewModalStyle = components_10.Styles.style({
+    exports.previewModalStyle = components_11.Styles.style({
         $nest: {
             '.i-modal_header': {
                 padding: '1rem'
             }
         }
     });
-    exports.dragAreaStyle = components_10.Styles.style({
+    exports.dragAreaStyle = components_11.Styles.style({
         border: `2px solid ${Theme.colors.info.dark}`,
         opacity: 0.7
     });
-    exports.selectedRowStyle = components_10.Styles.style({
+    exports.selectedRowStyle = components_11.Styles.style({
         $nest: {
             '& > .i-table-cell': {
                 background: `${Theme.action.focusBackground} !important`
@@ -1752,12 +1787,12 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
         }
     });
 });
-define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_11, data_3, components_12, index_css_6) {
+define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_12, data_3, components_13, index_css_6) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomStorage = void 0;
-    const Theme = components_11.Styles.Theme.ThemeVars;
-    let ScomStorage = class ScomStorage extends components_11.Module {
+    const Theme = components_12.Styles.Theme.ThemeVars;
+    let ScomStorage = class ScomStorage extends components_12.Module {
         constructor() {
             super(...arguments);
             this.tag = {
@@ -2018,7 +2053,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             if (!ipfsData)
                 return;
             const parentNode = (({ links, ...o }) => o)(ipfsData);
-            parentNode.name = parentNode.name ? parentNode.name : components_11.FormatUtils.truncateWalletAddress(parentNode.cid);
+            parentNode.name = parentNode.name ? parentNode.name : components_12.FormatUtils.truncateWalletAddress(parentNode.cid);
             parentNode.path = '';
             parentNode.root = true;
             if (ipfsData.links?.length) {
@@ -2141,7 +2176,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             const rootNode = await this.manager.getRootNode();
             const ipfsData = rootNode.cidInfo;
             let path;
-            if (newPath) {
+            if (newPath || newPath === '') {
                 path = newPath;
             }
             else if (window.matchMedia('(max-width: 767px)').matches) {
@@ -2163,7 +2198,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             if (this.readOnly)
                 return;
             if (!this.uploadModal) {
-                this.uploadModal = new components_12.ScomIPFSUploadModal();
+                this.uploadModal = new components_13.ScomIPFSUploadModal();
                 this.uploadModal.onUploaded = () => this.onFilesUploaded();
             }
             const modal = this.uploadModal.openModal({
@@ -2209,17 +2244,17 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.mdActions.visible = true;
         }
         async initModalActions() {
-            this.mdActions = await components_11.Modal.create({
+            this.mdActions = await components_12.Modal.create({
                 visible: false,
                 showBackdrop: false,
                 minWidth: '7rem',
                 height: 'auto',
                 popupPlacement: 'bottomRight'
             });
-            const itemActions = new components_11.VStack(undefined, { gap: 8, border: { radius: 8 } });
-            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'folder-plus', width: 12, height: 12 }, caption: "New folder", class: index_css_6.iconButtonStyled, enabled: false }));
-            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'edit', width: 12, height: 12 }, caption: "Rename", class: index_css_6.iconButtonStyled, onClick: () => this.onRename() }));
-            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'trash', width: 12, height: 12 }, caption: "Delete", class: index_css_6.iconButtonStyled, enabled: false }));
+            const itemActions = new components_12.VStack(undefined, { gap: 8, border: { radius: 8 } });
+            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'folder-plus', width: 12, height: 12 }, caption: "New folder", class: index_css_6.iconButtonStyled, onClick: () => this.onAddNewFolder() }));
+            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'edit', width: 12, height: 12 }, caption: "Rename", class: index_css_6.iconButtonStyled, onClick: () => this.onRenameFolder() }));
+            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'trash', width: 12, height: 12 }, caption: "Delete", class: index_css_6.iconButtonStyled, enabled: true }));
             this.mdActions.item = itemActions;
             document.body.appendChild(this.mdActions);
         }
@@ -2233,9 +2268,12 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         onActionButton(target, actionButton, event) {
             this.currentItem = target.activeItem;
             if (actionButton.tag === 'folder') {
-                // TODO
+                this.addNewFolder(true);
             }
             else {
+                const ipfsData = this.currentItem?.tag;
+                this.updateUrlPath(ipfsData.path);
+                this.onOpenFolder(ipfsData, true);
                 const { pageX, pageY, screenX } = event;
                 let x = pageX;
                 if (pageX + 112 >= screenX) {
@@ -2244,16 +2282,69 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.onShowActions(pageY + 5, x);
             }
         }
+        showLoadingSpinner() {
+            if (!this.loadingSpinner) {
+                this.loadingSpinner = new components_13.LoadingSpinner();
+                this.pnlLoading.append(this.loadingSpinner);
+            }
+            this.pnlLoading.visible = true;
+        }
+        hideLoadingSpinner() {
+            this.pnlLoading.visible = false;
+        }
+        async getNewName(parentNode, name) {
+            let newName = name;
+            while (await parentNode.findItem(newName)) {
+                const regex = /(\d+)$/;
+                const matches = newName.match(regex);
+                if (matches) {
+                    const lastNumber = parseInt(matches[1]);
+                    const updatedString = newName.replace(/\s\d+$/, '');
+                    newName = `${updatedString} ${lastNumber + 1}`;
+                }
+                else {
+                    newName = `${newName} 1`;
+                }
+            }
+            return newName;
+        }
         async onNameChange(target, node, oldValue, newValue) {
+            this.showLoadingSpinner();
             const path = node.tag.path;
             const fileNode = await this.manager.getFileNode(path);
-            await this.manager.updateFolderName(fileNode, newValue);
+            const folderName = await this.getNewName(fileNode.parent, newValue);
+            await this.manager.updateFolderName(fileNode, folderName);
             await this.manager.applyUpdates();
-            this.onFilesUploaded(`/${fileNode.name}`);
+            const url = this.extractUrl();
+            const paths = url.path.split('/');
+            paths.pop();
+            paths.push(fileNode.name);
+            const newPath = paths.join('/');
+            await this.onFilesUploaded(newPath);
+            this.hideLoadingSpinner();
         }
-        onRename() {
+        onRenameFolder() {
             this.mdActions.visible = false;
             this.currentItem.edit();
+        }
+        onAddNewFolder() {
+            this.mdActions.visible = false;
+            this.addNewFolder();
+        }
+        async addNewFolder(isRoot) {
+            this.showLoadingSpinner();
+            let fileNode;
+            if (isRoot) {
+                fileNode = await this.manager.getRootNode();
+            }
+            else {
+                fileNode = await this.manager.getFileNode(this.currentItem.tag.path);
+            }
+            const folderName = await this.getNewName(isRoot ? fileNode : fileNode.parent, 'New folder');
+            await this.manager.addFolder(fileNode, folderName);
+            await this.manager.applyUpdates();
+            await this.onFilesUploaded();
+            this.hideLoadingSpinner();
         }
         async onOpenFolder(ipfsData, toggle) {
             if (ipfsData) {
@@ -2415,7 +2506,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 const rowData = tableColumn?.rowData;
                 if (rowData?.type === 'dir') {
                     folder.path = rowData.path;
-                    folder.name = rowData.name || components_11.FormatUtils.truncateWalletAddress(rowData.cid);
+                    folder.name = rowData.name || components_12.FormatUtils.truncateWalletAddress(rowData.cid);
                 }
             }
             if (!folder.path) {
@@ -2501,7 +2592,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     reading--;
                     const rawFile = file;
                     rawFile.path = entry.fullPath;
-                    rawFile.cid = await components_11.IPFS.hashFile(file);
+                    rawFile.cid = await components_12.IPFS.hashFile(file);
                     contents.push(rawFile);
                     if (reading === 0) {
                         resolve(contents);
@@ -2538,7 +2629,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             super.init();
             this.classList.add(index_css_6.default);
             this.setTag(index_css_6.defaultColors);
-            this.manager = new components_11.IPFS.FileManager({
+            this.manager = new components_12.IPFS.FileManager({
                 endpoint: this.transportEndpoint,
                 signer: this.signer
             });
@@ -2556,6 +2647,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         render() {
             return (this.$render("i-panel", { height: '100%', width: '100%' },
+                this.$render("i-vstack", { id: "pnlLoading", visible: false }),
                 this.$render("i-scom-ipfs--mobile-home", { id: "mobileHome", width: '100%', minHeight: '100vh', display: 'block', background: { color: Theme.background.main }, onPreview: this.previewFile.bind(this), transportEndpoint: this.transportEndpoint, signer: this.signer, visible: false, mediaQueries: [
                         {
                             maxWidth: '767px',
@@ -2582,11 +2674,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                             tag: 'actions',
                                             class: 'btn-actions'
                                         },
-                                        // {
-                                        //     caption: `<i-icon name="folder-plus" width=${14} height=${14} class="inline-flex"></i-icon>`,
-                                        //     tag: 'folder',
-                                        //     class: 'btn-folder'
-                                        // }
+                                        {
+                                            caption: `<i-icon name="folder-plus" width=${14} height=${14} class="inline-flex"></i-icon>`,
+                                            tag: 'folder',
+                                            class: 'btn-folder'
+                                        }
                                     ], onActionButtonClick: this.onActionButton, onActiveChange: this.onActiveChange, onChange: this.onNameChange })),
                             this.$render("i-vstack", { id: 'ieContent', dock: 'fill', height: '100%', overflow: { y: 'auto' } },
                                 this.$render("i-scom-ipfs--path", { id: "pnlPath", display: 'flex', width: '100%', padding: { left: '1rem', right: '1rem' }, onItemClicked: this.onBreadcrumbClick }),
@@ -2625,7 +2717,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
     };
     ScomStorage = __decorate([
-        (0, components_11.customElements)('i-scom-storage')
+        (0, components_12.customElements)('i-scom-storage')
     ], ScomStorage);
     exports.ScomStorage = ScomStorage;
 });
