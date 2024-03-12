@@ -717,6 +717,7 @@ export class ScomStorage extends Module {
         this.pnlPreview.visible = true;
         this.pnlPreview.width = '100%';
         this.pnlPreview.left = 0;
+        this.btnUpload.visible = false;
     }
 
     private closeEditor() {
@@ -726,6 +727,7 @@ export class ScomStorage extends Module {
         this.pnlPreview.visible = false;
         this.pnlPreview.width = '20rem';
         this.pnlPreview.left = 'auto';
+        this.btnUpload.visible = true;
     }
 
     private async onSubmit(filePath: string, content: string) {
