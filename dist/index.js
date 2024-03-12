@@ -1250,8 +1250,10 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             this._data = {
                 content: ''
             };
+            this.initialContent = '';
             this.onSubmit = this.onSubmit.bind(this);
             this.onCancel = this.onCancel.bind(this);
+            this.onAlertConfirm = this.onAlertConfirm.bind(this);
         }
         static async create(options, parent) {
             let self = new this(parent, options);
@@ -1266,14 +1268,27 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
         }
         setData(value) {
             this.data = value;
+            this.mdAlert.closeModal();
+            this.btnSave.enabled = false;
+            this.initialContent = '';
             this.renderUI();
         }
         async renderUI() {
             if (this.editorEl) {
+                this.initialContent = '';
                 this.editorEl.setValue(this.data.content);
             }
             else {
                 this.editorEl = await (0, utils_1.getEmbedElement)(this.createTextEditorElement(this.data.content), this.pnlEditor);
+                this.initialContent = this.editorEl.value;
+                this.editorEl.onChanged = (value) => {
+                    if (this.initialContent) {
+                        this.btnSave.enabled = value !== this.initialContent;
+                    }
+                    else {
+                        this.initialContent = value;
+                    }
+                };
             }
         }
         createTextEditorElement(value) {
@@ -1294,14 +1309,23 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             };
         }
         onCancel() {
-            if (this.onClose)
-                this.onClose();
+            if (this.btnSave.enabled) {
+                this.mdAlert.showModal();
+            }
+            else {
+                if (this.onClose)
+                    this.onClose();
+            }
         }
         onSubmit() {
             if (this.onClose)
                 this.onClose();
             if (this.onChanged)
                 this.onChanged(this.editorEl.value);
+        }
+        onAlertConfirm() {
+            if (this.onClose)
+                this.onClose();
         }
         init() {
             super.init();
@@ -1314,9 +1338,10 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
         render() {
             return (this.$render("i-vstack", { maxHeight: '100%', width: '100%', overflow: 'hidden', gap: "0.75rem" },
                 this.$render("i-hstack", { verticalAlignment: 'center', horizontalAlignment: 'end', width: '100%', gap: "0.5rem", padding: { left: '1rem', right: '1rem', top: '0.75rem' } },
-                    this.$render("i-button", { padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: 'transparent' }, font: { color: Theme.text.primary }, caption: 'Cancel changes', onClick: this.onCancel }),
-                    this.$render("i-button", { padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, caption: 'Commit changes', onClick: this.onSubmit })),
-                this.$render("i-vstack", { id: "pnlEditor", stack: { shrink: '1', grow: '1' }, width: '100%', overflow: { y: 'auto', x: 'hidden' }, padding: { left: '1rem', right: '1rem' }, class: index_css_4.addressPanelStyle })));
+                    this.$render("i-button", { id: "btnCancel", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: 'transparent' }, font: { color: Theme.text.primary }, icon: { name: 'times', width: '0.875rem', height: '0.875rem', fill: Theme.text.primary }, caption: 'Cancel', onClick: this.onCancel }),
+                    this.$render("i-button", { id: "btnSave", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, icon: { name: 'save', width: '0.875rem', height: '0.875rem', fill: Theme.colors.primary.contrastText }, caption: 'Save', enabled: false, onClick: this.onSubmit })),
+                this.$render("i-vstack", { id: "pnlEditor", stack: { shrink: '1', grow: '1' }, width: '100%', overflow: { y: 'auto', x: 'hidden' }, padding: { left: '1rem', right: '1rem' }, class: index_css_4.addressPanelStyle }),
+                this.$render("i-alert", { id: "mdAlert", title: '', status: 'confirm', content: 'Do you want to discard changes?', onConfirm: this.onAlertConfirm, onClose: () => this.mdAlert.closeModal() })));
         }
     };
     ScomIPFSEditor = __decorate([

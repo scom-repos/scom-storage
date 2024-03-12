@@ -321,7 +321,10 @@ declare module "@scom/scom-storage/components/editor.tsx" {
     export class ScomIPFSEditor extends Module {
         private pnlEditor;
         private editorEl;
+        private btnSave;
+        private mdAlert;
         private _data;
+        private initialContent;
         onClose: () => void;
         onChanged: (content: string) => void;
         constructor(parent?: Container, options?: any);
@@ -333,6 +336,7 @@ declare module "@scom/scom-storage/components/editor.tsx" {
         private createTextEditorElement;
         private onCancel;
         private onSubmit;
+        private onAlertConfirm;
         init(): void;
         render(): any;
     }
