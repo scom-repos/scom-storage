@@ -20,7 +20,7 @@ import {
 } from '@ijstech/components';
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
-import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview } from './components';
+import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview, LoadingSpinner } from './components';
 import customStyles, { defaultColors, dragAreaStyle, iconButtonStyled, previewModalStyle, selectedRowStyle } from './index.css';
 
 declare var require: any
@@ -65,6 +65,8 @@ export class ScomStorage extends Module {
     private btnUpload: Button;
     private currentItem: TreeNode;
     private mdActions: Modal;
+    private pnlLoading: VStack;
+    private loadingSpinner: LoadingSpinner;
 
     tag: any = {
         light: {},
@@ -482,7 +484,7 @@ export class ScomStorage extends Module {
         const ipfsData = rootNode.cidInfo;
         
         let path: string;
-        if (newPath) {
+        if (newPath || newPath === '') {
             path = newPath;
         } else if (window.matchMedia('(max-width: 767px)').matches) {
             path = this.mobileHome.currentPath;
@@ -556,9 +558,9 @@ export class ScomStorage extends Module {
           popupPlacement: 'bottomRight'
         });
         const itemActions = new VStack(undefined, { gap: 8, border: { radius: 8 } });
-        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'folder-plus', width: 12, height: 12 }} caption="New folder" class={iconButtonStyled} enabled={false} />);
-        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'edit', width: 12, height: 12 }} caption="Rename" class={iconButtonStyled} onClick={() => this.onRename()} />);
-        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'trash', width: 12, height: 12 }} caption="Delete" class={iconButtonStyled} enabled={false} />);
+        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'folder-plus', width: 12, height: 12 }} caption="New folder" class={iconButtonStyled} onClick={() => this.onAddNewFolder()} />);
+        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'edit', width: 12, height: 12 }} caption="Rename" class={iconButtonStyled} onClick={() => this.onRenameFolder()} />);
+        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'trash', width: 12, height: 12 }} caption="Delete" class={iconButtonStyled} enabled={true} />);
         this.mdActions.item = itemActions;
         document.body.appendChild(this.mdActions);
     }
@@ -573,8 +575,11 @@ export class ScomStorage extends Module {
     private onActionButton(target: TreeView, actionButton: Button, event: MouseEvent) {
         this.currentItem = target.activeItem;
         if (actionButton.tag === 'folder') {
-            // TODO
+            this.addNewFolder(true);
         } else {
+            const ipfsData = this.currentItem?.tag;
+            this.updateUrlPath(ipfsData.path);
+            this.onOpenFolder(ipfsData, true);
             const { pageX, pageY, screenX } = event;
             let x = pageX;
             if (pageX + 112 >= screenX) {
@@ -584,18 +589,74 @@ export class ScomStorage extends Module {
         }
     }
 
-    private async onNameChange(target: TreeView, node: TreeNode, oldValue: string, newValue: string) {
-        const path = node.tag.path;
-        const fileNode = await this.manager.getFileNode(path);
-        await this.manager.updateFolderName(fileNode, newValue);
-        await this.manager.applyUpdates();
-        this.onFilesUploaded(`/${fileNode.name}`);
+    showLoadingSpinner() {
+        if (!this.loadingSpinner) {
+            this.loadingSpinner = new LoadingSpinner();
+            this.pnlLoading.append(this.loadingSpinner);
+        }
+        this.pnlLoading.visible = true;
     }
 
-    private onRename() {
+    hideLoadingSpinner() {
+        this.pnlLoading.visible = false;
+    }
+
+    private async getNewName(parentNode: any, name: string) {
+        let newName = name;
+        while (await parentNode.findItem(newName)) {
+            const regex = /(\d+)$/;
+            const matches = newName.match(regex);
+            if (matches) {
+                const lastNumber = parseInt(matches[1]);
+                const updatedString = newName.replace(/\s\d+$/, '');
+                newName = `${updatedString} ${lastNumber + 1}`;
+            } else {
+                newName = `${newName} 1`;
+            }
+        }
+        return newName;
+    }
+
+    private async onNameChange(target: TreeView, node: TreeNode, oldValue: string, newValue: string) {
+        this.showLoadingSpinner();
+        const path = node.tag.path;
+        const fileNode = await this.manager.getFileNode(path);
+        const folderName = await this.getNewName(fileNode.parent, newValue);
+        await this.manager.updateFolderName(fileNode, folderName);
+        await this.manager.applyUpdates();
+        const url = this.extractUrl();
+        const paths = url.path.split('/');
+        paths.pop();
+        paths.push(fileNode.name);
+        const newPath = paths.join('/');
+        await this.onFilesUploaded(newPath);
+        this.hideLoadingSpinner();
+    }
+
+    private onRenameFolder() {
         this.mdActions.visible = false;
         this.currentItem.edit();
     }
+
+    private onAddNewFolder() {
+        this.mdActions.visible = false;
+        this.addNewFolder();
+    }
+
+    async addNewFolder(isRoot?: boolean) {
+        this.showLoadingSpinner();
+        let fileNode;
+        if (isRoot) {
+            fileNode = await this.manager.getRootNode();
+        } else {
+            fileNode = await this.manager.getFileNode(this.currentItem.tag.path);
+        }
+        const folderName = await this.getNewName(isRoot ? fileNode : fileNode.parent, 'New folder');
+        await this.manager.addFolder(fileNode, folderName);
+        await this.manager.applyUpdates();
+        await this.onFilesUploaded();
+        this.hideLoadingSpinner();
+    }
 
     private async onOpenFolder(ipfsData: any, toggle: boolean) {
         if (ipfsData) {
@@ -907,6 +968,7 @@ export class ScomStorage extends Module {
     render() {
         return (
             <i-panel height={'100%'} width={'100%'}>
+                <i-vstack id="pnlLoading" visible={false} />
                 <i-scom-ipfs--mobile-home
                     id="mobileHome"
                     width={'100%'}
@@ -973,11 +1035,11 @@ export class ScomStorage extends Module {
                                             tag: 'actions',
                                             class: 'btn-actions'
                                         },
-                                        // {
-                                        //     caption: `<i-icon name="folder-plus" width=${14} height=${14} class="inline-flex"></i-icon>`,
-                                        //     tag: 'folder',
-                                        //     class: 'btn-folder'
-                                        // }
+                                        {
+                                            caption: `<i-icon name="folder-plus" width=${14} height=${14} class="inline-flex"></i-icon>`,
+                                            tag: 'folder',
+                                            class: 'btn-folder'
+                                        }
                                     ]}
                                     onActionButtonClick={this.onActionButton}
                                     onActiveChange={this.onActiveChange}

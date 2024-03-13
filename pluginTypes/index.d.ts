@@ -399,6 +399,29 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         render(): any;
     }
 }
+/// <amd-module name="@scom/scom-storage/components/loadingSpinner.tsx" />
+declare module "@scom/scom-storage/components/loadingSpinner.tsx" {
+    import { ControlElement, Module } from "@ijstech/components";
+    export interface ILoadingSpinnerProps {
+        height?: string;
+        top?: string;
+        minHeight?: number | string;
+        background?: string;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['scom-storage--loading-spinner']: ControlElement;
+            }
+        }
+    }
+    export class LoadingSpinner extends Module {
+        private pnlLoadingSpinner;
+        init(): Promise<void>;
+        setProperties(value: ILoadingSpinnerProps): void;
+        render(): any;
+    }
+}
 /// <amd-module name="@scom/scom-storage/components/index.ts" />
 declare module "@scom/scom-storage/components/index.ts" {
     export { ScomIPFSMobileHome } from "@scom/scom-storage/components/home.tsx";
@@ -406,6 +429,7 @@ declare module "@scom/scom-storage/components/index.ts" {
     export { ScomIPFSUploadModal } from "@scom/scom-storage/components/uploadModal.tsx";
     export { ScomIPFSEditor } from "@scom/scom-storage/components/editor.tsx";
     export { ScomIPFSPreview } from "@scom/scom-storage/components/preview.tsx";
+    export { LoadingSpinner } from "@scom/scom-storage/components/loadingSpinner.tsx";
 }
 /// <amd-module name="@scom/scom-storage/index.css.ts" />
 declare module "@scom/scom-storage/index.css.ts" {
@@ -476,6 +500,8 @@ declare module "@scom/scom-storage" {
         private btnUpload;
         private currentItem;
         private mdActions;
+        private pnlLoading;
+        private loadingSpinner;
         tag: any;
         private _data;
         private pnlFileTable;
@@ -544,8 +570,13 @@ declare module "@scom/scom-storage" {
         private initModalActions;
         private onActiveChange;
         private onActionButton;
+        showLoadingSpinner(): void;
+        hideLoadingSpinner(): void;
+        private getNewName;
         private onNameChange;
-        private onRename;
+        private onRenameFolder;
+        private onAddNewFolder;
+        addNewFolder(isRoot?: boolean): Promise<void>;
         private onOpenFolder;
         private onFetchData;
         private processTableData;
