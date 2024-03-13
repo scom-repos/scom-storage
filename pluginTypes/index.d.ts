@@ -575,6 +575,7 @@ declare module "@scom/scom-storage" {
         private getNewName;
         private onNameChange;
         private onRenameFolder;
+        private onDeleteFolder;
         private onAddNewFolder;
         addNewFolder(isRoot?: boolean): Promise<void>;
         private onOpenFolder;
