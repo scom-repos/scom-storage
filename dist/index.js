@@ -2282,7 +2282,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             const itemActions = new components_12.VStack(undefined, { gap: 8, border: { radius: 8 } });
             itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'folder-plus', width: 12, height: 12 }, caption: "New folder", class: index_css_6.iconButtonStyled, onClick: () => this.onAddNewFolder() }));
             itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'edit', width: 12, height: 12 }, caption: "Rename", class: index_css_6.iconButtonStyled, onClick: () => this.onRenameFolder() }));
-            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'trash', width: 12, height: 12 }, caption: "Delete", class: index_css_6.iconButtonStyled, enabled: true }));
+            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'trash', width: 12, height: 12 }, caption: "Delete", class: index_css_6.iconButtonStyled, onClick: () => this.onDeleteFolder() }));
             this.mdActions.item = itemActions;
             document.body.appendChild(this.mdActions);
         }
@@ -2354,6 +2354,19 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         onRenameFolder() {
             this.mdActions.visible = false;
             this.currentItem.edit();
+        }
+        async onDeleteFolder() {
+            this.showLoadingSpinner();
+            this.mdActions.visible = false;
+            const fileNode = await this.manager.getFileNode(this.currentItem.tag.path);
+            this.manager.delete(fileNode);
+            await this.manager.applyUpdates();
+            const url = this.extractUrl();
+            const paths = url.path.split('/');
+            paths.pop();
+            const newPath = paths.join('/');
+            await this.onFilesUploaded(newPath);
+            this.hideLoadingSpinner();
         }
         onAddNewFolder() {
             this.mdActions.visible = false;

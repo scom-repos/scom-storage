@@ -560,7 +560,7 @@ export class ScomStorage extends Module {
         const itemActions = new VStack(undefined, { gap: 8, border: { radius: 8 } });
         itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'folder-plus', width: 12, height: 12 }} caption="New folder" class={iconButtonStyled} onClick={() => this.onAddNewFolder()} />);
         itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'edit', width: 12, height: 12 }} caption="Rename" class={iconButtonStyled} onClick={() => this.onRenameFolder()} />);
-        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'trash', width: 12, height: 12 }} caption="Delete" class={iconButtonStyled} enabled={true} />);
+        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'trash', width: 12, height: 12 }} caption="Delete" class={iconButtonStyled} onClick={() => this.onDeleteFolder()} />);
         this.mdActions.item = itemActions;
         document.body.appendChild(this.mdActions);
     }
@@ -636,6 +636,20 @@ export class ScomStorage extends Module {
     private onRenameFolder() {
         this.mdActions.visible = false;
         this.currentItem.edit();
+    }
+
+    private async onDeleteFolder() {
+        this.showLoadingSpinner();
+        this.mdActions.visible = false;
+        const fileNode = await this.manager.getFileNode(this.currentItem.tag.path);
+        this.manager.delete(fileNode);
+        await this.manager.applyUpdates();
+        const url = this.extractUrl();
+        const paths = url.path.split('/');
+        paths.pop();
+        const newPath = paths.join('/');
+        await this.onFilesUploaded(newPath);
+        this.hideLoadingSpinner();
     }
 
     private onAddNewFolder() {
