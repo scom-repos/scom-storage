@@ -1,10 +1,12 @@
 import {
+  Button,
   Container,
   ControlElement,
   customElements,
   Module,
   Panel,
   Styles,
+  Alert
 } from '@ijstech/components'
 import { getEmbedElement } from '../utils';
 import { addressPanelStyle } from './index.css';
@@ -31,10 +33,13 @@ declare global {
 export class ScomIPFSEditor extends Module {
   private pnlEditor: Panel;
   private editorEl: any;
+  private btnSave: Button;
+  private mdAlert: Alert;
 
   private _data: IEditor = {
     content: ''
   };
+  private initialContent: string = '';
   onClose: () => void
   onChanged: (content: string) => void
 
@@ -42,6 +47,7 @@ export class ScomIPFSEditor extends Module {
     super(parent, options)
     this.onSubmit = this.onSubmit.bind(this)
     this.onCancel = this.onCancel.bind(this)
+    this.onAlertConfirm = this.onAlertConfirm.bind(this)
   }
 
   static async create(options?: ScomIPFSEditorElement, parent?: Container) {
@@ -59,14 +65,26 @@ export class ScomIPFSEditor extends Module {
 
   setData(value: IEditor) {
     this.data = value
+    this.mdAlert.closeModal();
+    this.btnSave.enabled = false;
+    this.initialContent = '';
     this.renderUI()
   }
 
   private async renderUI() {
     if (this.editorEl) {
-      this.editorEl.setValue(this.data.content)
+      this.initialContent = '';
+      this.editorEl.setValue(this.data.content);
     } else {
-      this.editorEl = await getEmbedElement(this.createTextEditorElement(this.data.content), this.pnlEditor)
+      this.editorEl = await getEmbedElement(this.createTextEditorElement(this.data.content), this.pnlEditor);
+      this.initialContent = this.editorEl.value;
+      this.editorEl.onChanged = (value: string) => {
+        if (this.initialContent) {
+          this.btnSave.enabled = value !== this.initialContent;
+        } else {
+          this.initialContent = value
+        }
+      }
     }
   }
 
@@ -89,12 +107,20 @@ export class ScomIPFSEditor extends Module {
   }
 
   private onCancel() {
-    if (this.onClose) this.onClose()
+    if (this.btnSave.enabled) {
+      this.mdAlert.showModal()
+    } else {
+      if (this.onClose) this.onClose()
+    } 
   }
 
   private onSubmit() {
     if (this.onClose) this.onClose()
     if (this.onChanged) this.onChanged(this.editorEl.value)
+  }
+
+  private onAlertConfirm() {
+    if (this.onClose) this.onClose()
   }
 
   init() {
@@ -121,19 +147,24 @@ export class ScomIPFSEditor extends Module {
           padding={{ left: '1rem', right: '1rem', top: '0.75rem' }}
         >
           <i-button
-            padding={{top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem'}}
+            id="btnCancel"
+            padding={{top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem'}}
             border={{radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider}}
             background={{color: 'transparent'}}
             font={{color: Theme.text.primary}}
-            caption='Cancel changes'
+            icon={{name: 'times', width: '0.875rem', height: '0.875rem', fill: Theme.text.primary}}
+            caption='Cancel'
             onClick={this.onCancel}
           ></i-button>
            <i-button
-            padding={{top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem'}}
+            id="btnSave"
+            padding={{top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem'}}
             border={{radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider}}
             background={{color: Theme.colors.primary.main}}
             font={{color: Theme.colors.primary.contrastText}}
-            caption='Commit changes'
+            icon={{name: 'save', width: '0.875rem', height: '0.875rem', fill: Theme.colors.primary.contrastText}}
+            caption='Save'
+            enabled={false}
             onClick={this.onSubmit}
           ></i-button>
         </i-hstack>
@@ -145,6 +176,14 @@ export class ScomIPFSEditor extends Module {
           padding={{ left: '1rem', right: '1rem' }}
           class={addressPanelStyle}
         ></i-vstack>
+        <i-alert
+          id="mdAlert"
+          title=''
+          status='confirm'
+          content='Do you want to discard changes?'
+          onConfirm={this.onAlertConfirm}
+          onClose={() => this.mdAlert.closeModal()}
+        ></i-alert>
       </i-vstack>
     )
   }
