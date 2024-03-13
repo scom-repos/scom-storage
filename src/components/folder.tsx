@@ -144,6 +144,7 @@ export class ScomIPFSFolder extends Module {
     private renderUI() {
         this.inputSearch.width = '0%';
         this.pnlSearch.width = '2rem';
+        this.pnlPath.visible = true;
         this.inputSearch.value = '';
         const defaultTitle = this.type === 'dir' ? 'All Folders' : 'All Files';
         this.lblTitle.caption = this.title || defaultTitle;
@@ -266,10 +267,12 @@ export class ScomIPFSFolder extends Module {
     private onSearchClicked() {
         if (Number(this.pnlSearch.width) > 32) {
             this.inputSearch.width = '0%';
+            this.pnlPath.visible = true;
             this.pnlSearch.width = '2rem';
         } else {
             this.pnlSearch.width = '100%';
             this.inputSearch.width = '100%';
+            this.pnlPath.visible = false;
             this.inputSearch.focus();
         }
     }
@@ -303,6 +306,7 @@ export class ScomIPFSFolder extends Module {
                     verticalAlignment='center' horizontalAlignment='space-between'
                     padding={{ left: '1.25rem', right: '1.25rem' }}
                     gap="1rem"
+                    height={'2rem'}
                 >
                     <i-icon
                         id="iconBack"
@@ -328,14 +332,13 @@ export class ScomIPFSFolder extends Module {
                         border={{ radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }}
                         padding={{ left: '0.5rem', right: '0.5rem' }}
                         margin={{ left: 'auto' }}
-                        height={'2rem'}
+                        height={'100%'}
                         width={'2rem'}
                         position='relative'
                         overflow={'hidden'}
                         class={transitionStyle}
                         cursor='pointer'
-                        maxWidth={'50%'}
-                        stack={{shrink: '0', grow: '1'}}
+                        stack={{shrink: '0', grow: '1', basis: '2rem'}}
                         background={{ color: Theme.input.background }}
                     >
                         <i-input

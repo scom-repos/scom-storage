@@ -446,6 +446,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
         renderUI() {
             this.inputSearch.width = '0%';
             this.pnlSearch.width = '2rem';
+            this.pnlPath.visible = true;
             this.inputSearch.value = '';
             const defaultTitle = this.type === 'dir' ? 'All Folders' : 'All Files';
             this.lblTitle.caption = this.title || defaultTitle;
@@ -543,11 +544,13 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
         onSearchClicked() {
             if (Number(this.pnlSearch.width) > 32) {
                 this.inputSearch.width = '0%';
+                this.pnlPath.visible = true;
                 this.pnlSearch.width = '2rem';
             }
             else {
                 this.pnlSearch.width = '100%';
                 this.inputSearch.width = '100%';
+                this.pnlPath.visible = false;
                 this.inputSearch.focus();
             }
         }
@@ -569,10 +572,10 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
         }
         render() {
             return (this.$render("i-vstack", { gap: "1.25rem", width: '100%', minHeight: 'inherit', background: { color: Theme.colors.primary.main }, padding: { top: '1.25rem' } },
-                this.$render("i-hstack", { verticalAlignment: 'center', horizontalAlignment: 'space-between', padding: { left: '1.25rem', right: '1.25rem' }, gap: "1rem" },
+                this.$render("i-hstack", { verticalAlignment: 'center', horizontalAlignment: 'space-between', padding: { left: '1.25rem', right: '1.25rem' }, gap: "1rem", height: '2rem' },
                     this.$render("i-icon", { id: "iconBack", width: '1.25rem', height: '1.25rem', name: "arrow-left", fill: Theme.colors.primary.contrastText, cursor: 'pointer', onClick: this.goBack.bind(this), visible: false }),
                     this.$render("i-scom-ipfs--path", { id: "pnlPath", display: 'flex', width: '100%', isMobileView: true, onItemClicked: this.onBreadcrumbClick }),
-                    this.$render("i-hstack", { id: "pnlSearch", verticalAlignment: 'center', horizontalAlignment: 'end', gap: "0.5rem", border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, padding: { left: '0.5rem', right: '0.5rem' }, margin: { left: 'auto' }, height: '2rem', width: '2rem', position: 'relative', overflow: 'hidden', class: index_css_2.transitionStyle, cursor: 'pointer', maxWidth: '50%', stack: { shrink: '0', grow: '1' }, background: { color: Theme.input.background } },
+                    this.$render("i-hstack", { id: "pnlSearch", verticalAlignment: 'center', horizontalAlignment: 'end', gap: "0.5rem", border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, padding: { left: '0.5rem', right: '0.5rem' }, margin: { left: 'auto' }, height: '100%', width: '2rem', position: 'relative', overflow: 'hidden', class: index_css_2.transitionStyle, cursor: 'pointer', stack: { shrink: '0', grow: '1', basis: '2rem' }, background: { color: Theme.input.background } },
                         this.$render("i-input", { id: "inputSearch", height: "100%", width: '0px', background: { color: 'transparent' }, border: { style: 'none', radius: '0.5rem 0 0.5rem 0' }, onKeyUp: this.onHandleSearch, margin: { right: '2rem' } }),
                         this.$render("i-icon", { width: '2rem', height: '2rem', position: 'absolute', right: '0px', name: "search", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, stack: { grow: '0', shrink: '0' }, fill: Theme.colors.primary.contrastText, onClick: this.onSearchClicked }))),
                 this.$render("i-panel", { padding: { left: '1.25rem', right: '1.25rem' }, visible: false },
