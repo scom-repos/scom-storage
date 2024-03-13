@@ -313,6 +313,13 @@ export class ScomIPFSFolder extends Module {
                         onClick={this.goBack.bind(this)}
                         visible={false}
                     ></i-icon>
+                    <i-scom-ipfs--path
+                        id="pnlPath"
+                        display='flex'
+                        width={'100%'}
+                        isMobileView={true}
+                        onItemClicked={this.onBreadcrumbClick}
+                    />
                     <i-hstack
                         id="pnlSearch"
                         verticalAlignment='center'
@@ -327,6 +334,8 @@ export class ScomIPFSFolder extends Module {
                         overflow={'hidden'}
                         class={transitionStyle}
                         cursor='pointer'
+                        maxWidth={'50%'}
+                        stack={{shrink: '0', grow: '1'}}
                         background={{ color: Theme.input.background }}
                     >
                         <i-input
@@ -398,14 +407,14 @@ export class ScomIPFSFolder extends Module {
                             ></i-icon>
                         </i-panel>
                     </i-hstack>
-                    <i-scom-ipfs--path
+                    {/* <i-scom-ipfs--path
                         id="pnlPath"
                         display='flex'
                         width={'100%'}
                         margin={{ bottom: 10 }}
                         isMobileView={true}
                         onItemClicked={this.onBreadcrumbClick}
-                    />
+                    /> */}
                     <i-grid-layout
                         id="pnlFolders"
                         width={'100%'}
