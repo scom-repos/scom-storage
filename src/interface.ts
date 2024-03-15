@@ -20,6 +20,7 @@ export type FileType = 'dir' | 'file';
 export interface IStorageConfig {
     transportEndpoint?: string;
     signer?: IPFS.ISigner;
+    isModal?: boolean;
 }
 
 export interface IPreview extends IIPFSData {

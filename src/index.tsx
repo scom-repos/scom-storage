@@ -10,7 +10,6 @@ import {
     ControlElement,
     IDataSchema,
     Panel,
-    GridLayout,
     IPFS,
     Button,
     TableColumn,
@@ -27,12 +26,17 @@ declare var require: any
 
 const Theme = Styles.Theme.ThemeVars;
 
+type selectFileCallback = (path: string) => void;
+type cancelCallback = () => void;
+
 interface ScomStorageElement extends ControlElement {
     transportEndpoint?: string;
     signer?: IPFS.ISigner;
     baseUrl?: string;
+    isModal?: boolean;
+    onOpen?: selectFileCallback;
+    onCancel?: cancelCallback;
 }
-
 
 interface UploadRawFile extends File {
     uid?: number;
@@ -56,7 +60,6 @@ export class ScomStorage extends Module {
     private pnlPath: ScomIPFSPath;
     private uploadedFileTree: TreeView;
     private mobileHome: ScomIPFSMobileHome;
-    // private gridWrapper: GridLayout;
     private iePreview: ScomIPFSPreview;
     private pnlPreview: Panel;
     private uploadModal: ScomIPFSUploadModal;
@@ -67,6 +70,16 @@ export class ScomStorage extends Module {
     private mdActions: Modal;
     private pnlLoading: VStack;
     private loadingSpinner: LoadingSpinner;
+    private pnlFooter: Panel;
+    private pnlStorage: Panel;
+
+    private static instance: ScomStorage;
+    public static getInstance() {
+        if (!ScomStorage.instance) {
+            ScomStorage.instance = new ScomStorage();
+        }
+        return ScomStorage.instance;
+    }
 
     tag: any = {
         light: {},
@@ -144,8 +157,6 @@ export class ScomStorage extends Module {
     private columns: any[] = this.filesColumns.slice();
     private _uploadedTreeData: any = [];
     private _uploadedFileNodes: { [idx: string]: TreeNode } = {};
-    private transportEndpoint: string;
-    private signer: IPFS.ISigner;
     private currentCid: string;
     private rootCid: string;
     private _baseUrl: string;
@@ -154,6 +165,11 @@ export class ScomStorage extends Module {
     private counter: number = 0;
     private _readOnly = false;
     private isInitializing = false;
+    private _isModal: boolean = false;
+    private currentFile: string;
+
+    onOpen: selectFileCallback;
+    onCancel: cancelCallback;
 
     get baseUrl(): string {
         return this._baseUrl;
@@ -169,6 +185,33 @@ export class ScomStorage extends Module {
     private set readOnly(value: boolean) {
         this._readOnly = value;
         this.btnUpload.visible = this.btnUpload.enabled = !value;
+    }
+
+    get isModal(): boolean {
+        return this._isModal;
+    };
+    set isModal(value: boolean) {
+        this._isModal = value;
+    }
+
+    get transportEndpoint() {
+        return this._data.transportEndpoint;
+    }
+
+    get signer() {
+        return this._data.signer;
+    }
+
+    setConfig(config: IStorageConfig) {
+        this._data = config;
+        this.manager = new IPFS.FileManager({
+            endpoint: this._data.transportEndpoint,
+            signer: this._data.signer
+        });
+    }
+
+    getConfig() {
+        return this._data;
     }
 
     private async setData(value: IStorageConfig) {
@@ -298,6 +341,7 @@ export class ScomStorage extends Module {
     }
 
     private updateUrlPath(path?: string) {
+        if (this.isModal) return;
         let baseUrl = this.baseUrl ? this.baseUrl + (this.baseUrl[this.baseUrl.length - 1] == '/' ? '' : '/') : '#/';
         let url = baseUrl + this.rootCid;
         if (path) url += path;
@@ -318,17 +362,20 @@ export class ScomStorage extends Module {
     }
 
     private async initContent() {
+        this.pnlFooter.visible = this.isModal;
         if (!this.manager || this.isInitializing) return;
         this.isInitializing = true;
         const { cid, path } = this.extractUrl();
         let rootNode = await this.manager.getRootNode();
         this.rootCid = this.currentCid = rootNode.cid;
-        this.readOnly = cid && cid !== this.rootCid;
-        if (this.readOnly) {
-            rootNode = await this.manager.setRootCid(cid);
-            if (rootNode) this.rootCid = cid;
-        } else if (!cid) {
-            this.updateUrlPath();
+        this.readOnly = this.isModal || (cid && cid !== this.rootCid);
+        if (!this.isModal) {
+            if (this.readOnly) {
+                rootNode = await this.manager.setRootCid(cid);
+                if (rootNode) this.rootCid = cid;
+            } else if (!cid) {
+                this.updateUrlPath();
+            }
         }
         const ipfsData = rootNode.cidInfo as IIPFSData;
         if (ipfsData) {
@@ -730,6 +777,7 @@ export class ScomStorage extends Module {
             this.closePreview();
             this.onOpenFolder(record, true);
         } else {
+            this.currentFile = `${record.name}`;
             if (this.selectedRow) this.selectedRow.classList.remove(selectedRowStyle);
             this.selectedRow = this.fileTable.querySelector(`tr[data-index="${rowIndex}"]`);
             this.selectedRow.classList.add(selectedRowStyle);
@@ -738,6 +786,10 @@ export class ScomStorage extends Module {
     }
 
     private previewFile(record: IPreview) {
+        if (this.isModal) {
+            this.pnlPreview.visible = false;
+            return;
+        }
         this.pnlPreview.visible = true;
         const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
         this.iePreview.setData({...record, transportEndpoint: this.transportEndpoint, parentCid: currentCid});
@@ -766,24 +818,12 @@ export class ScomStorage extends Module {
             if (!this.pnlPreview.contains(this.iePreview)) this.pnlPreview.appendChild(this.iePreview);
             this.pnlPreview.visible = true;
             this.btnUpload.right = '23.125rem';
-            // this.gridWrapper.templateColumns = [
-            //     '15rem',
-            //     '1px',
-            //     'auto',
-            //     '1px',
-            //     '20rem'
-            // ]
         }
     }
 
     private closePreview() {
         this.pnlPreview.visible = false;
         this.btnUpload.right = '3.125rem';
-        // this.gridWrapper.templateColumns = [
-        //     '15rem',
-        //     '1px',
-        //     '1fr'
-        // ]
     }
 
     private openEditor() {
@@ -955,19 +995,33 @@ export class ScomStorage extends Module {
         fileEntries.map((entry) => this.readEntryContentAsync(entry))
       );
     }
+
+    private onOpenHandler() {
+        const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
+        const url = `${this.transportEndpoint}/ipfs/${currentCid}/${this.currentFile}` // `${this.transportEndpoint}/${this.currentPath}`;
+        if (this.onOpen) this.onOpen(url);
+      }
+    
+      private onCancelHandler() {
+        if (this.onCancel) this.onCancel();
+      }
+    
     
     init() {
-        this.transportEndpoint = this.getAttribute('transportEndpoint', true) || window.location.origin;
-        this.signer = this.getAttribute('signer', true);
+        const transportEndpoint = this.getAttribute('transportEndpoint', true) || this._data?.transportEndpoint ||window.location.origin;
+        const signer = this.getAttribute('signer', true) || this._data?.signer || null;
         this.baseUrl = this.getAttribute('baseUrl', true);
         super.init();
+        this.isModal = this.getAttribute('isModal', true) || this._data.isModal || false;
+        this.onOpen = this.getAttribute('onOpen', true) || this.onOpen;
+        this.onCancel = this.getAttribute('onCancel', true) || this.onCancel;
         this.classList.add(customStyles);
         this.setTag(defaultColors);
         this.manager = new IPFS.FileManager({
-            endpoint: this.transportEndpoint,
-            signer: this.signer
+            endpoint: transportEndpoint,
+            signer: signer
         });
-        if (this.transportEndpoint) this.setData({ transportEndpoint: this.transportEndpoint, signer: this.signer });
+        if (transportEndpoint) this.setData({ transportEndpoint, signer, isModal: this.isModal });
         this.handleOnDragEnter = this.handleOnDragEnter.bind(this);
         this.handleOnDragOver = this.handleOnDragOver.bind(this);
         this.handleOnDragLeave = this.handleOnDragLeave.bind(this);
@@ -981,194 +1035,233 @@ export class ScomStorage extends Module {
 
     render() {
         return (
-            <i-panel height={'100%'} width={'100%'}>
-                <i-vstack id="pnlLoading" visible={false} />
-                <i-scom-ipfs--mobile-home
-                    id="mobileHome"
-                    width={'100%'}
-                    minHeight={'100vh'}
-                    display='block'
-                    background={{ color: Theme.background.main }}
-                    onPreview={this.previewFile.bind(this)}
-                    transportEndpoint={this.transportEndpoint}
-                    signer={this.signer}
-                    visible={false}
-                    mediaQueries={[
-                        {
-                            maxWidth: '767px',
-                            properties: {
-                                visible: true
-                            }
-                        }
-                    ]}
-                />
-                <i-vstack
-                    height={'100%'}
-                    width={'100%'}
-                    overflow={'hidden'}
-                    maxHeight={'100vh'}
-                    background={{ color: Theme.background.main }}
-                    mediaQueries={[
-                        {
-                            maxWidth: '767px',
-                            properties: {
-                                visible: false,
-                                maxWidth: '100%'
-                            }
-                        }
-                    ]}
+            <i-vstack
+                width={'100%'} height={'100%'}
+                overflow={'hidden'}
+            >
+                <i-panel
+                    id="pnlStorage"
+                    height={'100%'} width={'100%'}
+                    stack={{ grow: '1' }}
+                    overflow={{y: 'auto'}}
                 >
-                    <i-panel stack={{ grow: '1', basis: '0%' }} overflow={'hidden'}>
-                        <i-grid-layout
-                            id={'gridWrapper'}
-                            height={'100%'}
-                            width={'100%'}
-                            overflow={'hidden'}
-                            position='relative'
-                            templateColumns={['15rem', '1px', '1fr']}
-                            background={{ color: Theme.background.main }}
-                        >
-                            <i-vstack
-                                id={'ieSidebar'}
-                                resizer={true} dock="left"
-                                height={'100%'} overflow={{ y: 'auto', x: 'hidden' }}
-                                minWidth={'10rem'} width={'15rem'}
-                                maxWidth={'calc(100% - 35rem)'}
-                                border={{right: {width: '1px', style: 'solid', color: Theme.divider}}}
-                            >
-                                <i-tree-view
-                                    id="uploadedFileTree"
-                                    class="file-manager-tree uploaded"
-                                    stack={{ grow: '1' }}
-                                    maxHeight={'100%'}
-                                    overflow={'auto'}
-                                    editable
-                                    actionButtons={[
-                                        {
-                                            caption: `<i-icon name="ellipsis-h" width=${14} height=${14} class="inline-flex"></i-icon>`,
-                                            tag: 'actions',
-                                            class: 'btn-actions'
-                                        },
-                                        {
-                                            caption: `<i-icon name="folder-plus" width=${14} height=${14} class="inline-flex"></i-icon>`,
-                                            tag: 'folder',
-                                            class: 'btn-folder'
-                                        }
-                                    ]}
-                                    onActionButtonClick={this.onActionButton}
-                                    onActiveChange={this.onActiveChange}
-                                    onChange={this.onNameChange}
-                                />
-                            </i-vstack>
-                            <i-vstack
-                                id={'ieContent'}
-                                dock='fill'
-                                height={'100%'}
-                                overflow={{ y: 'auto' }}
-                            >
-                                <i-scom-ipfs--path
-                                    id="pnlPath"
-                                    display='flex' width={'100%'}
-                                    padding={{ left: '1rem', right: '1rem' }}
-                                    onItemClicked={this.onBreadcrumbClick}
-                                />
-                                <i-panel
-                                    width={'100%'} height={'auto'}
-                                    stack={{ grow: "1" }}
-                                    position="relative"
-                                    border={{
-                                        top: { width: '0.0625rem', style: 'solid', color: Theme.colors.primary.contrastText }
-                                    }}
-                                >
-                                    <i-panel
-                                        id="pnlFileTable"
-                                        height="100%"
-                                    >
-                                        <i-table
-                                            id="fileTable"
-                                            heading={true}
-                                            columns={this.columns}
-                                            headingStyles={{
-                                                font: { size: '0.75rem', weight: 700, color: Theme.text.primary },
-                                                padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' },
-                                                height: '2rem',
-                                                background: { color: '#f8f9fa' }
-                                            }}
-                                            bodyStyles={{
-                                                font: { size: '0.75rem', color: Theme.text.primary },
-                                                padding: { top: '0.375rem', bottom: '0.375rem', left: '0.5rem', right: '0.5rem' },
-                                                height: '2.25rem',
-                                                cursor: 'pointer'
-                                            }}
-                                            onCellClick={this.onCellClick}
-                                        ></i-table>
-                                    </i-panel>
-                                    <i-panel
-                                        id="pnlUploadTo"
-                                        width="fit-content"
-                                        class="text-center"
-                                        padding={{ top: '0.75rem', bottom: '0.75rem', left: '1.5rem', right: '1.5rem' }}
-                                        margin={{ left: 'auto', right: 'auto' }}
-                                        border={{ radius: 6 }}
-                                        background={{ color: '#0288d1' }}
-                                        lineHeight={1.5}
-                                        position="absolute"
-                                        bottom="1.5rem"
-                                        left={0}
-                                        right={0}
-                                        visible={false}
-                                    >
-                                        <i-label caption="Upload files to" font={{ size: '15px', color: '#fff' }}></i-label>
-                                        <i-hstack horizontalAlignment="center" verticalAlignment="center" gap="0.375rem">
-                                            <i-icon name="folder" width={'0.875rem'} height={'0.875rem'} display="inline-flex" fill='#fff'></i-icon>
-                                            <i-label id="lblDestinationFolder" font={{ size: '15px', color: '#fff' }}></i-label>
-                                        </i-hstack>
-                                    </i-panel>
-                                </i-panel>
-                            </i-vstack>
-                            <i-panel
-                                id="pnlPreview"
-                                border={{left: {width: '1px', style: 'solid', color: Theme.divider}}}
-                                width={'20rem'}
-                                dock='right'
-                                visible={false}
-                            >
-                                <i-scom-ipfs--preview
-                                    id="iePreview"
-                                    width={'100%'}
-                                    height={'100%'}
-                                    display='block'
-                                    onClose={this.closePreview.bind(this)}
-                                    onOpenEditor={this.openEditor.bind(this)}
-                                    onCloseEditor={ this.closeEditor.bind(this)}
-                                    onFileChanged={this.onSubmit.bind(this)}
-                                />
-                            </i-panel>
-                        </i-grid-layout>
-                    </i-panel>
-                </i-vstack>
-                <i-button
-                    id="btnUpload"
-                    boxShadow='0 10px 25px -5px rgba(44, 179, 240, 0.6)'
-                    border={{ radius: '50%' }}
-                    background={{ color: Theme.colors.primary.light }}
-                    lineHeight={'3.375rem'}
-                    width={'3.375rem'} height={'3.375rem'}
-                    icon={{ name: 'plus', width: '1.125rem', height: ' 1.125rem', fill: Theme.colors.primary.contrastText }}
-                    position='absolute' bottom={'3.125rem'} right={'3.125rem'} zIndex={100}
-                    onClick={this.handleUploadButtonClick}
-                    mediaQueries={[
-                        {
-                            maxWidth: '767px',
-                            properties: {
-                                position: 'fixed',
-                                bottom: '4rem',
-                                right: '1.25rem'
+                    <i-vstack id="pnlLoading" visible={false} />
+                    <i-scom-ipfs--mobile-home
+                        id="mobileHome"
+                        width={'100%'}
+                        minHeight={'100vh'}
+                        display='block'
+                        background={{ color: Theme.background.main }}
+                        onPreview={this.previewFile.bind(this)}
+                        transportEndpoint={this.transportEndpoint}
+                        signer={this.signer}
+                        visible={false}
+                        mediaQueries={[
+                            {
+                                maxWidth: '767px',
+                                properties: {
+                                    visible: true
+                                }
                             }
-                        }
-                    ]}
+                        ]}
+                    />
+                    <i-vstack
+                        height={'100%'}
+                        width={'100%'}
+                        overflow={'hidden'}
+                        maxHeight={'100vh'}
+                        background={{ color: Theme.background.main }}
+                        mediaQueries={[
+                            {
+                                maxWidth: '767px',
+                                properties: {
+                                    visible: false,
+                                    maxWidth: '100%'
+                                }
+                            }
+                        ]}
+                    >
+                        <i-panel stack={{ grow: '1', basis: '0%' }} overflow={'hidden'}>
+                            <i-grid-layout
+                                id={'gridWrapper'}
+                                height={'100%'}
+                                width={'100%'}
+                                overflow={'hidden'}
+                                position='relative'
+                                templateColumns={['15rem', '1fr']}
+                                background={{ color: Theme.background.main }}
+                            >
+                                <i-vstack
+                                    id={'ieSidebar'}
+                                    resizer={true} dock="left"
+                                    height={'100%'} overflow={{ y: 'auto', x: 'hidden' }}
+                                    minWidth={'10rem'} width={'15rem'}
+                                    maxWidth={'calc(100% - 35rem)'}
+                                    border={{right: {width: '1px', style: 'solid', color: Theme.divider}}}
+                                >
+                                    <i-tree-view
+                                        id="uploadedFileTree"
+                                        class="file-manager-tree uploaded"
+                                        stack={{ grow: '1' }}
+                                        maxHeight={'100%'}
+                                        overflow={'auto'}
+                                        editable
+                                        actionButtons={[
+                                            {
+                                                caption: `<i-icon name="ellipsis-h" width=${14} height=${14} class="inline-flex"></i-icon>`,
+                                                tag: 'actions',
+                                                class: 'btn-actions'
+                                            },
+                                            {
+                                                caption: `<i-icon name="folder-plus" width=${14} height=${14} class="inline-flex"></i-icon>`,
+                                                tag: 'folder',
+                                                class: 'btn-folder'
+                                            }
+                                        ]}
+                                        onActionButtonClick={this.onActionButton}
+                                        onActiveChange={this.onActiveChange}
+                                        onChange={this.onNameChange}
+                                    />
+                                </i-vstack>
+                                <i-vstack
+                                    id={'ieContent'}
+                                    dock='fill'
+                                    height={'100%'}
+                                    overflow={{ y: 'auto' }}
+                                >
+                                    <i-scom-ipfs--path
+                                        id="pnlPath"
+                                        display='flex' width={'100%'}
+                                        padding={{ left: '1rem', right: '1rem' }}
+                                        onItemClicked={this.onBreadcrumbClick}
+                                    />
+                                    <i-panel
+                                        width={'100%'} height={'auto'}
+                                        stack={{ grow: "1" }}
+                                        position="relative"
+                                        border={{
+                                            top: { width: '0.0625rem', style: 'solid', color: Theme.colors.primary.contrastText }
+                                        }}
+                                    >
+                                        <i-panel
+                                            id="pnlFileTable"
+                                            height="100%"
+                                        >
+                                            <i-table
+                                                id="fileTable"
+                                                heading={true}
+                                                columns={this.columns}
+                                                headingStyles={{
+                                                    font: { size: '0.75rem', weight: 700, color: Theme.text.primary },
+                                                    padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' },
+                                                    height: '2rem',
+                                                    background: { color: '#f8f9fa' }
+                                                }}
+                                                bodyStyles={{
+                                                    font: { size: '0.75rem', color: Theme.text.primary },
+                                                    padding: { top: '0.375rem', bottom: '0.375rem', left: '0.5rem', right: '0.5rem' },
+                                                    height: '2.25rem',
+                                                    cursor: 'pointer'
+                                                }}
+                                                onCellClick={this.onCellClick}
+                                            ></i-table>
+                                        </i-panel>
+                                        <i-panel
+                                            id="pnlUploadTo"
+                                            width="fit-content"
+                                            class="text-center"
+                                            padding={{ top: '0.75rem', bottom: '0.75rem', left: '1.5rem', right: '1.5rem' }}
+                                            margin={{ left: 'auto', right: 'auto' }}
+                                            border={{ radius: 6 }}
+                                            background={{ color: '#0288d1' }}
+                                            lineHeight={1.5}
+                                            position="absolute"
+                                            bottom="1.5rem"
+                                            left={0}
+                                            right={0}
+                                            visible={false}
+                                        >
+                                            <i-label caption="Upload files to" font={{ size: '15px', color: '#fff' }}></i-label>
+                                            <i-hstack horizontalAlignment="center" verticalAlignment="center" gap="0.375rem">
+                                                <i-icon name="folder" width={'0.875rem'} height={'0.875rem'} display="inline-flex" fill='#fff'></i-icon>
+                                                <i-label id="lblDestinationFolder" font={{ size: '15px', color: '#fff' }}></i-label>
+                                            </i-hstack>
+                                        </i-panel>
+                                    </i-panel>
+                                </i-vstack>
+                                <i-panel
+                                    id="pnlPreview"
+                                    border={{left: {width: '1px', style: 'solid', color: Theme.divider}}}
+                                    width={'20rem'}
+                                    dock='right'
+                                    visible={false}
+                                >
+                                    <i-scom-ipfs--preview
+                                        id="iePreview"
+                                        width={'100%'}
+                                        height={'100%'}
+                                        display='block'
+                                        onClose={this.closePreview.bind(this)}
+                                        onOpenEditor={this.openEditor.bind(this)}
+                                        onCloseEditor={ this.closeEditor.bind(this)}
+                                        onFileChanged={this.onSubmit.bind(this)}
+                                    />
+                                </i-panel>
+                            </i-grid-layout>
+                        </i-panel>
+                    </i-vstack>
+                    <i-button
+                        id="btnUpload"
+                        boxShadow='0 10px 25px -5px rgba(44, 179, 240, 0.6)'
+                        border={{ radius: '50%' }}
+                        background={{ color: Theme.colors.primary.light }}
+                        lineHeight={'3.375rem'}
+                        width={'3.375rem'} height={'3.375rem'}
+                        icon={{ name: 'plus', width: '1.125rem', height: ' 1.125rem', fill: Theme.colors.primary.contrastText }}
+                        position='absolute' bottom={'3.125rem'} right={'3.125rem'} zIndex={100}
+                        onClick={this.handleUploadButtonClick}
+                        mediaQueries={[
+                            {
+                                maxWidth: '767px',
+                                properties: {
+                                    position: 'fixed',
+                                    bottom: '4rem',
+                                    right: '1.25rem'
+                                }
+                            }
+                        ]}
+                    ></i-button>
+                </i-panel>
+                <i-hstack
+                    id="pnlFooter"
+                    horizontalAlignment='end'
+                    gap="0.75rem"
+                    stack={{shrink: '0'}}
+                    padding={{top: '1rem', bottom: '1rem'}}
+                    visible={false}
+                >
+                <i-button
+                    id="btnSubmit"
+                    height={'2.25rem'}
+                    padding={{ left: '1rem', right: '1rem' }}
+                    background={{ color: Theme.colors.primary.main }}
+                    font={{ color: Theme.colors.primary.contrastText, bold: true, size: '1rem' }}
+                    border={{ radius: '0.25rem' }}
+                    caption="Open"
+                    onClick={this.onOpenHandler}
                 ></i-button>
-            </i-panel>
+                <i-button
+                    id="btnCancel"
+                    height={'2.25rem'}
+                    padding={{ left: '1rem', right: '1rem' }}
+                    background={{ color: 'transparent' }}
+                    font={{ color: Theme.text.primary, bold: true, size: '1rem' }}
+                    border={{ radius: '0.25rem' }}
+                    caption="Cancel"
+                    onClick={this.onCancelHandler}
+                ></i-button>
+                </i-hstack>
+            </i-vstack>
         )
     }
 }
