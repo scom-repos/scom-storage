@@ -488,6 +488,8 @@ declare module "@scom/scom-storage" {
         signer?: IPFS.ISigner;
         baseUrl?: string;
         isModal?: boolean;
+        mode?: 'viewer' | 'editor';
+        isFileShown?: boolean;
         onOpen?: selectFileCallback;
         onCancel?: cancelCallback;
     }
@@ -535,6 +537,7 @@ declare module "@scom/scom-storage" {
         private _readOnly;
         private isInitializing;
         private _isModal;
+        private _isFileShown;
         private currentFile;
         onOpen: selectFileCallback;
         onCancel: cancelCallback;
@@ -546,6 +549,8 @@ declare module "@scom/scom-storage" {
         set isModal(value: boolean);
         get transportEndpoint(): string;
         get signer(): IPFS.ISigner;
+        get isFileShown(): boolean;
+        set isFileShown(value: boolean);
         setConfig(config: IStorageConfig): void;
         getConfig(): IStorageConfig;
         private setData;
@@ -591,6 +596,7 @@ declare module "@scom/scom-storage" {
         private onShowActions;
         private initModalActions;
         private onActiveChange;
+        private onOpenFile;
         private onActionButton;
         showLoadingSpinner(): void;
         hideLoadingSpinner(): void;

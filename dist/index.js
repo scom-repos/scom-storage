@@ -1892,6 +1892,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this._readOnly = false;
             this.isInitializing = false;
             this._isModal = false;
+            this._isFileShown = false;
         }
         static getInstance() {
             if (!ScomStorage_1.instance) {
@@ -1925,6 +1926,12 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         get signer() {
             return this._data.signer;
+        }
+        get isFileShown() {
+            return this._isFileShown ?? false;
+        }
+        set isFileShown(value) {
+            this._isFileShown = value ?? false;
         }
         setConfig(config) {
             this._data = config;
@@ -2186,21 +2193,37 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             for (let i = 0; i < items.length; i++) {
                 if (items[i] != null) {
                     idx = idx + '/' + items[i];
-                    if (!self._uploadedFileNodes[idx] && nodeData.type === 'dir') {
-                        node = self.uploadedFileTree.add(node, name);
-                        self._uploadedFileNodes[idx] = node;
-                        node.tag = nodeData;
-                        node.height = '2.125rem';
-                        node.icon.margin = { left: '0.388rem' };
-                        node.icon.name = 'chevron-circle-right';
-                        node.icon.fill = Theme.colors.primary.light;
-                        node.icon.visible = true;
-                        node.icon.display = 'inline-flex';
-                        const isActive = path ? nodeData.path === path : nodeData.root;
-                        if (nodeData.path === path)
-                            node.active = true;
-                        if (isActive || path?.startsWith(nodeData.path + "/"))
-                            node.expanded = true;
+                    if (!self._uploadedFileNodes[idx]) {
+                        if (nodeData.type === 'dir') {
+                            node = self.uploadedFileTree.add(node, name);
+                            self._uploadedFileNodes[idx] = node;
+                            node.tag = nodeData;
+                            node.height = '2.125rem';
+                            node.icon.margin = { left: '0.388rem' };
+                            node.icon.name = 'chevron-circle-right';
+                            node.icon.fill = Theme.colors.primary.light;
+                            node.icon.visible = true;
+                            node.icon.display = 'inline-flex';
+                            const isActive = path ? nodeData.path === path : nodeData.root;
+                            if (nodeData.path === path)
+                                node.active = true;
+                            if (isActive || path?.startsWith(nodeData.path + "/"))
+                                node.expanded = true;
+                        }
+                        console.log('__________', this.isFileShown);
+                        if (nodeData.type === 'file' && this.isFileShown) {
+                            node = self.uploadedFileTree.add(node, name);
+                            self._uploadedFileNodes[idx] = node;
+                            node.tag = nodeData;
+                            node.height = '2.125rem';
+                            node.icon.margin = { left: '0.388rem' };
+                            node.icon.name = 'file';
+                            node.icon.fill = Theme.colors.primary.light;
+                            node.icon.visible = true;
+                            node.icon.display = 'inline-flex';
+                            if (nodeData.path === path)
+                                node.active = true;
+                        }
                     }
                     else {
                         node = self._uploadedFileNodes[idx];
@@ -2327,7 +2350,15 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             if (!prevNode?.isSameNode(parent.activeItem))
                 this.closePreview();
             this.updateUrlPath(ipfsData.path);
-            await this.onOpenFolder(ipfsData, true);
+            if (ipfsData.type === 'dir') {
+                await this.onOpenFolder(ipfsData, true);
+            }
+            else {
+                this.onOpenFile(ipfsData);
+            }
+        }
+        onOpenFile(ipfsData) {
+            this.previewFile(ipfsData);
         }
         onActionButton(target, actionButton, event) {
             this.currentItem = target.activeItem;
@@ -2710,6 +2741,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.isModal = this.getAttribute('isModal', true) || this._data.isModal || false;
             this.onOpen = this.getAttribute('onOpen', true) || this.onOpen;
             this.onCancel = this.getAttribute('onCancel', true) || this.onCancel;
+            this.isFileShown = this.getAttribute('isFileShown', true);
             this.classList.add(index_css_6.default);
             this.setTag(index_css_6.defaultColors);
             this.manager = new components_12.IPFS.FileManager({

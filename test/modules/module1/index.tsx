@@ -24,6 +24,7 @@ export default class Module1 extends Module {
                     id="scomStorage"
                     baseUrl='#/storage'
                     transportEndpoint="http://localhost:8088"
+                    isFileShown={true}
                 ></i-scom-storage>
             </i-panel>
         )

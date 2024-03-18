@@ -34,6 +34,8 @@ interface ScomStorageElement extends ControlElement {
     signer?: IPFS.ISigner;
     baseUrl?: string;
     isModal?: boolean;
+    mode?: 'viewer'|'editor';
+    isFileShown?: boolean;
     onOpen?: selectFileCallback;
     onCancel?: cancelCallback;
 }
@@ -166,6 +168,7 @@ export class ScomStorage extends Module {
     private _readOnly = false;
     private isInitializing = false;
     private _isModal: boolean = false;
+    private _isFileShown: boolean = false;
     private currentFile: string;
 
     onOpen: selectFileCallback;
@@ -200,6 +203,13 @@ export class ScomStorage extends Module {
 
     get signer() {
         return this._data.signer;
+    }
+
+    get isFileShown() {
+        return this._isFileShown ?? false;
+    }
+    set isFileShown(value: boolean) {
+        this._isFileShown = value ?? false;
     }
 
     setConfig(config: IStorageConfig) {
@@ -471,19 +481,33 @@ export class ScomStorage extends Module {
         for (let i = 0; i < items.length; i++) {
             if (items[i] != null) {
                 idx = idx + '/' + items[i];
-                if (!self._uploadedFileNodes[idx] && nodeData.type === 'dir') {
-                    node = self.uploadedFileTree.add(node, name);
-                    self._uploadedFileNodes[idx] = node;
-                    node.tag = nodeData;
-                    node.height = '2.125rem';
-                    node.icon.margin = { left: '0.388rem' };
-                    node.icon.name = 'chevron-circle-right';
-                    node.icon.fill = Theme.colors.primary.light;
-                    node.icon.visible = true;
-                    node.icon.display = 'inline-flex';
-                    const isActive = path ? nodeData.path === path : nodeData.root;
-                    if (nodeData.path === path) node.active = true;
-                    if (isActive || path?.startsWith(nodeData.path + "/")) node.expanded = true;
+                if (!self._uploadedFileNodes[idx]) {
+                    if (nodeData.type === 'dir') {
+                        node = self.uploadedFileTree.add(node, name);
+                        self._uploadedFileNodes[idx] = node;
+                        node.tag = nodeData;
+                        node.height = '2.125rem';
+                        node.icon.margin = { left: '0.388rem' };
+                        node.icon.name = 'chevron-circle-right';
+                        node.icon.fill = Theme.colors.primary.light;
+                        node.icon.visible = true;
+                        node.icon.display = 'inline-flex';
+                        const isActive = path ? nodeData.path === path : nodeData.root;
+                        if (nodeData.path === path) node.active = true;
+                        if (isActive || path?.startsWith(nodeData.path + "/")) node.expanded = true;
+                    }
+                    if (nodeData.type === 'file' && this.isFileShown) {
+                        node = self.uploadedFileTree.add(node, name);
+                        self._uploadedFileNodes[idx] = node;
+                        node.tag = nodeData;
+                        node.height = '2.125rem';
+                        node.icon.margin = { left: '0.388rem' };
+                        node.icon.name = 'file';
+                        node.icon.fill = Theme.colors.primary.light;
+                        node.icon.visible = true;
+                        node.icon.display = 'inline-flex';
+                        if (nodeData.path === path) node.active = true;
+                    }
                 } else {
                     node = self._uploadedFileNodes[idx];
                     if (node && node.tag && idx === `/${nodeData.path}`) node.tag.cid = nodeData.cid;
@@ -616,7 +640,15 @@ export class ScomStorage extends Module {
         const ipfsData = parent.activeItem?.tag;
         if (!prevNode?.isSameNode(parent.activeItem)) this.closePreview();
         this.updateUrlPath(ipfsData.path);
-        await this.onOpenFolder(ipfsData, true);
+        if (ipfsData.type === 'dir') {
+            await this.onOpenFolder(ipfsData, true);
+        } else {
+            this.onOpenFile(ipfsData);
+        }
+    }
+
+    private onOpenFile(ipfsData: IIPFSData) {
+        this.previewFile(ipfsData);
     }
 
     private onActionButton(target: TreeView, actionButton: Button, event: MouseEvent) {
@@ -1015,6 +1047,7 @@ export class ScomStorage extends Module {
         this.isModal = this.getAttribute('isModal', true) || this._data.isModal || false;
         this.onOpen = this.getAttribute('onOpen', true) || this.onOpen;
         this.onCancel = this.getAttribute('onCancel', true) || this.onCancel;
+        this.isFileShown = this.getAttribute('isFileShown', true);
         this.classList.add(customStyles);
         this.setTag(defaultColors);
         this.manager = new IPFS.FileManager({
