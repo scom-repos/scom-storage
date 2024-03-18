@@ -1950,14 +1950,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             return this._data;
         }
         async onShow() {
-            const { cid } = this.extractUrl();
-            if (!cid) {
-                this.manager.reset();
-                try {
-                    await this.manager.setRootCid('');
-                }
-                catch (err) { }
+            this.manager.reset();
+            try {
+                await this.manager.setRootCid('');
             }
+            catch (err) { }
             await this.initContent();
         }
         getConfigurators() {
@@ -2065,7 +2062,9 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             if (this.isModal)
                 return;
             let baseUrl = this.baseUrl ? this.baseUrl + (this.baseUrl[this.baseUrl.length - 1] == '/' ? '' : '/') : '#/';
-            let url = baseUrl + this.rootCid;
+            let url = baseUrl;
+            if (this.rootCid)
+                url += this.rootCid;
             if (path)
                 url += path;
             history.replaceState({}, "", url);
@@ -2089,11 +2088,17 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 return;
             this.isInitializing = true;
             const { cid, path } = this.extractUrl();
-            let rootNode = await this.manager.getRootNode();
-            this.rootCid = this.currentCid = rootNode.cid;
-            this.readOnly = this.isModal || (cid && cid !== this.rootCid);
+            let rootNode;
+            try {
+                rootNode = await this.manager.getRootNode();
+            }
+            catch (err) {
+                console.log(err);
+            }
+            this.rootCid = this.currentCid = rootNode?.cid;
+            this.readOnly = this.isModal || !this.rootCid || (cid && cid !== this.rootCid);
             if (!this.isModal) {
-                if (this.readOnly) {
+                if (this.readOnly && cid) {
                     rootNode = await this.manager.setRootCid(cid);
                     if (rootNode)
                         this.rootCid = cid;
@@ -2102,7 +2107,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     this.updateUrlPath();
                 }
             }
-            const ipfsData = rootNode.cidInfo;
+            const ipfsData = rootNode?.cidInfo;
             if (ipfsData) {
                 this.renderUI(ipfsData, path);
             }
