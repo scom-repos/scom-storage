@@ -15,12 +15,16 @@ import {
     TableColumn,
     Label,
     Modal,
-    VStack
+    VStack,
+    Container
 } from '@ijstech/components';
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
-import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview, LoadingSpinner } from './components';
+import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview, LoadingSpinner, ScomIPFSEditor } from './components';
+import { Editor, IFileHandler, Viewer } from './file';
 import customStyles, { defaultColors, dragAreaStyle, iconButtonStyled, previewModalStyle, selectedRowStyle } from './index.css';
+
+export { IFileHandler, IIPFSData };
 
 declare var require: any
 
@@ -34,7 +38,6 @@ interface ScomStorageElement extends ControlElement {
     signer?: IPFS.ISigner;
     baseUrl?: string;
     isModal?: boolean;
-    mode?: 'viewer'|'editor';
     isFileShown?: boolean;
     onOpen?: selectFileCallback;
     onCancel?: cancelCallback;
@@ -73,7 +76,10 @@ export class ScomStorage extends Module {
     private pnlLoading: VStack;
     private loadingSpinner: LoadingSpinner;
     private pnlFooter: Panel;
-    private pnlStorage: Panel;
+    private pnlCustom: Panel;
+
+    private fileEditors: Map<string, IFileHandler> = new Map();
+    private fileViewers: Map<string, IFileHandler> = new Map();
 
     private static instance: ScomStorage;
     public static getInstance() {
@@ -174,6 +180,13 @@ export class ScomStorage extends Module {
     onOpen: selectFileCallback;
     onCancel: cancelCallback;
 
+    constructor(parent?: Container, options?: any) {
+		super(parent, options);
+        this.onCellDblClick = this.onCellDblClick.bind(this);
+        this.registerDefaultEditors();
+        this.registerDefaultViewers();
+	};
+
     get baseUrl(): string {
         return this._baseUrl;
     }
@@ -228,6 +241,51 @@ export class ScomStorage extends Module {
 
     getConfig() {
         return this._data;
+    }
+
+    private registerDefaultEditors(): void {
+        this.registerEditor("md", new ScomIPFSEditor());
+        this.registerEditor("js", new Editor());
+    }
+
+    private registerDefaultViewers(): void {
+        this.registerViewer("mp4", new Viewer());
+        this.registerViewer("jpg", new Viewer());
+        this.registerViewer("jpeg", new Viewer());
+        this.registerViewer("png", new Viewer());
+        this.registerViewer("gif", new Viewer());
+        this.registerViewer("svg", new Viewer());
+    }
+
+    registerEditor(fileType: string, editor: IFileHandler): void {
+        this.fileEditors.set(fileType, editor);
+    }
+
+    registerViewer(fileType: string, viewer: IFileHandler): void {
+        this.fileViewers.set(fileType, viewer);
+    }
+
+    async openFile(ipfsData: IIPFSData) {
+        if (!ipfsData) return;
+        if (ipfsData.type === 'dir') {
+            this.pnlCustom.visible = false;
+            this.ieContent.visible = true;
+            await this.onOpenFolder(ipfsData, true);
+        } else {
+            this.pnlCustom.visible = true;
+            this.ieContent.visible = false;
+            this.pnlCustom.clearInnerHTML();
+            const fileType = this.getFileType(ipfsData.name);
+            if (this.fileEditors.has(fileType)) {
+                this.fileEditors.get(fileType)?.openFile(ipfsData, this.pnlCustom);
+            } else if (this.fileViewers.has(fileType)) {
+                this.fileViewers.get(fileType)?.openFile(ipfsData, this.pnlCustom);
+            }
+        }
+    }
+
+    private getFileType(name: string) {
+        return (name || '').split('.').pop().toLowerCase();
     }
 
     private async setData(value: IStorageConfig) {
@@ -646,15 +704,7 @@ export class ScomStorage extends Module {
         const ipfsData = parent.activeItem?.tag;
         if (!prevNode?.isSameNode(parent.activeItem)) this.closePreview();
         this.updateUrlPath(ipfsData.path);
-        if (ipfsData.type === 'dir') {
-            await this.onOpenFolder(ipfsData, true);
-        } else {
-            this.onOpenFile(ipfsData);
-        }
-    }
-
-    private onOpenFile(ipfsData: IIPFSData) {
-        this.previewFile(ipfsData);
+        await this.openFile(ipfsData);
     }
 
     private onActionButton(target: TreeView, actionButton: Button, event: MouseEvent) {
@@ -755,7 +805,7 @@ export class ScomStorage extends Module {
         await this.manager.applyUpdates();
         await this.onFilesUploaded();
         this.hideLoadingSpinner();
-    }
+    }
 
     private async onOpenFolder(ipfsData: any, toggle: boolean) {
         if (ipfsData) {
@@ -822,6 +872,7 @@ export class ScomStorage extends Module {
             this.previewFile(record);
         }
     }
+    
 
     private previewFile(record: IPreview) {
         if (this.isModal) {
@@ -857,6 +908,11 @@ export class ScomStorage extends Module {
             this.pnlPreview.visible = true;
             this.btnUpload.right = '23.125rem';
         }
+    }
+
+    private onCellDblClick(target: Control, event: MouseEvent) {
+        // TODO
+        console.log('ta', target)
     }
 
     private closePreview() {
@@ -1203,6 +1259,7 @@ export class ScomStorage extends Module {
                                                     cursor: 'pointer'
                                                 }}
                                                 onCellClick={this.onCellClick}
+                                                onDblClick={this.onCellDblClick}
                                             ></i-table>
                                         </i-panel>
                                         <i-panel
@@ -1228,6 +1285,13 @@ export class ScomStorage extends Module {
                                         </i-panel>
                                     </i-panel>
                                 </i-vstack>
+                                <i-vstack
+                                    id="pnlCustom"
+                                    visible={false}
+                                    dock='fill'
+                                    height={'100%'}
+                                    overflow={{ y: 'auto' }}
+                                ></i-vstack>
                                 <i-panel
                                     id="pnlPreview"
                                     border={{left: {width: '1px', style: 'solid', color: Theme.divider}}}

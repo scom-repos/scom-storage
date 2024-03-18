@@ -6,10 +6,13 @@ import {
   Module,
   Panel,
   Styles,
-  Alert
+  Alert,
+  Control
 } from '@ijstech/components'
 import { getEmbedElement } from '../utils';
 import { addressPanelStyle } from './index.css';
+import { IFileHandler } from '../file';
+import { IIPFSData } from '../interface';
 const Theme = Styles.Theme.ThemeVars
 
 interface IEditor {
@@ -30,7 +33,7 @@ declare global {
 }
 
 @customElements('i-scom-ipfs--editor')
-export class ScomIPFSEditor extends Module {
+export class ScomIPFSEditor extends Module implements IFileHandler {
   private pnlEditor: Panel;
   private editorEl: any;
   private btnSave: Button;
@@ -69,6 +72,13 @@ export class ScomIPFSEditor extends Module {
     this.btnSave.enabled = false;
     this.initialContent = '';
     this.renderUI()
+  }
+
+  openFile(file: IIPFSData, parent: Control) {
+    // TODO: for test
+    parent.append(this);
+    this.data = { content: '1111111' }
+    this.renderUI();
   }
 
   private async renderUI() {
