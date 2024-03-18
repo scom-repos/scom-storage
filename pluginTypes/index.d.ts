@@ -19,6 +19,7 @@ declare module "@scom/scom-storage/interface.ts" {
     export interface IStorageConfig {
         transportEndpoint?: string;
         signer?: IPFS.ISigner;
+        isModal?: boolean;
     }
     export interface IPreview extends IIPFSData {
         transportEndpoint?: string;
@@ -479,11 +480,16 @@ declare module "@scom/scom-storage/index.css.ts" {
 /// <amd-module name="@scom/scom-storage" />
 declare module "@scom/scom-storage" {
     import { Module, ControlElement, IDataSchema, IPFS } from '@ijstech/components';
-    import { IIPFSData } from "@scom/scom-storage/interface.ts";
+    import { IIPFSData, IStorageConfig } from "@scom/scom-storage/interface.ts";
+    type selectFileCallback = (path: string) => void;
+    type cancelCallback = () => void;
     interface ScomStorageElement extends ControlElement {
         transportEndpoint?: string;
         signer?: IPFS.ISigner;
         baseUrl?: string;
+        isModal?: boolean;
+        onOpen?: selectFileCallback;
+        onCancel?: cancelCallback;
     }
     global {
         namespace JSX {
@@ -506,6 +512,10 @@ declare module "@scom/scom-storage" {
         private mdActions;
         private pnlLoading;
         private loadingSpinner;
+        private pnlFooter;
+        private pnlStorage;
+        private static instance;
+        static getInstance(): ScomStorage;
         tag: any;
         private _data;
         private pnlFileTable;
@@ -516,8 +526,6 @@ declare module "@scom/scom-storage" {
         private columns;
         private _uploadedTreeData;
         private _uploadedFileNodes;
-        private transportEndpoint;
-        private signer;
         private currentCid;
         private rootCid;
         private _baseUrl;
@@ -526,10 +534,20 @@ declare module "@scom/scom-storage" {
         private counter;
         private _readOnly;
         private isInitializing;
+        private _isModal;
+        private currentFile;
+        onOpen: selectFileCallback;
+        onCancel: cancelCallback;
         get baseUrl(): string;
         set baseUrl(url: string);
         private get readOnly();
         private set readOnly(value);
+        get isModal(): boolean;
+        set isModal(value: boolean);
+        get transportEndpoint(): string;
+        get signer(): IPFS.ISigner;
+        setConfig(config: IStorageConfig): void;
+        getConfig(): IStorageConfig;
         private setData;
         private getData;
         onShow(): Promise<void>;
@@ -601,6 +619,8 @@ declare module "@scom/scom-storage" {
         private readEntriesPromise;
         private readEntryContentAsync;
         private getAllFileEntries;
+        private onOpenHandler;
+        private onCancelHandler;
         init(): void;
         render(): any;
     }

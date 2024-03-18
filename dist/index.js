@@ -1817,10 +1817,11 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
 });
 define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_12, data_3, components_13, index_css_6) {
     "use strict";
+    var ScomStorage_1;
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomStorage = void 0;
     const Theme = components_12.Styles.Theme.ThemeVars;
-    let ScomStorage = class ScomStorage extends components_12.Module {
+    let ScomStorage = ScomStorage_1 = class ScomStorage extends components_12.Module {
         constructor() {
             super(...arguments);
             this.tag = {
@@ -1890,6 +1891,13 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.counter = 0;
             this._readOnly = false;
             this.isInitializing = false;
+            this._isModal = false;
+        }
+        static getInstance() {
+            if (!ScomStorage_1.instance) {
+                ScomStorage_1.instance = new ScomStorage_1();
+            }
+            return ScomStorage_1.instance;
         }
         get baseUrl() {
             return this._baseUrl;
@@ -1904,6 +1912,29 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         set readOnly(value) {
             this._readOnly = value;
             this.btnUpload.visible = this.btnUpload.enabled = !value;
+        }
+        get isModal() {
+            return this._isModal;
+        }
+        ;
+        set isModal(value) {
+            this._isModal = value;
+        }
+        get transportEndpoint() {
+            return this._data.transportEndpoint;
+        }
+        get signer() {
+            return this._data.signer;
+        }
+        setConfig(config) {
+            this._data = config;
+            this.manager = new components_12.IPFS.FileManager({
+                endpoint: this._data.transportEndpoint,
+                signer: this._data.signer
+            });
+        }
+        getConfig() {
+            return this._data;
         }
         async setData(value) {
             this._data = value;
@@ -2025,6 +2056,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.updateStyle('--action-hover', this.tag[themeVar]?.hover);
         }
         updateUrlPath(path) {
+            if (this.isModal)
+                return;
             let baseUrl = this.baseUrl ? this.baseUrl + (this.baseUrl[this.baseUrl.length - 1] == '/' ? '' : '/') : '#/';
             let url = baseUrl + this.rootCid;
             if (path)
@@ -2045,20 +2078,23 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             return { cid, path: paths.length ? '/' + paths.join('/') : '' };
         }
         async initContent() {
+            this.pnlFooter.visible = this.isModal;
             if (!this.manager || this.isInitializing)
                 return;
             this.isInitializing = true;
             const { cid, path } = this.extractUrl();
             let rootNode = await this.manager.getRootNode();
             this.rootCid = this.currentCid = rootNode.cid;
-            this.readOnly = cid && cid !== this.rootCid;
-            if (this.readOnly) {
-                rootNode = await this.manager.setRootCid(cid);
-                if (rootNode)
-                    this.rootCid = cid;
-            }
-            else if (!cid) {
-                this.updateUrlPath();
+            this.readOnly = this.isModal || (cid && cid !== this.rootCid);
+            if (!this.isModal) {
+                if (this.readOnly) {
+                    rootNode = await this.manager.setRootCid(cid);
+                    if (rootNode)
+                        this.rootCid = cid;
+                }
+                else if (!cid) {
+                    this.updateUrlPath();
+                }
             }
             const ipfsData = rootNode.cidInfo;
             if (ipfsData) {
@@ -2448,6 +2484,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.onOpenFolder(record, true);
             }
             else {
+                this.currentFile = `${record.name}`;
                 if (this.selectedRow)
                     this.selectedRow.classList.remove(index_css_6.selectedRowStyle);
                 this.selectedRow = this.fileTable.querySelector(`tr[data-index="${rowIndex}"]`);
@@ -2456,6 +2493,10 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             }
         }
         previewFile(record) {
+            if (this.isModal) {
+                this.pnlPreview.visible = false;
+                return;
+            }
             this.pnlPreview.visible = true;
             const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
             this.iePreview.setData({ ...record, transportEndpoint: this.transportEndpoint, parentCid: currentCid });
@@ -2486,23 +2527,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     this.pnlPreview.appendChild(this.iePreview);
                 this.pnlPreview.visible = true;
                 this.btnUpload.right = '23.125rem';
-                // this.gridWrapper.templateColumns = [
-                //     '15rem',
-                //     '1px',
-                //     'auto',
-                //     '1px',
-                //     '20rem'
-                // ]
             }
         }
         closePreview() {
             this.pnlPreview.visible = false;
             this.btnUpload.right = '3.125rem';
-            // this.gridWrapper.templateColumns = [
-            //     '15rem',
-            //     '1px',
-            //     '1fr'
-            // ]
         }
         openEditor() {
             this.ieSidebar.visible = false;
@@ -2663,19 +2692,32 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             }
             return Promise.all(fileEntries.map((entry) => this.readEntryContentAsync(entry)));
         }
+        onOpenHandler() {
+            const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
+            const url = `${this.transportEndpoint}/ipfs/${currentCid}/${this.currentFile}`; // `${this.transportEndpoint}/${this.currentPath}`;
+            if (this.onOpen)
+                this.onOpen(url);
+        }
+        onCancelHandler() {
+            if (this.onCancel)
+                this.onCancel();
+        }
         init() {
-            this.transportEndpoint = this.getAttribute('transportEndpoint', true) || window.location.origin;
-            this.signer = this.getAttribute('signer', true);
+            const transportEndpoint = this.getAttribute('transportEndpoint', true) || this._data?.transportEndpoint || window.location.origin;
+            const signer = this.getAttribute('signer', true) || this._data?.signer || null;
             this.baseUrl = this.getAttribute('baseUrl', true);
             super.init();
+            this.isModal = this.getAttribute('isModal', true) || this._data.isModal || false;
+            this.onOpen = this.getAttribute('onOpen', true) || this.onOpen;
+            this.onCancel = this.getAttribute('onCancel', true) || this.onCancel;
             this.classList.add(index_css_6.default);
             this.setTag(index_css_6.defaultColors);
             this.manager = new components_12.IPFS.FileManager({
-                endpoint: this.transportEndpoint,
-                signer: this.signer
+                endpoint: transportEndpoint,
+                signer: signer
             });
-            if (this.transportEndpoint)
-                this.setData({ transportEndpoint: this.transportEndpoint, signer: this.signer });
+            if (transportEndpoint)
+                this.setData({ transportEndpoint, signer, isModal: this.isModal });
             this.handleOnDragEnter = this.handleOnDragEnter.bind(this);
             this.handleOnDragOver = this.handleOnDragOver.bind(this);
             this.handleOnDragLeave = this.handleOnDragLeave.bind(this);
@@ -2687,77 +2729,81 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.initModalActions();
         }
         render() {
-            return (this.$render("i-panel", { height: '100%', width: '100%' },
-                this.$render("i-vstack", { id: "pnlLoading", visible: false }),
-                this.$render("i-scom-ipfs--mobile-home", { id: "mobileHome", width: '100%', minHeight: '100vh', display: 'block', background: { color: Theme.background.main }, onPreview: this.previewFile.bind(this), transportEndpoint: this.transportEndpoint, signer: this.signer, visible: false, mediaQueries: [
-                        {
-                            maxWidth: '767px',
-                            properties: {
-                                visible: true
+            return (this.$render("i-vstack", { width: '100%', height: '100%', overflow: 'hidden' },
+                this.$render("i-panel", { id: "pnlStorage", height: '100%', width: '100%', stack: { grow: '1' }, overflow: { y: 'auto' } },
+                    this.$render("i-vstack", { id: "pnlLoading", visible: false }),
+                    this.$render("i-scom-ipfs--mobile-home", { id: "mobileHome", width: '100%', minHeight: '100vh', display: 'block', background: { color: Theme.background.main }, onPreview: this.previewFile.bind(this), transportEndpoint: this.transportEndpoint, signer: this.signer, visible: false, mediaQueries: [
+                            {
+                                maxWidth: '767px',
+                                properties: {
+                                    visible: true
+                                }
                             }
-                        }
-                    ] }),
-                this.$render("i-vstack", { height: '100%', width: '100%', overflow: 'hidden', maxHeight: '100vh', background: { color: Theme.background.main }, mediaQueries: [
-                        {
-                            maxWidth: '767px',
-                            properties: {
-                                visible: false,
-                                maxWidth: '100%'
+                        ] }),
+                    this.$render("i-vstack", { height: '100%', width: '100%', overflow: 'hidden', maxHeight: '100vh', background: { color: Theme.background.main }, mediaQueries: [
+                            {
+                                maxWidth: '767px',
+                                properties: {
+                                    visible: false,
+                                    maxWidth: '100%'
+                                }
                             }
-                        }
-                    ] },
-                    this.$render("i-panel", { stack: { grow: '1', basis: '0%' }, overflow: 'hidden' },
-                        this.$render("i-grid-layout", { id: 'gridWrapper', height: '100%', width: '100%', overflow: 'hidden', position: 'relative', templateColumns: ['15rem', '1px', '1fr'], background: { color: Theme.background.main } },
-                            this.$render("i-vstack", { id: 'ieSidebar', resizer: true, dock: "left", height: '100%', overflow: { y: 'auto', x: 'hidden' }, minWidth: '10rem', width: '15rem', maxWidth: 'calc(100% - 35rem)', border: { right: { width: '1px', style: 'solid', color: Theme.divider } } },
-                                this.$render("i-tree-view", { id: "uploadedFileTree", class: "file-manager-tree uploaded", stack: { grow: '1' }, maxHeight: '100%', overflow: 'auto', editable: true, actionButtons: [
-                                        {
-                                            caption: `<i-icon name="ellipsis-h" width=${14} height=${14} class="inline-flex"></i-icon>`,
-                                            tag: 'actions',
-                                            class: 'btn-actions'
-                                        },
-                                        {
-                                            caption: `<i-icon name="folder-plus" width=${14} height=${14} class="inline-flex"></i-icon>`,
-                                            tag: 'folder',
-                                            class: 'btn-folder'
-                                        }
-                                    ], onActionButtonClick: this.onActionButton, onActiveChange: this.onActiveChange, onChange: this.onNameChange })),
-                            this.$render("i-vstack", { id: 'ieContent', dock: 'fill', height: '100%', overflow: { y: 'auto' } },
-                                this.$render("i-scom-ipfs--path", { id: "pnlPath", display: 'flex', width: '100%', padding: { left: '1rem', right: '1rem' }, onItemClicked: this.onBreadcrumbClick }),
-                                this.$render("i-panel", { width: '100%', height: 'auto', stack: { grow: "1" }, position: "relative", border: {
-                                        top: { width: '0.0625rem', style: 'solid', color: Theme.colors.primary.contrastText }
-                                    } },
-                                    this.$render("i-panel", { id: "pnlFileTable", height: "100%" },
-                                        this.$render("i-table", { id: "fileTable", heading: true, columns: this.columns, headingStyles: {
-                                                font: { size: '0.75rem', weight: 700, color: Theme.text.primary },
-                                                padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' },
-                                                height: '2rem',
-                                                background: { color: '#f8f9fa' }
-                                            }, bodyStyles: {
-                                                font: { size: '0.75rem', color: Theme.text.primary },
-                                                padding: { top: '0.375rem', bottom: '0.375rem', left: '0.5rem', right: '0.5rem' },
-                                                height: '2.25rem',
-                                                cursor: 'pointer'
-                                            }, onCellClick: this.onCellClick })),
-                                    this.$render("i-panel", { id: "pnlUploadTo", width: "fit-content", class: "text-center", padding: { top: '0.75rem', bottom: '0.75rem', left: '1.5rem', right: '1.5rem' }, margin: { left: 'auto', right: 'auto' }, border: { radius: 6 }, background: { color: '#0288d1' }, lineHeight: 1.5, position: "absolute", bottom: "1.5rem", left: 0, right: 0, visible: false },
-                                        this.$render("i-label", { caption: "Upload files to", font: { size: '15px', color: '#fff' } }),
-                                        this.$render("i-hstack", { horizontalAlignment: "center", verticalAlignment: "center", gap: "0.375rem" },
-                                            this.$render("i-icon", { name: "folder", width: '0.875rem', height: '0.875rem', display: "inline-flex", fill: '#fff' }),
-                                            this.$render("i-label", { id: "lblDestinationFolder", font: { size: '15px', color: '#fff' } }))))),
-                            this.$render("i-panel", { id: "pnlPreview", border: { left: { width: '1px', style: 'solid', color: Theme.divider } }, width: '20rem', dock: 'right', visible: false },
-                                this.$render("i-scom-ipfs--preview", { id: "iePreview", width: '100%', height: '100%', display: 'block', onClose: this.closePreview.bind(this), onOpenEditor: this.openEditor.bind(this), onCloseEditor: this.closeEditor.bind(this), onFileChanged: this.onSubmit.bind(this) }))))),
-                this.$render("i-button", { id: "btnUpload", boxShadow: '0 10px 25px -5px rgba(44, 179, 240, 0.6)', border: { radius: '50%' }, background: { color: Theme.colors.primary.light }, lineHeight: '3.375rem', width: '3.375rem', height: '3.375rem', icon: { name: 'plus', width: '1.125rem', height: ' 1.125rem', fill: Theme.colors.primary.contrastText }, position: 'absolute', bottom: '3.125rem', right: '3.125rem', zIndex: 100, onClick: this.handleUploadButtonClick, mediaQueries: [
-                        {
-                            maxWidth: '767px',
-                            properties: {
-                                position: 'fixed',
-                                bottom: '4rem',
-                                right: '1.25rem'
+                        ] },
+                        this.$render("i-panel", { stack: { grow: '1', basis: '0%' }, overflow: 'hidden' },
+                            this.$render("i-grid-layout", { id: 'gridWrapper', height: '100%', width: '100%', overflow: 'hidden', position: 'relative', templateColumns: ['15rem', '1fr'], background: { color: Theme.background.main } },
+                                this.$render("i-vstack", { id: 'ieSidebar', resizer: true, dock: "left", height: '100%', overflow: { y: 'auto', x: 'hidden' }, minWidth: '10rem', width: '15rem', maxWidth: 'calc(100% - 35rem)', border: { right: { width: '1px', style: 'solid', color: Theme.divider } } },
+                                    this.$render("i-tree-view", { id: "uploadedFileTree", class: "file-manager-tree uploaded", stack: { grow: '1' }, maxHeight: '100%', overflow: 'auto', editable: true, actionButtons: [
+                                            {
+                                                caption: `<i-icon name="ellipsis-h" width=${14} height=${14} class="inline-flex"></i-icon>`,
+                                                tag: 'actions',
+                                                class: 'btn-actions'
+                                            },
+                                            {
+                                                caption: `<i-icon name="folder-plus" width=${14} height=${14} class="inline-flex"></i-icon>`,
+                                                tag: 'folder',
+                                                class: 'btn-folder'
+                                            }
+                                        ], onActionButtonClick: this.onActionButton, onActiveChange: this.onActiveChange, onChange: this.onNameChange })),
+                                this.$render("i-vstack", { id: 'ieContent', dock: 'fill', height: '100%', overflow: { y: 'auto' } },
+                                    this.$render("i-scom-ipfs--path", { id: "pnlPath", display: 'flex', width: '100%', padding: { left: '1rem', right: '1rem' }, onItemClicked: this.onBreadcrumbClick }),
+                                    this.$render("i-panel", { width: '100%', height: 'auto', stack: { grow: "1" }, position: "relative", border: {
+                                            top: { width: '0.0625rem', style: 'solid', color: Theme.colors.primary.contrastText }
+                                        } },
+                                        this.$render("i-panel", { id: "pnlFileTable", height: "100%" },
+                                            this.$render("i-table", { id: "fileTable", heading: true, columns: this.columns, headingStyles: {
+                                                    font: { size: '0.75rem', weight: 700, color: Theme.text.primary },
+                                                    padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' },
+                                                    height: '2rem',
+                                                    background: { color: '#f8f9fa' }
+                                                }, bodyStyles: {
+                                                    font: { size: '0.75rem', color: Theme.text.primary },
+                                                    padding: { top: '0.375rem', bottom: '0.375rem', left: '0.5rem', right: '0.5rem' },
+                                                    height: '2.25rem',
+                                                    cursor: 'pointer'
+                                                }, onCellClick: this.onCellClick })),
+                                        this.$render("i-panel", { id: "pnlUploadTo", width: "fit-content", class: "text-center", padding: { top: '0.75rem', bottom: '0.75rem', left: '1.5rem', right: '1.5rem' }, margin: { left: 'auto', right: 'auto' }, border: { radius: 6 }, background: { color: '#0288d1' }, lineHeight: 1.5, position: "absolute", bottom: "1.5rem", left: 0, right: 0, visible: false },
+                                            this.$render("i-label", { caption: "Upload files to", font: { size: '15px', color: '#fff' } }),
+                                            this.$render("i-hstack", { horizontalAlignment: "center", verticalAlignment: "center", gap: "0.375rem" },
+                                                this.$render("i-icon", { name: "folder", width: '0.875rem', height: '0.875rem', display: "inline-flex", fill: '#fff' }),
+                                                this.$render("i-label", { id: "lblDestinationFolder", font: { size: '15px', color: '#fff' } }))))),
+                                this.$render("i-panel", { id: "pnlPreview", border: { left: { width: '1px', style: 'solid', color: Theme.divider } }, width: '20rem', dock: 'right', visible: false },
+                                    this.$render("i-scom-ipfs--preview", { id: "iePreview", width: '100%', height: '100%', display: 'block', onClose: this.closePreview.bind(this), onOpenEditor: this.openEditor.bind(this), onCloseEditor: this.closeEditor.bind(this), onFileChanged: this.onSubmit.bind(this) }))))),
+                    this.$render("i-button", { id: "btnUpload", boxShadow: '0 10px 25px -5px rgba(44, 179, 240, 0.6)', border: { radius: '50%' }, background: { color: Theme.colors.primary.light }, lineHeight: '3.375rem', width: '3.375rem', height: '3.375rem', icon: { name: 'plus', width: '1.125rem', height: ' 1.125rem', fill: Theme.colors.primary.contrastText }, position: 'absolute', bottom: '3.125rem', right: '3.125rem', zIndex: 100, onClick: this.handleUploadButtonClick, mediaQueries: [
+                            {
+                                maxWidth: '767px',
+                                properties: {
+                                    position: 'fixed',
+                                    bottom: '4rem',
+                                    right: '1.25rem'
+                                }
                             }
-                        }
-                    ] })));
+                        ] })),
+                this.$render("i-hstack", { id: "pnlFooter", horizontalAlignment: 'end', gap: "0.75rem", stack: { shrink: '0' }, padding: { top: '1rem', bottom: '1rem' }, visible: false },
+                    this.$render("i-button", { id: "btnSubmit", height: '2.25rem', padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true, size: '1rem' }, border: { radius: '0.25rem' }, caption: "Open", onClick: this.onOpenHandler }),
+                    this.$render("i-button", { id: "btnCancel", height: '2.25rem', padding: { left: '1rem', right: '1rem' }, background: { color: 'transparent' }, font: { color: Theme.text.primary, bold: true, size: '1rem' }, border: { radius: '0.25rem' }, caption: "Cancel", onClick: this.onCancelHandler }))));
         }
     };
-    ScomStorage = __decorate([
+    ScomStorage = ScomStorage_1 = __decorate([
         (0, components_12.customElements)('i-scom-storage')
     ], ScomStorage);
     exports.ScomStorage = ScomStorage;
