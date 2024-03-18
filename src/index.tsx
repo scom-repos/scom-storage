@@ -200,9 +200,15 @@ export class ScomStorage extends Module {
     get transportEndpoint() {
         return this._data.transportEndpoint;
     }
+    set transportEndpoint(value) {
+        this._data.transportEndpoint = value;
+    }
 
     get signer() {
         return this._data.signer;
+    }
+    set signer(value) {
+        this._data.signer = value;
     }
 
     get isFileShown() {
@@ -421,7 +427,7 @@ export class ScomStorage extends Module {
         let tableData = ipfsData;
         this.pnlPath.clear();
         if (parentNode.name) this.pnlPath.setData(parentNode);
-        if (path) {
+        if (path && !this.isModal) {
             let items = path.split('/');
             for (let i = 1; i < items.length; i++) {
                 if (!items[i]) continue;

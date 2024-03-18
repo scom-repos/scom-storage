@@ -1924,8 +1924,14 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         get transportEndpoint() {
             return this._data.transportEndpoint;
         }
+        set transportEndpoint(value) {
+            this._data.transportEndpoint = value;
+        }
         get signer() {
             return this._data.signer;
+        }
+        set signer(value) {
+            this._data.signer = value;
         }
         get isFileShown() {
             return this._isFileShown ?? false;
@@ -2135,7 +2141,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.pnlPath.clear();
             if (parentNode.name)
                 this.pnlPath.setData(parentNode);
-            if (path) {
+            if (path && !this.isModal) {
                 let items = path.split('/');
                 for (let i = 1; i < items.length; i++) {
                     if (!items[i])
@@ -2210,7 +2216,6 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                             if (isActive || path?.startsWith(nodeData.path + "/"))
                                 node.expanded = true;
                         }
-                        console.log('__________', this.isFileShown);
                         if (nodeData.type === 'file' && this.isFileShown) {
                             node = self.uploadedFileTree.add(node, name);
                             self._uploadedFileNodes[idx] = node;
