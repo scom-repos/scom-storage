@@ -545,7 +545,9 @@ declare module "@scom/scom-storage" {
         get isModal(): boolean;
         set isModal(value: boolean);
         get transportEndpoint(): string;
+        set transportEndpoint(value: string);
         get signer(): IPFS.ISigner;
+        set signer(value: IPFS.ISigner);
         setConfig(config: IStorageConfig): void;
         getConfig(): IStorageConfig;
         private setData;

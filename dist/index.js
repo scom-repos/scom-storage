@@ -1923,8 +1923,14 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         get transportEndpoint() {
             return this._data.transportEndpoint;
         }
+        set transportEndpoint(value) {
+            this._data.transportEndpoint = value;
+        }
         get signer() {
             return this._data.signer;
+        }
+        set signer(value) {
+            this._data.signer = value;
         }
         setConfig(config) {
             this._data = config;
@@ -2128,7 +2134,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.pnlPath.clear();
             if (parentNode.name)
                 this.pnlPath.setData(parentNode);
-            if (path) {
+            if (path && !this.isModal) {
                 let items = path.split('/');
                 for (let i = 1; i < items.length; i++) {
                     if (!items[i])
