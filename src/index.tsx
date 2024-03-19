@@ -298,13 +298,10 @@ export class ScomStorage extends Module {
     }
 
     async onShow() {
-        const { cid } = this.extractUrl();
-        if (!cid) {
-            this.manager.reset();
-            try {
-                await this.manager.setRootCid('');
-            } catch (err) {}
-        }
+        this.manager.reset();
+        try {
+            await this.manager.setRootCid('');
+        } catch (err) {}
         await this.initContent();
     }
 
@@ -417,7 +414,8 @@ export class ScomStorage extends Module {
     private updateUrlPath(path?: string) {
         if (this.isModal) return;
         let baseUrl = this.baseUrl ? this.baseUrl + (this.baseUrl[this.baseUrl.length - 1] == '/' ? '' : '/') : '#/';
-        let url = baseUrl + this.rootCid;
+        let url = baseUrl;
+        if (this.rootCid) url += this.rootCid;
         if (path) url += path;
         history.replaceState({}, "", url);
     }
@@ -440,18 +438,23 @@ export class ScomStorage extends Module {
         if (!this.manager || this.isInitializing) return;
         this.isInitializing = true;
         const { cid, path } = this.extractUrl();
-        let rootNode = await this.manager.getRootNode();
-        this.rootCid = this.currentCid = rootNode.cid;
-        this.readOnly = this.isModal || (cid && cid !== this.rootCid);
+        let rootNode;
+        try {
+            rootNode = await this.manager.getRootNode();
+        } catch (err) {
+            console.log(err);
+        }
+        this.rootCid = this.currentCid = rootNode?.cid;
+        this.readOnly = this.isModal || !this.rootCid || (cid && cid !== this.rootCid);
         if (!this.isModal) {
-            if (this.readOnly) {
+            if (this.readOnly && cid) {
                 rootNode = await this.manager.setRootCid(cid);
                 if (rootNode) this.rootCid = cid;
             } else if (!cid) {
                 this.updateUrlPath();
             }
         }
-        const ipfsData = rootNode.cidInfo as IIPFSData;
+        const ipfsData = rootNode?.cidInfo as IIPFSData;
         if (ipfsData) {
             this.renderUI(ipfsData, path);
         }
