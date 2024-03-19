@@ -301,9 +301,26 @@ declare module "@scom/scom-storage/utils.ts" {
     import { Control } from "@ijstech/components";
     export const getEmbedElement: (moduleData: any, parent: Control, callback?: any) => Promise<any>;
 }
+/// <amd-module name="@scom/scom-storage/file.ts" />
+declare module "@scom/scom-storage/file.ts" {
+    import { Control } from "@ijstech/components";
+    import { IIPFSData } from "@scom/scom-storage/interface.ts";
+    interface IFileHandler {
+        openFile(file: IIPFSData, transportEndpoint: string, parentCid: string, parent: Control): Promise<void>;
+    }
+    class Editor implements IFileHandler {
+        openFile(file: IIPFSData, transportEndpoint: string, parentCid: string, parent: Control): Promise<void>;
+    }
+    class Viewer implements IFileHandler {
+        openFile(file: IIPFSData, transportEndpoint: string, parentCid: string, parent: Control): Promise<void>;
+    }
+    export { Editor, Viewer, IFileHandler };
+}
 /// <amd-module name="@scom/scom-storage/components/editor.tsx" />
 declare module "@scom/scom-storage/components/editor.tsx" {
-    import { Container, ControlElement, Module } from '@ijstech/components';
+    import { Container, ControlElement, Module, Control } from '@ijstech/components';
+    import { IFileHandler } from "@scom/scom-storage/file.ts";
+    import { IIPFSData } from "@scom/scom-storage/interface.ts";
     interface IEditor {
         content?: string;
     }
@@ -319,7 +336,7 @@ declare module "@scom/scom-storage/components/editor.tsx" {
             }
         }
     }
-    export class ScomIPFSEditor extends Module {
+    export class ScomIPFSEditor extends Module implements IFileHandler {
         private pnlEditor;
         private editorEl;
         private btnSave;
@@ -333,6 +350,7 @@ declare module "@scom/scom-storage/components/editor.tsx" {
         get data(): IEditor;
         set data(value: IEditor);
         setData(value: IEditor): void;
+        openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control): Promise<void>;
         private renderUI;
         private createTextEditorElement;
         private onCancel;
@@ -479,8 +497,10 @@ declare module "@scom/scom-storage/index.css.ts" {
 }
 /// <amd-module name="@scom/scom-storage" />
 declare module "@scom/scom-storage" {
-    import { Module, ControlElement, IDataSchema, IPFS } from '@ijstech/components';
+    import { Module, ControlElement, IDataSchema, IPFS, Container } from '@ijstech/components';
     import { IIPFSData, IStorageConfig } from "@scom/scom-storage/interface.ts";
+    import { IFileHandler } from "@scom/scom-storage/file.ts";
+    export { IFileHandler, IIPFSData };
     type selectFileCallback = (path: string) => void;
     type cancelCallback = () => void;
     interface ScomStorageElement extends ControlElement {
@@ -488,6 +508,7 @@ declare module "@scom/scom-storage" {
         signer?: IPFS.ISigner;
         baseUrl?: string;
         isModal?: boolean;
+        isFileShown?: boolean;
         onOpen?: selectFileCallback;
         onCancel?: cancelCallback;
     }
@@ -513,7 +534,9 @@ declare module "@scom/scom-storage" {
         private pnlLoading;
         private loadingSpinner;
         private pnlFooter;
-        private pnlStorage;
+        private pnlCustom;
+        private fileEditors;
+        private fileViewers;
         private static instance;
         static getInstance(): ScomStorage;
         tag: any;
@@ -535,9 +558,11 @@ declare module "@scom/scom-storage" {
         private _readOnly;
         private isInitializing;
         private _isModal;
+        private _isFileShown;
         private currentFile;
         onOpen: selectFileCallback;
         onCancel: cancelCallback;
+        constructor(parent?: Container, options?: any);
         get baseUrl(): string;
         set baseUrl(url: string);
         private get readOnly();
@@ -548,8 +573,16 @@ declare module "@scom/scom-storage" {
         set transportEndpoint(value: string);
         get signer(): IPFS.ISigner;
         set signer(value: IPFS.ISigner);
+        get isFileShown(): boolean;
+        set isFileShown(value: boolean);
         setConfig(config: IStorageConfig): void;
         getConfig(): IStorageConfig;
+        private registerDefaultEditors;
+        private registerDefaultViewers;
+        registerEditor(fileType: string, editor: IFileHandler): void;
+        registerViewer(fileType: string, viewer: IFileHandler): void;
+        openFile(ipfsData: IIPFSData): Promise<void>;
+        private getFileType;
         private setData;
         private getData;
         onShow(): Promise<void>;
@@ -607,6 +640,7 @@ declare module "@scom/scom-storage" {
         private processTableData;
         private onCellClick;
         private previewFile;
+        private onCellDblClick;
         private closePreview;
         private openEditor;
         private closeEditor;
