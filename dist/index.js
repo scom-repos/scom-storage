@@ -1912,6 +1912,9 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         set readOnly(value) {
             this._readOnly = value;
             this.btnUpload.visible = this.btnUpload.enabled = !value;
+            if (this.ieSidebar) {
+                this.ieSidebar.minWidth = this.readOnly ? '15rem' : '10rem';
+            }
         }
         get isModal() {
             return this._isModal;
@@ -2810,7 +2813,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                             }
                         ] })),
                 this.$render("i-hstack", { id: "pnlFooter", horizontalAlignment: 'end', gap: "0.75rem", stack: { shrink: '0' }, padding: { top: '1rem', bottom: '1rem' }, visible: false },
-                    this.$render("i-button", { id: "btnSubmit", height: '2.25rem', padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true, size: '1rem' }, border: { radius: '0.25rem' }, caption: "Open", onClick: this.onOpenHandler }),
+                    this.$render("i-button", { id: "btnSubmit", height: '2.25rem', padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true, size: '1rem' }, border: { radius: '0.25rem' }, caption: "Select", onClick: this.onOpenHandler }),
                     this.$render("i-button", { id: "btnCancel", height: '2.25rem', padding: { left: '1rem', right: '1rem' }, background: { color: 'transparent' }, font: { color: Theme.text.primary, bold: true, size: '1rem' }, border: { radius: '0.25rem' }, caption: "Cancel", onClick: this.onCancelHandler }))));
         }
     };
