@@ -267,6 +267,7 @@ export class ScomStorage extends Module {
 
     async openFile(ipfsData: IIPFSData) {
         if (!ipfsData) return;
+        this.pnlPreview.visible = false;
         if (ipfsData.type === 'dir') {
             this.pnlCustom.visible = false;
             this.ieContent.visible = true;
@@ -277,9 +278,9 @@ export class ScomStorage extends Module {
             this.pnlCustom.clearInnerHTML();
             const fileType = this.getFileType(ipfsData.name);
             if (this.fileEditors.has(fileType)) {
-                this.fileEditors.get(fileType)?.openFile(ipfsData, this.pnlCustom);
+                this.fileEditors.get(fileType)?.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
             } else if (this.fileViewers.has(fileType)) {
-                this.fileViewers.get(fileType)?.openFile(ipfsData, this.pnlCustom);
+                this.fileViewers.get(fileType)?.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
             }
         }
     }
@@ -913,9 +914,13 @@ export class ScomStorage extends Module {
         }
     }
 
-    private onCellDblClick(target: Control, event: MouseEvent) {
-        // TODO
-        console.log('ta', target)
+    private onCellDblClick(target: Table, event: MouseEvent) {
+        event.stopPropagation();
+        const eventTarget = event.target as HTMLElement;
+        const rowElm = eventTarget.closest('.i-table-row') as HTMLElement;
+        const rowIndex = rowElm?.getAttribute('data-index') || -1;
+        const rowData = target.data[rowIndex];
+        if (rowData) this.openFile(rowData);
     }
 
     private closePreview() {

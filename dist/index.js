@@ -1247,19 +1247,19 @@ define("@scom/scom-storage/file.ts", ["require", "exports"], function (require, 
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Viewer = exports.Editor = void 0;
     class Editor {
-        openFile(file, parent) {
-            console.log(`Opening Markdown editor for file: ${file.name}`);
+        async openFile(file, transportEndpoint, parentCid, parent) {
+            console.log(`Opening editor for file: ${file.name}`);
         }
     }
     exports.Editor = Editor;
     class Viewer {
-        openFile(file, parent) {
-            console.log(`Opening Markdown viewer for file: ${file.name}`);
+        async openFile(file, transportEndpoint, parentCid, parent) {
+            console.log(`Opening viewer for file: ${file.name}`);
         }
     }
     exports.Viewer = Viewer;
 });
-define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/index.css.ts"], function (require, exports, components_8, utils_1, index_css_4) {
+define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts"], function (require, exports, components_8, utils_1, index_css_4, data_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSEditor = void 0;
@@ -1293,10 +1293,14 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             this.initialContent = '';
             this.renderUI();
         }
-        openFile(file, parent) {
+        async openFile(file, endpoint, parentCid, parent) {
             // TODO: for test
             parent.append(this);
-            this.data = { content: '1111111' };
+            console.log(file);
+            const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
+            const mediaUrl = `${endpoint}/ipfs/${parentCid}/${path}`;
+            const result = await (0, data_2.getFileContent)(mediaUrl);
+            this.data = { content: result || '' };
             this.renderUI();
         }
         async renderUI() {
@@ -1375,7 +1379,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
     ], ScomIPFSEditor);
     exports.ScomIPFSEditor = ScomIPFSEditor;
 });
-define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts", "@scom/scom-storage/utils.ts"], function (require, exports, components_9, index_css_5, data_2, utils_2) {
+define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts", "@scom/scom-storage/utils.ts"], function (require, exports, components_9, index_css_5, data_3, utils_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSPreview = void 0;
@@ -1441,7 +1445,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
         }
         renderFileInfo() {
             this.lblName.caption = this._data?.name || '';
-            this.lblSize.caption = (0, data_2.formatBytes)(this._data?.size || 0);
+            this.lblSize.caption = (0, data_3.formatBytes)(this._data?.size || 0);
         }
         async previewFile() {
             this.pnlEdit.visible = false;
@@ -1499,7 +1503,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                     moduleData = this.createVideoElement(mediaUrl);
                     break;
                 default:
-                    const result = await (0, data_2.getFileContent)(mediaUrl);
+                    const result = await (0, data_3.getFileContent)(mediaUrl);
                     if (!result)
                         return null;
                     if (ext === 'md') {
@@ -1838,7 +1842,7 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
         }
     });
 });
-define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_12, data_3, components_13, file_1, index_css_6) {
+define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_12, data_4, components_13, file_1, index_css_6) {
     "use strict";
     var ScomStorage_1;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1908,7 +1912,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     title: 'Size',
                     fieldName: 'size',
                     onRenderCell: (source, columnData, rowData) => {
-                        return (0, data_3.formatBytes)(columnData);
+                        return (0, data_4.formatBytes)(columnData);
                     },
                 },
                 {
@@ -1999,6 +2003,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         async openFile(ipfsData) {
             if (!ipfsData)
                 return;
+            this.pnlPreview.visible = false;
             if (ipfsData.type === 'dir') {
                 this.pnlCustom.visible = false;
                 this.ieContent.visible = true;
@@ -2010,10 +2015,10 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.pnlCustom.clearInnerHTML();
                 const fileType = this.getFileType(ipfsData.name);
                 if (this.fileEditors.has(fileType)) {
-                    this.fileEditors.get(fileType)?.openFile(ipfsData, this.pnlCustom);
+                    this.fileEditors.get(fileType)?.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
                 }
                 else if (this.fileViewers.has(fileType)) {
-                    this.fileViewers.get(fileType)?.openFile(ipfsData, this.pnlCustom);
+                    this.fileViewers.get(fileType)?.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
                 }
             }
         }
@@ -2634,8 +2639,13 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             }
         }
         onCellDblClick(target, event) {
-            // TODO
-            console.log('ta', target);
+            event.stopPropagation();
+            const eventTarget = event.target;
+            const rowElm = eventTarget.closest('.i-table-row');
+            const rowIndex = rowElm?.getAttribute('data-index') || -1;
+            const rowData = target.data[rowIndex];
+            if (rowData)
+                this.openFile(rowData);
         }
         closePreview() {
             this.pnlPreview.visible = false;

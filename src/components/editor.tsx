@@ -13,6 +13,7 @@ import { getEmbedElement } from '../utils';
 import { addressPanelStyle } from './index.css';
 import { IFileHandler } from '../file';
 import { IIPFSData } from '../interface';
+import { getFileContent } from '../data';
 const Theme = Styles.Theme.ThemeVars
 
 interface IEditor {
@@ -74,10 +75,13 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     this.renderUI()
   }
 
-  openFile(file: IIPFSData, parent: Control) {
+  async openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control) {
     // TODO: for test
     parent.append(this);
-    this.data = { content: '1111111' }
+    const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
+    const mediaUrl = `${endpoint}/ipfs/${parentCid}/${path}`;
+    const result = await getFileContent(mediaUrl);
+    this.data = { content: result || '' };
     this.renderUI();
   }
 
