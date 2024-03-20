@@ -1296,7 +1296,6 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
         async openFile(file, endpoint, parentCid, parent) {
             // TODO: for test
             parent.append(this);
-            console.log(file);
             const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
             const mediaUrl = `${endpoint}/ipfs/${parentCid}/${path}`;
             const result = await (0, data_2.getFileContent)(mediaUrl);
@@ -1339,6 +1338,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             };
         }
         onCancel() {
+            this.editorEl.onHide();
             if (this.btnSave.enabled) {
                 this.mdAlert.showModal();
             }
@@ -1379,7 +1379,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
     ], ScomIPFSEditor);
     exports.ScomIPFSEditor = ScomIPFSEditor;
 });
-define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts", "@scom/scom-storage/utils.ts"], function (require, exports, components_9, index_css_5, data_3, utils_2) {
+define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/index.ts"], function (require, exports, components_9, index_css_5, data_3, utils_2, index_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSPreview = void 0;
@@ -1429,6 +1429,16 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
         set transportEndpoint(value) {
             this._data.transportEndpoint = value;
         }
+        showLoadingSpinner() {
+            if (!this.loadingSpinner) {
+                this.loadingSpinner = new index_1.LoadingSpinner();
+                this.pnlLoading.append(this.loadingSpinner);
+            }
+            this.pnlLoading.visible = true;
+        }
+        hideLoadingSpinner() {
+            this.pnlLoading.visible = false;
+        }
         setData(value) {
             this.data = value;
             this.renderUI();
@@ -1450,6 +1460,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
         async previewFile() {
             this.pnlEdit.visible = false;
             try {
+                this.showLoadingSpinner();
                 const moduleData = await this.getModuleFromExtension();
                 if (moduleData?.module) {
                     await (0, utils_2.getEmbedElement)(moduleData, this.previewer);
@@ -1467,6 +1478,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 }
             }
             catch (error) { }
+            this.hideLoadingSpinner();
         }
         getFileType(ext) {
             let result = '';
@@ -1536,12 +1548,13 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                     this.$render("i-icon", { width: '3rem', height: '3rem', name: "file" })));
             this.previewer.appendChild(wrapper);
         }
-        createTextElement(text) {
+        createTextElement(value) {
             return {
-                module: '@scom/scom-markdown-editor',
+                module: '@scom/scom-editor',
                 data: {
                     properties: {
-                        content: text,
+                        value,
+                        viewer: true
                     },
                     tag: {
                         width: '100%',
@@ -1671,6 +1684,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                     this.$render("i-hstack", { id: "pnlEdit", verticalAlignment: 'center', horizontalAlignment: 'end', visible: false, padding: { top: '1rem' } },
                         this.$render("i-button", { padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, border: { radius: '0.25rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: 'transparent' }, icon: { name: 'pencil-alt', width: '1rem', height: '1rem', fill: Theme.text.primary }, onClick: this.onEditClicked })),
                     this.$render("i-vstack", { minHeight: "3rem", stack: { shrink: '1' }, overflow: { y: 'auto' }, margin: { top: '1.5rem', bottom: '1.5rem' }, gap: '1.5rem' },
+                        this.$render("i-vstack", { id: "pnlLoading", visible: false }),
                         this.$render("i-panel", { id: 'previewer', width: '100%' })),
                     this.$render("i-hstack", { width: '100%', padding: { bottom: '1.25rem', top: '1.25rem' }, border: { top: { width: '1px', style: 'solid', color: Theme.divider } }, horizontalAlignment: "space-between", gap: "0.5rem" },
                         this.$render("i-vstack", { width: '100%', gap: "0.5rem" },

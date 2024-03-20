@@ -11,7 +11,7 @@ import { customLinkStyle } from './index.css'
 import { formatBytes, getFileContent } from '../data'
 import { getEmbedElement } from '../utils';
 import { IPreview } from '../interface';
-import { ScomIPFSEditor } from '../components/index';
+import { ScomIPFSEditor, LoadingSpinner } from '../components/index';
 const Theme = Styles.Theme.ThemeVars
 
 type fileChangedCallback = (filePath: string, content: string) => void
@@ -41,6 +41,8 @@ export class ScomIPFSPreview extends Module {
   private previewerPanel: Panel;
   private editorPanel: Panel;
   private editor: ScomIPFSEditor;
+  private loadingSpinner: LoadingSpinner;
+  private pnlLoading: Panel;
 
   private _data: IPreview = {
     cid: '',
@@ -95,6 +97,18 @@ export class ScomIPFSPreview extends Module {
     this._data.transportEndpoint = value
   }
 
+  showLoadingSpinner() {
+    if (!this.loadingSpinner) {
+      this.loadingSpinner = new LoadingSpinner();
+      this.pnlLoading.append(this.loadingSpinner);
+    }
+    this.pnlLoading.visible = true;
+  }
+
+  hideLoadingSpinner() {
+    this.pnlLoading.visible = false;
+  }
+
   setData(value: IPreview) {
     this.data = value
     this.renderUI()
@@ -120,6 +134,7 @@ export class ScomIPFSPreview extends Module {
   private async previewFile() {
     this.pnlEdit.visible = false;
     try {
+      this.showLoadingSpinner();
       const moduleData = await this.getModuleFromExtension()
       if (moduleData?.module) {
         await getEmbedElement(moduleData, this.previewer)
@@ -134,6 +149,7 @@ export class ScomIPFSPreview extends Module {
         this.renderFilePreview()
       }
     } catch (error) { }
+    this.hideLoadingSpinner();
   }
 
   private getFileType(ext: string) {
@@ -217,12 +233,13 @@ export class ScomIPFSPreview extends Module {
     this.previewer.appendChild(wrapper)
   }
 
-  private createTextElement(text: string) {
+  private createTextElement(value: string) {
     return {
-      module: '@scom/scom-markdown-editor',
+      module: '@scom/scom-editor',
       data: {
         properties: {
-          content: text,
+          value,
+          viewer: true
         },
         tag: {
           width: '100%',
@@ -398,6 +415,7 @@ export class ScomIPFSPreview extends Module {
             margin={{ top: '1.5rem', bottom: '1.5rem' }}
             gap={'1.5rem'}
           >
+            <i-vstack id="pnlLoading" visible={false} />
             <i-panel
               id={'previewer'}
               width={'100%'}
