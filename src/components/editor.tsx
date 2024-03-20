@@ -121,7 +121,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
   }
 
   private onCancel() {
-    this.editorEl.onHide();
+    if (this.editorEl) this.editorEl.onHide();
     if (this.btnSave.enabled) {
       this.mdAlert.showModal()
     } else {

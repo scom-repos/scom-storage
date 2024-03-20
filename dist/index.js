@@ -1338,7 +1338,8 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             };
         }
         onCancel() {
-            this.editorEl.onHide();
+            if (this.editorEl)
+                this.editorEl.onHide();
             if (this.btnSave.enabled) {
                 this.mdAlert.showModal();
             }
@@ -1856,7 +1857,7 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
         }
     });
 });
-define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_12, data_4, components_13, file_1, index_css_6) {
+define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_12, data_4, index_2, file_1, index_css_6) {
     "use strict";
     var ScomStorage_1;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1986,6 +1987,9 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         set isFileShown(value) {
             this._isFileShown = value ?? false;
         }
+        get activeItem() {
+            return this.currentItem;
+        }
         setConfig(config) {
             this._data = config;
             this.manager = new components_12.IPFS.FileManager({
@@ -1997,7 +2001,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             return this._data;
         }
         registerDefaultEditors() {
-            this.registerEditor("md", new components_13.ScomIPFSEditor());
+            this.registerEditor("md", new index_2.ScomIPFSEditor());
             this.registerEditor("js", new file_1.Editor());
         }
         registerDefaultViewers() {
@@ -2385,7 +2389,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             if (this.readOnly)
                 return;
             if (!this.uploadModal) {
-                this.uploadModal = new components_13.ScomIPFSUploadModal();
+                this.uploadModal = new index_2.ScomIPFSUploadModal();
                 this.uploadModal.onUploaded = () => this.onFilesUploaded();
             }
             const modal = this.uploadModal.openModal({
@@ -2471,7 +2475,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         showLoadingSpinner() {
             if (!this.loadingSpinner) {
-                this.loadingSpinner = new components_13.LoadingSpinner();
+                this.loadingSpinner = new index_2.LoadingSpinner();
                 this.pnlLoading.append(this.loadingSpinner);
             }
             this.pnlLoading.visible = true;

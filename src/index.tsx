@@ -20,7 +20,7 @@ import {
 } from '@ijstech/components';
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
-import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview, LoadingSpinner, ScomIPFSEditor } from './components';
+import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview, LoadingSpinner, ScomIPFSEditor } from './components/index';
 import { Editor, IFileHandler, Viewer } from './file';
 import customStyles, { defaultColors, dragAreaStyle, iconButtonStyled, previewModalStyle, selectedRowStyle } from './index.css';
 
@@ -229,6 +229,10 @@ export class ScomStorage extends Module {
     }
     set isFileShown(value: boolean) {
         this._isFileShown = value ?? false;
+    }
+
+    get activeItem() {
+        return this.currentItem;
     }
 
     setConfig(config: IStorageConfig) {

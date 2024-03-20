@@ -11,7 +11,7 @@ import { customLinkStyle } from './index.css'
 import { formatBytes, getFileContent } from '../data'
 import { getEmbedElement } from '../utils';
 import { IPreview } from '../interface';
-import { ScomIPFSEditor, LoadingSpinner } from '../components/index';
+import { ScomIPFSEditor, LoadingSpinner } from './index';
 const Theme = Styles.Theme.ThemeVars
 
 type fileChangedCallback = (filePath: string, content: string) => void

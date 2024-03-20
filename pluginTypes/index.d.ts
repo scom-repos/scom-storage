@@ -501,7 +501,7 @@ declare module "@scom/scom-storage/index.css.ts" {
 }
 /// <amd-module name="@scom/scom-storage" />
 declare module "@scom/scom-storage" {
-    import { Module, ControlElement, IDataSchema, IPFS, Container } from '@ijstech/components';
+    import { Module, TreeNode, ControlElement, IDataSchema, IPFS, Container } from '@ijstech/components';
     import { IIPFSData, IStorageConfig } from "@scom/scom-storage/interface.ts";
     import { IFileHandler } from "@scom/scom-storage/file.ts";
     export { IFileHandler, IIPFSData };
@@ -579,6 +579,7 @@ declare module "@scom/scom-storage" {
         set signer(value: IPFS.ISigner);
         get isFileShown(): boolean;
         set isFileShown(value: boolean);
+        get activeItem(): TreeNode;
         setConfig(config: IStorageConfig): void;
         getConfig(): IStorageConfig;
         private registerDefaultEditors;
