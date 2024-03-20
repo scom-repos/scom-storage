@@ -387,6 +387,8 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         private previewerPanel;
         private editorPanel;
         private editor;
+        private loadingSpinner;
+        private pnlLoading;
         private _data;
         private currentContent;
         private typesMapping;
@@ -400,6 +402,8 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         set data(value: IPreview);
         get transportEndpoint(): string;
         set transportEndpoint(value: string);
+        showLoadingSpinner(): void;
+        hideLoadingSpinner(): void;
         setData(value: IPreview): void;
         clear(): void;
         private renderUI;
