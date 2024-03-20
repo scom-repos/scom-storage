@@ -201,6 +201,9 @@ export class ScomStorage extends Module {
     private set readOnly(value: boolean) {
         this._readOnly = value;
         this.btnUpload.visible = this.btnUpload.enabled = !value;
+        if (this.ieSidebar) {
+            this.ieSidebar.minWidth = this.readOnly ? '15rem' : '10rem';
+        }
     }
 
     get isModal(): boolean {
@@ -722,11 +725,18 @@ export class ScomStorage extends Module {
         } else {
             const ipfsData = this.currentItem?.tag;
             this.updateUrlPath(ipfsData.path);
-            this.onOpenFolder(ipfsData, true);
+            if (ipfsData.type === 'folder') {
+                this.onOpenFolder(ipfsData, true);
+            }
             const { pageX, pageY, screenX } = event;
             let x = pageX;
             if (pageX + 112 >= screenX) {
               x = screenX - 112;
+            }
+            const isFile = ipfsData.type === 'file';
+            const firstChild = this.mdActions.item?.children[0] as Control;
+            if (firstChild) {
+                firstChild.visible = !isFile;
             }
             this.onShowActions(pageY + 5, x);
         }
@@ -1362,7 +1372,7 @@ export class ScomStorage extends Module {
                     background={{ color: Theme.colors.primary.main }}
                     font={{ color: Theme.colors.primary.contrastText, bold: true, size: '1rem' }}
                     border={{ radius: '0.25rem' }}
-                    caption="Open"
+                    caption="Select"
                     onClick={this.onOpenHandler}
                 ></i-button>
                 <i-button

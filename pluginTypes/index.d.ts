@@ -341,6 +341,7 @@ declare module "@scom/scom-storage/components/editor.tsx" {
         private editorEl;
         private btnSave;
         private mdAlert;
+        private btnActions;
         private _data;
         private initialContent;
         onClose: () => void;
@@ -357,6 +358,29 @@ declare module "@scom/scom-storage/components/editor.tsx" {
         private onSubmit;
         private onAlertConfirm;
         init(): void;
+        render(): any;
+    }
+}
+/// <amd-module name="@scom/scom-storage/components/loadingSpinner.tsx" />
+declare module "@scom/scom-storage/components/loadingSpinner.tsx" {
+    import { ControlElement, Module } from "@ijstech/components";
+    export interface ILoadingSpinnerProps {
+        height?: string;
+        top?: string;
+        minHeight?: number | string;
+        background?: string;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['scom-storage--loading-spinner']: ControlElement;
+            }
+        }
+    }
+    export class LoadingSpinner extends Module {
+        private pnlLoadingSpinner;
+        init(): Promise<void>;
+        setProperties(value: ILoadingSpinnerProps): void;
         render(): any;
     }
 }
@@ -423,29 +447,6 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         private closeEditor;
         private onChanged;
         init(): void;
-        render(): any;
-    }
-}
-/// <amd-module name="@scom/scom-storage/components/loadingSpinner.tsx" />
-declare module "@scom/scom-storage/components/loadingSpinner.tsx" {
-    import { ControlElement, Module } from "@ijstech/components";
-    export interface ILoadingSpinnerProps {
-        height?: string;
-        top?: string;
-        minHeight?: number | string;
-        background?: string;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['scom-storage--loading-spinner']: ControlElement;
-            }
-        }
-    }
-    export class LoadingSpinner extends Module {
-        private pnlLoadingSpinner;
-        init(): Promise<void>;
-        setProperties(value: ILoadingSpinnerProps): void;
         render(): any;
     }
 }
