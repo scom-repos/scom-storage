@@ -1874,7 +1874,6 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         constructor(parent, options) {
             super(parent, options);
             this.fileEditors = new Map();
-            this.fileViewers = new Map();
             this.tag = {
                 light: {},
                 dark: {}
@@ -1946,7 +1945,6 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this._isFileShown = false;
             this.onCellDblClick = this.onCellDblClick.bind(this);
             this.registerDefaultEditors();
-            this.registerDefaultViewers();
         }
         ;
         get baseUrl() {
@@ -2006,21 +2004,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         registerDefaultEditors() {
             this.registerEditor("md", new index_1.ScomIPFSEditor());
-            this.registerEditor("js", new file_1.Editor());
-        }
-        registerDefaultViewers() {
-            this.registerViewer("mp4", new file_1.Viewer());
-            this.registerViewer("jpg", new file_1.Viewer());
-            this.registerViewer("jpeg", new file_1.Viewer());
-            this.registerViewer("png", new file_1.Viewer());
-            this.registerViewer("gif", new file_1.Viewer());
-            this.registerViewer("svg", new file_1.Viewer());
+            this.registerEditor(/(yml|yaml|json|js|s?css|ts)/i, new file_1.Editor());
+            this.registerEditor(/(mp4|webm|mov|m3u8|jpeg|jpg|png|gif|bmp|svg)$/i, new file_1.Viewer());
         }
         registerEditor(fileType, editor) {
             this.fileEditors.set(fileType, editor);
-        }
-        registerViewer(fileType, viewer) {
-            this.fileViewers.set(fileType, viewer);
         }
         async openFile(ipfsData) {
             if (!ipfsData)
@@ -2039,8 +2027,21 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 if (this.fileEditors.has(fileType)) {
                     this.fileEditors.get(fileType)?.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
                 }
-                else if (this.fileViewers.has(fileType)) {
-                    this.fileViewers.get(fileType)?.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
+                else {
+                    const fileTypes = Array.from(this.fileEditors);
+                    if (fileTypes?.length) {
+                        for (const type of fileTypes) {
+                            const key = type[0];
+                            if (typeof key === 'string')
+                                continue;
+                            if (key.test(fileType)) {
+                                if (type[1]) {
+                                    type[1].openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
+                                }
+                                break;
+                            }
+                        }
+                    }
                 }
             }
         }
