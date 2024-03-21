@@ -77,7 +77,6 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
   }
 
   async openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control) {
-    // TODO: for test
     parent.append(this);
     const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
     const mediaUrl = `${endpoint}/ipfs/${parentCid}/${path}`;
@@ -85,6 +84,10 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     this.data = { content: result || '' };
     this.renderUI();
     this.btnActions.visible = false;
+  }
+
+  onHide(): void {
+    if (this.editorEl) this.editorEl.onHide();
   }
 
   private async renderUI() {

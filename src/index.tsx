@@ -21,12 +21,10 @@ import {
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
 import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview, LoadingSpinner, ScomIPFSEditor } from './components/index';
-import { Editor, IFileHandler, Viewer } from './file';
+import { Editor, IFileHandler } from './file';
 import customStyles, { defaultColors, dragAreaStyle, iconButtonStyled, previewModalStyle, selectedRowStyle } from './index.css';
 
 export { IFileHandler, IIPFSData };
-
-declare var require: any
 
 const Theme = Styles.Theme.ThemeVars;
 
@@ -79,6 +77,7 @@ export class ScomStorage extends Module {
     private pnlCustom: Panel;
 
     private fileEditors: Map<string|RegExp, IFileHandler> = new Map();
+    private currentEditor: IFileHandler|null = null;
 
     private static instance: ScomStorage;
     public static getInstance() {
@@ -232,10 +231,6 @@ export class ScomStorage extends Module {
         this._isFileShown = value ?? false;
     }
 
-    get activeItem() {
-        return this.currentItem;
-    }
-
     setConfig(config: IStorageConfig) {
         this._data = config;
         this.manager = new IPFS.FileManager({
@@ -251,7 +246,7 @@ export class ScomStorage extends Module {
     private registerDefaultEditors(): void {
         this.registerEditor("md", new ScomIPFSEditor());
         this.registerEditor(/(yml|yaml|json|js|s?css|ts)/i, new Editor());
-        this.registerEditor(/(mp4|webm|mov|m3u8|jpeg|jpg|png|gif|bmp|svg)$/i, new Viewer());
+        this.registerEditor(/(mp4|webm|mov|m3u8|jpeg|jpg|png|gif|bmp|svg)$/i, new ScomIPFSPreview());
     }
 
     registerEditor(fileType: string|RegExp, editor: IFileHandler): void {
@@ -269,9 +264,13 @@ export class ScomStorage extends Module {
             this.pnlCustom.visible = true;
             this.ieContent.visible = false;
             this.pnlCustom.clearInnerHTML();
+            if (this.currentEditor && this.currentEditor instanceof ScomIPFSEditor) {
+                this.currentEditor.onHide();
+            }
             const fileType = this.getFileType(ipfsData.name);
             if (this.fileEditors.has(fileType)) {
-                this.fileEditors.get(fileType)?.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
+                this.currentEditor = this.fileEditors.get(fileType);
+                this.currentEditor && this.currentEditor.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
             } else {
                 const fileTypes = Array.from(this.fileEditors);
                 if (fileTypes?.length) {
@@ -280,7 +279,8 @@ export class ScomStorage extends Module {
                         if (typeof key === 'string') continue;
                         if (key.test(fileType)) {
                             if (type[1]) {
-                                type[1].openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
+                                this.currentEditor = type[1];
+                                this.currentEditor.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
                             }
                             break;
                         }

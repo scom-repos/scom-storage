@@ -1294,7 +1294,6 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             this.renderUI();
         }
         async openFile(file, endpoint, parentCid, parent) {
-            // TODO: for test
             parent.append(this);
             const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
             const mediaUrl = `${endpoint}/ipfs/${parentCid}/${path}`;
@@ -1302,6 +1301,10 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             this.data = { content: result || '' };
             this.renderUI();
             this.btnActions.visible = false;
+        }
+        onHide() {
+            if (this.editorEl)
+                this.editorEl.onHide();
         }
         async renderUI() {
             if (this.editorEl) {
@@ -1465,6 +1468,15 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
         set transportEndpoint(value) {
             this._data.transportEndpoint = value;
         }
+        async openFile(file, transportEndpoint, parentCid, parent) {
+            parent.append(this);
+            this._data = {
+                ...file,
+                transportEndpoint,
+                parentCid
+            };
+            this.renderUI(true);
+        }
         showLoadingSpinner() {
             if (!this.loadingSpinner) {
                 this.loadingSpinner = new loadingSpinner_1.LoadingSpinner();
@@ -1484,22 +1496,30 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             this.lblName.caption = '';
             this.lblSize.caption = '';
         }
-        renderUI() {
+        renderUI(usePath = false) {
             this.clear();
-            this.previewFile();
+            this.previewFile(usePath);
             this.renderFileInfo();
+            if (usePath) {
+                this.pnlFileInfo.visible = false;
+                this.iconClose.visible = false;
+            }
         }
         renderFileInfo() {
             this.lblName.caption = this._data?.name || '';
             this.lblSize.caption = (0, data_3.formatBytes)(this._data?.size || 0);
         }
-        async previewFile() {
+        async previewFile(usePath) {
             this.pnlEdit.visible = false;
             try {
                 this.showLoadingSpinner();
-                const moduleData = await this.getModuleFromExtension();
+                const moduleData = await this.getModuleFromExtension(usePath);
                 if (moduleData?.module) {
-                    await (0, utils_2.getEmbedElement)(moduleData, this.previewer);
+                    const elm = await (0, utils_2.getEmbedElement)(moduleData, this.previewer);
+                    if (moduleData?.module === '@scom/scom-image' && usePath) {
+                        elm.maxWidth = '50%';
+                        elm.margin = { left: 'auto', right: 'auto' };
+                    }
                 }
                 else if (moduleData?.data) {
                     let content = moduleData.data || '';
@@ -1528,8 +1548,8 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             }
             return result;
         }
-        async getModuleFromExtension() {
-            const { cid, name, parentCid, size } = this._data;
+        async getModuleFromExtension(usePath) {
+            const { cid, name, parentCid, size, path } = this._data;
             if (!cid)
                 return null;
             let moduleData = null;
@@ -1538,7 +1558,11 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             const fileLimit = this.typesMapping[fileType]?.fileLimit || 100 * 1024;
             if (size > fileLimit)
                 return null;
-            const mediaUrl = `${this.transportEndpoint}/ipfs/${parentCid}/${name}`;
+            let mediaUrl = `${this.transportEndpoint}/ipfs/${parentCid}/${name}`;
+            if (usePath) {
+                const newPath = path.startsWith('/') ? path.slice(1) : path;
+                mediaUrl = `${this.transportEndpoint}/ipfs/${parentCid}/${newPath}`;
+            }
             switch (fileType) {
                 case 'image':
                     moduleData = this.createImageElement(mediaUrl);
@@ -1716,13 +1740,13 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                         this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
                             this.$render("i-icon", { name: "file-alt", width: '0.875rem', height: '0.875rem', stack: { shrink: '0' }, opacity: 0.7 }),
                             this.$render("i-label", { caption: 'File Preview', font: { size: '1rem' } })),
-                        this.$render("i-icon", { name: "times", width: '0.875rem', height: '0.875rem', stack: { shrink: '0' }, opacity: 0.7, cursor: 'pointer', onClick: this.closePreview })),
+                        this.$render("i-icon", { id: "iconClose", name: "times", width: '0.875rem', height: '0.875rem', stack: { shrink: '0' }, opacity: 0.7, cursor: 'pointer', onClick: this.closePreview })),
                     this.$render("i-hstack", { id: "pnlEdit", verticalAlignment: 'center', horizontalAlignment: 'end', visible: false, padding: { top: '1rem' } },
                         this.$render("i-button", { padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, border: { radius: '0.25rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: 'transparent' }, icon: { name: 'pencil-alt', width: '1rem', height: '1rem', fill: Theme.text.primary }, onClick: this.onEditClicked })),
                     this.$render("i-vstack", { minHeight: "3rem", stack: { shrink: '1' }, overflow: { y: 'auto' }, margin: { top: '1.5rem', bottom: '1.5rem' }, gap: '1.5rem' },
                         this.$render("i-vstack", { id: "pnlLoading", visible: false }),
                         this.$render("i-panel", { id: 'previewer', width: '100%' })),
-                    this.$render("i-hstack", { width: '100%', padding: { bottom: '1.25rem', top: '1.25rem' }, border: { top: { width: '1px', style: 'solid', color: Theme.divider } }, horizontalAlignment: "space-between", gap: "0.5rem" },
+                    this.$render("i-hstack", { id: "pnlFileInfo", width: '100%', padding: { bottom: '1.25rem', top: '1.25rem' }, border: { top: { width: '1px', style: 'solid', color: Theme.divider } }, horizontalAlignment: "space-between", gap: "0.5rem" },
                         this.$render("i-vstack", { width: '100%', gap: "0.5rem" },
                             this.$render("i-label", { id: "lblName", font: { size: '1rem', weight: 600 }, wordBreak: 'break-all', lineHeight: 1.2 }),
                             this.$render("i-label", { id: "lblSize", font: { size: `0.75rem` }, opacity: 0.7 })),
@@ -1874,6 +1898,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         constructor(parent, options) {
             super(parent, options);
             this.fileEditors = new Map();
+            this.currentEditor = null;
             this.tag = {
                 light: {},
                 dark: {}
@@ -1989,9 +2014,6 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         set isFileShown(value) {
             this._isFileShown = value ?? false;
         }
-        get activeItem() {
-            return this.currentItem;
-        }
         setConfig(config) {
             this._data = config;
             this.manager = new components_12.IPFS.FileManager({
@@ -2005,7 +2027,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         registerDefaultEditors() {
             this.registerEditor("md", new index_1.ScomIPFSEditor());
             this.registerEditor(/(yml|yaml|json|js|s?css|ts)/i, new file_1.Editor());
-            this.registerEditor(/(mp4|webm|mov|m3u8|jpeg|jpg|png|gif|bmp|svg)$/i, new file_1.Viewer());
+            this.registerEditor(/(mp4|webm|mov|m3u8|jpeg|jpg|png|gif|bmp|svg)$/i, new index_1.ScomIPFSPreview());
         }
         registerEditor(fileType, editor) {
             this.fileEditors.set(fileType, editor);
@@ -2023,9 +2045,13 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.pnlCustom.visible = true;
                 this.ieContent.visible = false;
                 this.pnlCustom.clearInnerHTML();
+                if (this.currentEditor && this.currentEditor instanceof index_1.ScomIPFSEditor) {
+                    this.currentEditor.onHide();
+                }
                 const fileType = this.getFileType(ipfsData.name);
                 if (this.fileEditors.has(fileType)) {
-                    this.fileEditors.get(fileType)?.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
+                    this.currentEditor = this.fileEditors.get(fileType);
+                    this.currentEditor && this.currentEditor.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
                 }
                 else {
                     const fileTypes = Array.from(this.fileEditors);
@@ -2036,7 +2062,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                 continue;
                             if (key.test(fileType)) {
                                 if (type[1]) {
-                                    type[1].openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
+                                    this.currentEditor = type[1];
+                                    this.currentEditor.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
                                 }
                                 break;
                             }

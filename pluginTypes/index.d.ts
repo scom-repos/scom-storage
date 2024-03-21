@@ -352,6 +352,7 @@ declare module "@scom/scom-storage/components/editor.tsx" {
         set data(value: IEditor);
         setData(value: IEditor): void;
         openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control): Promise<void>;
+        onHide(): void;
         private renderUI;
         private createTextEditorElement;
         private onCancel;
@@ -386,8 +387,9 @@ declare module "@scom/scom-storage/components/loadingSpinner.tsx" {
 }
 /// <amd-module name="@scom/scom-storage/components/preview.tsx" />
 declare module "@scom/scom-storage/components/preview.tsx" {
-    import { Container, ControlElement, Module } from '@ijstech/components';
-    import { IPreview } from "@scom/scom-storage/interface.ts";
+    import { Container, Control, ControlElement, Module } from '@ijstech/components';
+    import { IIPFSData, IPreview } from "@scom/scom-storage/interface.ts";
+    import { IFileHandler } from "@scom/scom-storage/file.ts";
     type fileChangedCallback = (filePath: string, content: string) => void;
     interface ScomIPFSPreviewElement extends ControlElement {
         data?: IPreview;
@@ -403,7 +405,7 @@ declare module "@scom/scom-storage/components/preview.tsx" {
             }
         }
     }
-    export class ScomIPFSPreview extends Module {
+    export class ScomIPFSPreview extends Module implements IFileHandler {
         private previewer;
         private lblName;
         private lblSize;
@@ -413,6 +415,8 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         private editor;
         private loadingSpinner;
         private pnlLoading;
+        private pnlFileInfo;
+        private iconClose;
         private _data;
         private currentContent;
         private typesMapping;
@@ -426,6 +430,7 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         set data(value: IPreview);
         get transportEndpoint(): string;
         set transportEndpoint(value: string);
+        openFile(file: IIPFSData, transportEndpoint: string, parentCid: string, parent: Control): Promise<void>;
         showLoadingSpinner(): void;
         hideLoadingSpinner(): void;
         setData(value: IPreview): void;
@@ -502,7 +507,7 @@ declare module "@scom/scom-storage/index.css.ts" {
 }
 /// <amd-module name="@scom/scom-storage" />
 declare module "@scom/scom-storage" {
-    import { Module, TreeNode, ControlElement, IDataSchema, IPFS, Container } from '@ijstech/components';
+    import { Module, ControlElement, IDataSchema, IPFS, Container } from '@ijstech/components';
     import { IIPFSData, IStorageConfig } from "@scom/scom-storage/interface.ts";
     import { IFileHandler } from "@scom/scom-storage/file.ts";
     export { IFileHandler, IIPFSData };
@@ -541,6 +546,7 @@ declare module "@scom/scom-storage" {
         private pnlFooter;
         private pnlCustom;
         private fileEditors;
+        private currentEditor;
         private static instance;
         static getInstance(): ScomStorage;
         tag: any;
@@ -579,7 +585,6 @@ declare module "@scom/scom-storage" {
         set signer(value: IPFS.ISigner);
         get isFileShown(): boolean;
         set isFileShown(value: boolean);
-        get activeItem(): TreeNode;
         setConfig(config: IStorageConfig): void;
         getConfig(): IStorageConfig;
         private registerDefaultEditors;
