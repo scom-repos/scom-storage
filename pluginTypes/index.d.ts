@@ -541,7 +541,6 @@ declare module "@scom/scom-storage" {
         private pnlFooter;
         private pnlCustom;
         private fileEditors;
-        private fileViewers;
         private static instance;
         static getInstance(): ScomStorage;
         tag: any;
@@ -584,9 +583,7 @@ declare module "@scom/scom-storage" {
         setConfig(config: IStorageConfig): void;
         getConfig(): IStorageConfig;
         private registerDefaultEditors;
-        private registerDefaultViewers;
-        registerEditor(fileType: string, editor: IFileHandler): void;
-        registerViewer(fileType: string, viewer: IFileHandler): void;
+        registerEditor(fileType: string | RegExp, editor: IFileHandler): void;
         openFile(ipfsData: IIPFSData): Promise<void>;
         private getFileType;
         private setData;
