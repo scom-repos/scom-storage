@@ -1,7 +1,9 @@
 import {
   Container,
+  Control,
   ControlElement,
   customElements,
+  Icon,
   Label,
   Module,
   Panel,
@@ -10,9 +12,10 @@ import {
 import { customLinkStyle } from './index.css'
 import { formatBytes, getFileContent } from '../data'
 import { getEmbedElement } from '../utils';
-import { IPreview } from '../interface';
+import { IIPFSData, IPreview } from '../interface';
 import { ScomIPFSEditor,  } from './editor';
 import { LoadingSpinner } from './loadingSpinner';
+import { IFileHandler } from '../file';
 const Theme = Styles.Theme.ThemeVars
 
 type fileChangedCallback = (filePath: string, content: string) => void
@@ -34,7 +37,7 @@ declare global {
 }
 
 @customElements('i-scom-ipfs--preview')
-export class ScomIPFSPreview extends Module {
+export class ScomIPFSPreview extends Module implements IFileHandler {
   private previewer: Panel;
   private lblName: Label;
   private lblSize: Label;
@@ -44,6 +47,8 @@ export class ScomIPFSPreview extends Module {
   private editor: ScomIPFSEditor;
   private loadingSpinner: LoadingSpinner;
   private pnlLoading: Panel;
+  private pnlFileInfo: Panel;
+  private iconClose: Icon;
 
   private _data: IPreview = {
     cid: '',
@@ -98,6 +103,16 @@ export class ScomIPFSPreview extends Module {
     this._data.transportEndpoint = value
   }
 
+  async openFile(file: IIPFSData, transportEndpoint: string, parentCid: string, parent: Control): Promise<void> {
+    parent.append(this);
+    this._data = {
+      ...file,
+      transportEndpoint,
+      parentCid
+    };
+    this.renderUI(true);
+  }
+
   showLoadingSpinner() {
     if (!this.loadingSpinner) {
       this.loadingSpinner = new LoadingSpinner();
@@ -121,10 +136,14 @@ export class ScomIPFSPreview extends Module {
     this.lblSize.caption = ''
   }
 
-  private renderUI() {
+  private renderUI(usePath = false) {
     this.clear();
-    this.previewFile();
+    this.previewFile(usePath);
     this.renderFileInfo();
+    if (usePath) {
+      this.pnlFileInfo.visible = false;
+      this.iconClose.visible = false;
+    }
   }
 
   private renderFileInfo() {
@@ -132,13 +151,17 @@ export class ScomIPFSPreview extends Module {
     this.lblSize.caption = formatBytes(this._data?.size || 0);
   }
 
-  private async previewFile() {
+  private async previewFile(usePath: boolean) {
     this.pnlEdit.visible = false;
     try {
       this.showLoadingSpinner();
-      const moduleData = await this.getModuleFromExtension()
+      const moduleData = await this.getModuleFromExtension(usePath)
       if (moduleData?.module) {
-        await getEmbedElement(moduleData, this.previewer)
+        const elm = await getEmbedElement(moduleData, this.previewer);
+        if (moduleData?.module === '@scom/scom-image' && usePath) {
+          elm.maxWidth = '50%';
+          elm.margin = {left: 'auto', right: 'auto'};
+        }
       } else if (moduleData?.data) {
         let content = moduleData.data || ''
         const isHTML = content.indexOf('<html') > -1
@@ -166,15 +189,19 @@ export class ScomIPFSPreview extends Module {
     return result;
   }
 
-  private async getModuleFromExtension() {
-    const { cid, name, parentCid, size } = this._data;
+  private async getModuleFromExtension(usePath: boolean) {
+    const { cid, name, parentCid, size, path } = this._data;
     if (!cid) return null
     let moduleData = null;
     const ext = (name || '').split('.').pop().toLowerCase();
     const fileType = this.getFileType(ext);
     const fileLimit = this.typesMapping[fileType]?.fileLimit || 100 * 1024;
     if (size > fileLimit) return null;
-    const mediaUrl = `${this.transportEndpoint}/ipfs/${parentCid}/${name}`
+    let mediaUrl = `${this.transportEndpoint}/ipfs/${parentCid}/${name}`;
+    if (usePath) {
+      const newPath = path.startsWith('/') ? path.slice(1) : path;
+      mediaUrl = `${this.transportEndpoint}/ipfs/${parentCid}/${newPath}`;
+    }
     switch (fileType) {
       case 'image':
         moduleData = this.createImageElement(mediaUrl)
@@ -385,6 +412,7 @@ export class ScomIPFSPreview extends Module {
               <i-label caption={'File Preview'} font={{ size: '1rem' }}></i-label>
             </i-hstack>
             <i-icon
+              id="iconClose"
               name="times"
               width={'0.875rem'}
               height={'0.875rem'}
@@ -423,6 +451,7 @@ export class ScomIPFSPreview extends Module {
             ></i-panel>
           </i-vstack>
           <i-hstack
+            id="pnlFileInfo"
             width={'100%'}
             padding={{ bottom: '1.25rem', top: '1.25rem' }}
             border={{ top: { width: '1px', style: 'solid', color: Theme.divider } }}
