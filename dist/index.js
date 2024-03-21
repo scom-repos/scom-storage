@@ -1301,6 +1301,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             const result = await (0, data_2.getFileContent)(mediaUrl);
             this.data = { content: result || '' };
             this.renderUI();
+            this.btnActions.visible = false;
         }
         async renderUI() {
             if (this.editorEl) {
@@ -1338,7 +1339,8 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             };
         }
         onCancel() {
-            this.editorEl.onHide();
+            if (this.editorEl)
+                this.editorEl.onHide();
             if (this.btnSave.enabled) {
                 this.mdAlert.showModal();
             }
@@ -1367,7 +1369,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
         }
         render() {
             return (this.$render("i-vstack", { maxHeight: '100%', width: '100%', overflow: 'hidden', gap: "0.75rem" },
-                this.$render("i-hstack", { verticalAlignment: 'center', horizontalAlignment: 'end', width: '100%', gap: "0.5rem", padding: { left: '1rem', right: '1rem', top: '0.75rem' } },
+                this.$render("i-hstack", { id: "btnActions", verticalAlignment: 'center', horizontalAlignment: 'end', width: '100%', gap: "0.5rem", padding: { left: '1rem', right: '1rem', top: '0.75rem' } },
                     this.$render("i-button", { id: "btnCancel", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: 'transparent' }, font: { color: Theme.text.primary }, icon: { name: 'times', width: '0.875rem', height: '0.875rem', fill: Theme.text.primary }, caption: 'Cancel', onClick: this.onCancel }),
                     this.$render("i-button", { id: "btnSave", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, icon: { name: 'save', width: '0.875rem', height: '0.875rem', fill: Theme.colors.primary.contrastText }, caption: 'Save', enabled: false, onClick: this.onSubmit })),
                 this.$render("i-vstack", { id: "pnlEditor", stack: { shrink: '1', grow: '1' }, width: '100%', overflow: { y: 'auto', x: 'hidden' }, padding: { left: '1rem', right: '1rem' }, class: index_css_4.addressPanelStyle }),
@@ -1379,12 +1381,46 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
     ], ScomIPFSEditor);
     exports.ScomIPFSEditor = ScomIPFSEditor;
 });
-define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/index.ts"], function (require, exports, components_9, index_css_5, data_3, utils_2, index_1) {
+define("@scom/scom-storage/components/loadingSpinner.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_9) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.LoadingSpinner = void 0;
+    const Theme = components_9.Styles.Theme.ThemeVars;
+    let LoadingSpinner = class LoadingSpinner extends components_9.Module {
+        async init() {
+            await super.init();
+        }
+        setProperties(value) {
+            this.pnlLoadingSpinner.height = value.height || '100%';
+            this.pnlLoadingSpinner.top = value.top || 0;
+            this.pnlLoadingSpinner.minHeight = value.minHeight || 200;
+            this.pnlLoadingSpinner.style.background = value.background || Theme.background.default;
+        }
+        render() {
+            return (this.$render("i-vstack", { id: "pnlLoadingSpinner", width: "100%", minHeight: 200, position: "absolute", bottom: 0, zIndex: 1000, background: { color: Theme.background.main }, class: "i-loading-overlay", opacity: 0.7, mediaQueries: [
+                    {
+                        maxWidth: '767px',
+                        properties: {
+                            height: 'calc(100% - 3.125rem)',
+                            top: 0
+                        }
+                    }
+                ] },
+                this.$render("i-vstack", { horizontalAlignment: "center", verticalAlignment: "center", position: "absolute", top: "calc(50% - 0.75rem)", left: "calc(50% - 0.75rem)" },
+                    this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main }))));
+        }
+    };
+    LoadingSpinner = __decorate([
+        (0, components_9.customElements)('scom-storage--loading-spinner')
+    ], LoadingSpinner);
+    exports.LoadingSpinner = LoadingSpinner;
+});
+define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/loadingSpinner.tsx"], function (require, exports, components_10, index_css_5, data_3, utils_2, loadingSpinner_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSPreview = void 0;
-    const Theme = components_9.Styles.Theme.ThemeVars;
-    let ScomIPFSPreview = class ScomIPFSPreview extends components_9.Module {
+    const Theme = components_10.Styles.Theme.ThemeVars;
+    let ScomIPFSPreview = class ScomIPFSPreview extends components_10.Module {
         constructor(parent, options) {
             super(parent, options);
             this._data = {
@@ -1431,7 +1467,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
         }
         showLoadingSpinner() {
             if (!this.loadingSpinner) {
-                this.loadingSpinner = new index_1.LoadingSpinner();
+                this.loadingSpinner = new loadingSpinner_1.LoadingSpinner();
                 this.pnlLoading.append(this.loadingSpinner);
             }
             this.pnlLoading.visible = true;
@@ -1697,45 +1733,11 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
         }
     };
     ScomIPFSPreview = __decorate([
-        (0, components_9.customElements)('i-scom-ipfs--preview')
+        (0, components_10.customElements)('i-scom-ipfs--preview')
     ], ScomIPFSPreview);
     exports.ScomIPFSPreview = ScomIPFSPreview;
 });
-define("@scom/scom-storage/components/loadingSpinner.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_10) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.LoadingSpinner = void 0;
-    const Theme = components_10.Styles.Theme.ThemeVars;
-    let LoadingSpinner = class LoadingSpinner extends components_10.Module {
-        async init() {
-            await super.init();
-        }
-        setProperties(value) {
-            this.pnlLoadingSpinner.height = value.height || '100%';
-            this.pnlLoadingSpinner.top = value.top || 0;
-            this.pnlLoadingSpinner.minHeight = value.minHeight || 200;
-            this.pnlLoadingSpinner.style.background = value.background || Theme.background.default;
-        }
-        render() {
-            return (this.$render("i-vstack", { id: "pnlLoadingSpinner", width: "100%", minHeight: 200, position: "absolute", bottom: 0, zIndex: 1000, background: { color: Theme.background.main }, class: "i-loading-overlay", opacity: 0.7, mediaQueries: [
-                    {
-                        maxWidth: '767px',
-                        properties: {
-                            height: 'calc(100% - 3.125rem)',
-                            top: 0
-                        }
-                    }
-                ] },
-                this.$render("i-vstack", { horizontalAlignment: "center", verticalAlignment: "center", position: "absolute", top: "calc(50% - 0.75rem)", left: "calc(50% - 0.75rem)" },
-                    this.$render("i-icon", { class: "i-loading-spinner_icon", name: "spinner", width: 24, height: 24, fill: Theme.colors.primary.main }))));
-        }
-    };
-    LoadingSpinner = __decorate([
-        (0, components_10.customElements)('scom-storage--loading-spinner')
-    ], LoadingSpinner);
-    exports.LoadingSpinner = LoadingSpinner;
-});
-define("@scom/scom-storage/components/index.ts", ["require", "exports", "@scom/scom-storage/components/home.tsx", "@scom/scom-storage/components/path.tsx", "@scom/scom-storage/components/uploadModal.tsx", "@scom/scom-storage/components/editor.tsx", "@scom/scom-storage/components/preview.tsx", "@scom/scom-storage/components/loadingSpinner.tsx"], function (require, exports, home_1, path_1, uploadModal_1, editor_1, preview_1, loadingSpinner_1) {
+define("@scom/scom-storage/components/index.ts", ["require", "exports", "@scom/scom-storage/components/home.tsx", "@scom/scom-storage/components/path.tsx", "@scom/scom-storage/components/uploadModal.tsx", "@scom/scom-storage/components/editor.tsx", "@scom/scom-storage/components/preview.tsx", "@scom/scom-storage/components/loadingSpinner.tsx"], function (require, exports, home_1, path_1, uploadModal_1, editor_1, preview_1, loadingSpinner_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.LoadingSpinner = exports.ScomIPFSPreview = exports.ScomIPFSEditor = exports.ScomIPFSUploadModal = exports.ScomIPFSPath = exports.ScomIPFSMobileHome = void 0;
@@ -1744,7 +1746,7 @@ define("@scom/scom-storage/components/index.ts", ["require", "exports", "@scom/s
     Object.defineProperty(exports, "ScomIPFSUploadModal", { enumerable: true, get: function () { return uploadModal_1.ScomIPFSUploadModal; } });
     Object.defineProperty(exports, "ScomIPFSEditor", { enumerable: true, get: function () { return editor_1.ScomIPFSEditor; } });
     Object.defineProperty(exports, "ScomIPFSPreview", { enumerable: true, get: function () { return preview_1.ScomIPFSPreview; } });
-    Object.defineProperty(exports, "LoadingSpinner", { enumerable: true, get: function () { return loadingSpinner_1.LoadingSpinner; } });
+    Object.defineProperty(exports, "LoadingSpinner", { enumerable: true, get: function () { return loadingSpinner_2.LoadingSpinner; } });
 });
 define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_11) {
     "use strict";
@@ -1856,7 +1858,7 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
         }
     });
 });
-define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_12, data_4, components_13, file_1, index_css_6) {
+define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_12, data_4, index_1, file_1, index_css_6) {
     "use strict";
     var ScomStorage_1;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1989,6 +1991,9 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         set isFileShown(value) {
             this._isFileShown = value ?? false;
         }
+        get activeItem() {
+            return this.currentItem;
+        }
         setConfig(config) {
             this._data = config;
             this.manager = new components_12.IPFS.FileManager({
@@ -2000,7 +2005,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             return this._data;
         }
         registerDefaultEditors() {
-            this.registerEditor("md", new components_13.ScomIPFSEditor());
+            this.registerEditor("md", new index_1.ScomIPFSEditor());
             this.registerEditor("js", new file_1.Editor());
         }
         registerDefaultViewers() {
@@ -2388,7 +2393,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             if (this.readOnly)
                 return;
             if (!this.uploadModal) {
-                this.uploadModal = new components_13.ScomIPFSUploadModal();
+                this.uploadModal = new index_1.ScomIPFSUploadModal();
                 this.uploadModal.onUploaded = () => this.onFilesUploaded();
             }
             const modal = this.uploadModal.openModal({
@@ -2463,18 +2468,26 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             else {
                 const ipfsData = this.currentItem?.tag;
                 this.updateUrlPath(ipfsData.path);
-                this.onOpenFolder(ipfsData, true);
+                if (ipfsData.type === 'folder') {
+                    this.onOpenFolder(ipfsData, true);
+                }
                 const { pageX, pageY, screenX } = event;
                 let x = pageX;
                 if (pageX + 112 >= screenX) {
                     x = screenX - 112;
+                }
+                const isFile = ipfsData.type === 'file';
+                const firstChild = this.mdActions.item?.children[0];
+                console.log(isFile);
+                if (firstChild) {
+                    firstChild.visible = !isFile;
                 }
                 this.onShowActions(pageY + 5, x);
             }
         }
         showLoadingSpinner() {
             if (!this.loadingSpinner) {
-                this.loadingSpinner = new components_13.LoadingSpinner();
+                this.loadingSpinner = new index_1.LoadingSpinner();
                 this.pnlLoading.append(this.loadingSpinner);
             }
             this.pnlLoading.visible = true;

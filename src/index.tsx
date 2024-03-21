@@ -20,7 +20,7 @@ import {
 } from '@ijstech/components';
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
-import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview, LoadingSpinner, ScomIPFSEditor } from './components';
+import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview, LoadingSpinner, ScomIPFSEditor } from './components/index';
 import { Editor, IFileHandler, Viewer } from './file';
 import customStyles, { defaultColors, dragAreaStyle, iconButtonStyled, previewModalStyle, selectedRowStyle } from './index.css';
 
@@ -232,6 +232,10 @@ export class ScomStorage extends Module {
     }
     set isFileShown(value: boolean) {
         this._isFileShown = value ?? false;
+    }
+
+    get activeItem() {
+        return this.currentItem;
     }
 
     setConfig(config: IStorageConfig) {
@@ -721,11 +725,18 @@ export class ScomStorage extends Module {
         } else {
             const ipfsData = this.currentItem?.tag;
             this.updateUrlPath(ipfsData.path);
-            this.onOpenFolder(ipfsData, true);
+            if (ipfsData.type === 'folder') {
+                this.onOpenFolder(ipfsData, true);
+            }
             const { pageX, pageY, screenX } = event;
             let x = pageX;
             if (pageX + 112 >= screenX) {
               x = screenX - 112;
+            }
+            const isFile = ipfsData.type === 'file';
+            const firstChild = this.mdActions.item?.children[0] as Control;
+            if (firstChild) {
+                firstChild.visible = !isFile;
             }
             this.onShowActions(pageY + 5, x);
         }

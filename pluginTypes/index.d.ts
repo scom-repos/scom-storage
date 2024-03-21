@@ -341,6 +341,7 @@ declare module "@scom/scom-storage/components/editor.tsx" {
         private editorEl;
         private btnSave;
         private mdAlert;
+        private btnActions;
         private _data;
         private initialContent;
         onClose: () => void;
@@ -357,6 +358,29 @@ declare module "@scom/scom-storage/components/editor.tsx" {
         private onSubmit;
         private onAlertConfirm;
         init(): void;
+        render(): any;
+    }
+}
+/// <amd-module name="@scom/scom-storage/components/loadingSpinner.tsx" />
+declare module "@scom/scom-storage/components/loadingSpinner.tsx" {
+    import { ControlElement, Module } from "@ijstech/components";
+    export interface ILoadingSpinnerProps {
+        height?: string;
+        top?: string;
+        minHeight?: number | string;
+        background?: string;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['scom-storage--loading-spinner']: ControlElement;
+            }
+        }
+    }
+    export class LoadingSpinner extends Module {
+        private pnlLoadingSpinner;
+        init(): Promise<void>;
+        setProperties(value: ILoadingSpinnerProps): void;
         render(): any;
     }
 }
@@ -426,29 +450,6 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         render(): any;
     }
 }
-/// <amd-module name="@scom/scom-storage/components/loadingSpinner.tsx" />
-declare module "@scom/scom-storage/components/loadingSpinner.tsx" {
-    import { ControlElement, Module } from "@ijstech/components";
-    export interface ILoadingSpinnerProps {
-        height?: string;
-        top?: string;
-        minHeight?: number | string;
-        background?: string;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['scom-storage--loading-spinner']: ControlElement;
-            }
-        }
-    }
-    export class LoadingSpinner extends Module {
-        private pnlLoadingSpinner;
-        init(): Promise<void>;
-        setProperties(value: ILoadingSpinnerProps): void;
-        render(): any;
-    }
-}
 /// <amd-module name="@scom/scom-storage/components/index.ts" />
 declare module "@scom/scom-storage/components/index.ts" {
     export { ScomIPFSMobileHome } from "@scom/scom-storage/components/home.tsx";
@@ -501,7 +502,7 @@ declare module "@scom/scom-storage/index.css.ts" {
 }
 /// <amd-module name="@scom/scom-storage" />
 declare module "@scom/scom-storage" {
-    import { Module, ControlElement, IDataSchema, IPFS, Container } from '@ijstech/components';
+    import { Module, TreeNode, ControlElement, IDataSchema, IPFS, Container } from '@ijstech/components';
     import { IIPFSData, IStorageConfig } from "@scom/scom-storage/interface.ts";
     import { IFileHandler } from "@scom/scom-storage/file.ts";
     export { IFileHandler, IIPFSData };
@@ -579,6 +580,7 @@ declare module "@scom/scom-storage" {
         set signer(value: IPFS.ISigner);
         get isFileShown(): boolean;
         set isFileShown(value: boolean);
+        get activeItem(): TreeNode;
         setConfig(config: IStorageConfig): void;
         getConfig(): IStorageConfig;
         private registerDefaultEditors;

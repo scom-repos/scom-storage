@@ -39,6 +39,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
   private editorEl: any;
   private btnSave: Button;
   private mdAlert: Alert;
+  private btnActions: Panel;
 
   private _data: IEditor = {
     content: ''
@@ -83,6 +84,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     const result = await getFileContent(mediaUrl);
     this.data = { content: result || '' };
     this.renderUI();
+    this.btnActions.visible = false;
   }
 
   private async renderUI() {
@@ -121,7 +123,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
   }
 
   private onCancel() {
-    this.editorEl.onHide();
+    if (this.editorEl) this.editorEl.onHide();
     if (this.btnSave.enabled) {
       this.mdAlert.showModal()
     } else {
@@ -154,7 +156,8 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
         overflow={'hidden'}
         gap="0.75rem"
       >
-         <i-hstack
+        <i-hstack
+          id="btnActions"
           verticalAlignment='center'
           horizontalAlignment='end'
           width={'100%'}
