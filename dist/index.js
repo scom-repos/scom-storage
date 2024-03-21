@@ -2478,7 +2478,6 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 }
                 const isFile = ipfsData.type === 'file';
                 const firstChild = this.mdActions.item?.children[0];
-                console.log(isFile);
                 if (firstChild) {
                     firstChild.visible = !isFile;
                 }
