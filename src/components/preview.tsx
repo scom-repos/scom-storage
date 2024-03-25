@@ -217,7 +217,6 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
         const result = await getFileContent(mediaUrl)
         if (!result) return null
         if (ext === 'md') {
-          this.pnlEdit.visible = true;
           moduleData = this.createTextElement(result)
           this.currentContent = result;
         } else {
@@ -225,6 +224,7 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
         }
         break;
     }
+    this.pnlEdit.visible = ext === 'md' || ext === 'tsx';
     return moduleData
   }
 
@@ -356,7 +356,8 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
   private onEditClicked() {
     this.editorPanel.visible = true;
     this.previewerPanel.visible = false;
-    this.editor.setData({content: this.currentContent});
+    const ext = (this._data.name || '').split('.').pop().toLowerCase();
+    this.editor.setData({content: this.currentContent, type: ext === 'md' ? 'md' : 'designer'});
     if (this.onOpenEditor) this.onOpenEditor();
   }
 
