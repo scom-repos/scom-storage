@@ -1882,7 +1882,7 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
         }
     });
 });
-define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_12, data_4, index_1, file_1, index_css_6) {
+define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-designer", "@scom/scom-storage/index.css.ts"], function (require, exports, components_12, data_4, index_1, file_1, scom_designer_1, index_css_6) {
     "use strict";
     var ScomStorage_1;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -2026,6 +2026,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         registerDefaultEditors() {
             this.registerEditor("md", new index_1.ScomIPFSEditor());
+            this.registerEditor("tsx", new scom_designer_1.ScomDesigner());
             this.registerEditor(/(yml|yaml|json|js|s?css|ts)/i, new file_1.Editor());
             this.registerEditor(/(mp4|webm|mov|m3u8|jpeg|jpg|png|gif|bmp|svg)$/i, new index_1.ScomIPFSPreview());
         }

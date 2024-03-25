@@ -21,7 +21,8 @@
       "@scom/scom-markdown-editor",
       "@scom/scom-media-player",
       "@scom/scom-video",
-      "@scom/scom-editor"
+      "@scom/scom-editor",
+      "@scom/scom-designer"
   ],
   "menus": [
   ],

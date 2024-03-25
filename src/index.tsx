@@ -22,6 +22,7 @@ import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
 import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview, LoadingSpinner, ScomIPFSEditor } from './components/index';
 import { Editor, IFileHandler } from './file';
+import { ScomDesigner } from '@scom/scom-designer';
 import customStyles, { defaultColors, dragAreaStyle, iconButtonStyled, previewModalStyle, selectedRowStyle } from './index.css';
 
 export { IFileHandler, IIPFSData };
@@ -245,6 +246,7 @@ export class ScomStorage extends Module {
 
     private registerDefaultEditors(): void {
         this.registerEditor("md", new ScomIPFSEditor());
+        this.registerEditor("tsx", new ScomDesigner());
         this.registerEditor(/(yml|yaml|json|js|s?css|ts)/i, new Editor());
         this.registerEditor(/(mp4|webm|mov|m3u8|jpeg|jpg|png|gif|bmp|svg)$/i, new ScomIPFSPreview());
     }
