@@ -3,7 +3,6 @@
     "type": "widget",
     "version": "0.1.2",
     "dependencies": [
-        "@ijstech/components",
-        "@scom/scom-designer"
+        "@ijstech/components"
     ]
 }

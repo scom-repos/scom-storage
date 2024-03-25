@@ -1268,7 +1268,8 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
         constructor(parent, options) {
             super(parent, options);
             this._data = {
-                content: ''
+                content: '',
+                type: 'md'
             };
             this.initialContent = '';
             this.onSubmit = this.onSubmit.bind(this);
@@ -1280,25 +1281,34 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             await self.ready();
             return self;
         }
-        get data() {
-            return this._data;
+        get content() {
+            return this._data.content ?? '';
         }
-        set data(value) {
-            this._data = value;
+        set content(value) {
+            this._data.content = value ?? '';
+        }
+        get type() {
+            return this._data.type ?? 'md';
+        }
+        set type(value) {
+            this._data.type = value ?? 'md';
         }
         setData(value) {
-            this.data = value;
+            const isTypeChanged = this.type !== value.type;
+            this._data = value;
             this.mdAlert.closeModal();
             this.btnSave.enabled = false;
             this.initialContent = '';
-            this.renderUI();
+            this.renderUI(isTypeChanged);
         }
         async openFile(file, endpoint, parentCid, parent) {
             parent.append(this);
             const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
             const mediaUrl = `${endpoint}/ipfs/${parentCid}/${path}`;
             const result = await (0, data_2.getFileContent)(mediaUrl);
-            this.data = { content: result || '' };
+            const ext = file.name.split('.').pop();
+            this.type = ext === 'md' ? 'md' : 'designer';
+            this.content = result || '';
             this.renderUI();
             this.btnActions.visible = false;
         }
@@ -1306,13 +1316,10 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             if (this.editorEl)
                 this.editorEl.onHide();
         }
-        async renderUI() {
-            if (this.editorEl) {
-                this.initialContent = '';
-                this.editorEl.setValue(this.data.content);
-            }
-            else {
-                this.editorEl = await (0, utils_1.getEmbedElement)(this.createTextEditorElement(this.data.content), this.pnlEditor);
+        async renderUI(isTypeChanged) {
+            if (!this.editorEl || isTypeChanged) {
+                this.pnlEditor.clearInnerHTML();
+                this.editorEl = await (0, utils_1.getEmbedElement)(this.createEditorElement(this.content), this.pnlEditor);
                 this.initialContent = this.editorEl.value;
                 this.editorEl.onChanged = (value) => {
                     if (this.initialContent) {
@@ -1323,10 +1330,14 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
                     }
                 };
             }
+            else {
+                this.initialContent = '';
+                this.editorEl.setValue(this.content);
+            }
         }
-        createTextEditorElement(value) {
+        createEditorElement(value) {
             return {
-                module: '@scom/scom-editor',
+                module: this.type === 'md' ? '@scom/scom-editor' : '@scom/scom-designer',
                 data: {
                     properties: {
                         value
@@ -1579,7 +1590,6 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                     if (!result)
                         return null;
                     if (ext === 'md') {
-                        this.pnlEdit.visible = true;
                         moduleData = this.createTextElement(result);
                         this.currentContent = result;
                     }
@@ -1588,6 +1598,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                     }
                     break;
             }
+            this.pnlEdit.visible = ext === 'md' || ext === 'tsx';
             return moduleData;
         }
         appendLabel(text) {
@@ -1699,7 +1710,8 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
         onEditClicked() {
             this.editorPanel.visible = true;
             this.previewerPanel.visible = false;
-            this.editor.setData({ content: this.currentContent });
+            const ext = (this._data.name || '').split('.').pop().toLowerCase();
+            this.editor.setData({ content: this.currentContent, type: ext === 'md' ? 'md' : 'designer' });
             if (this.onOpenEditor)
                 this.onOpenEditor();
         }
@@ -1882,7 +1894,7 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
         }
     });
 });
-define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-designer", "@scom/scom-storage/index.css.ts"], function (require, exports, components_12, data_4, index_1, file_1, scom_designer_1, index_css_6) {
+define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_12, data_4, index_1, file_1, index_css_6) {
     "use strict";
     var ScomStorage_1;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -2026,7 +2038,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         registerDefaultEditors() {
             this.registerEditor("md", new index_1.ScomIPFSEditor());
-            this.registerEditor("tsx", new scom_designer_1.ScomDesigner());
+            this.registerEditor("tsx", new index_1.ScomIPFSEditor());
             this.registerEditor(/(yml|yaml|json|js|s?css|ts)/i, new file_1.Editor());
             this.registerEditor(/(mp4|webm|mov|m3u8|jpeg|jpg|png|gif|bmp|svg)$/i, new index_1.ScomIPFSPreview());
         }

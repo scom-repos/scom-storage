@@ -18,8 +18,7 @@
         "@ijstech/cli": "^0.1.26",
         "@ijstech/compiler": "^0.1.18",
         "@ijstech/components": "^0.1.38",
-        "@types/node": "18.11.9",
-        "@scom/scom-designer": "https://github.com/scom-repos/scom-designer"
+        "@types/node": "18.11.9"
     },
     "dependencies": {
         "@scom/scom-signer": "^0.1.0"

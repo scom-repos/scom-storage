@@ -18,6 +18,7 @@ const Theme = Styles.Theme.ThemeVars
 
 interface IEditor {
   content?: string;
+  type?: 'md' | 'designer';
 }
 interface ScomIPFSEditorElement extends ControlElement {
   data?: IEditor;
@@ -42,7 +43,8 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
   private btnActions: Panel;
 
   private _data: IEditor = {
-    content: ''
+    content: '',
+    type: 'md'
   };
   private initialContent: string = '';
   onClose: () => void
@@ -61,19 +63,27 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     return self
   }
 
-  get data() {
-    return this._data
+  get content() {
+    return this._data.content ?? ''
   }
-  set data(value: IEditor) {
-    this._data = value
+  set content(value: string) {
+    this._data.content = value ?? ''
+  }
+
+  get type() {
+    return this._data.type ?? 'md'
+  }
+  set type(value: 'md' | 'designer') {
+    this._data.type = value ?? 'md'
   }
 
   setData(value: IEditor) {
-    this.data = value
+    const isTypeChanged = this.type !== value.type;
+    this._data = value
     this.mdAlert.closeModal();
     this.btnSave.enabled = false;
     this.initialContent = '';
-    this.renderUI()
+    this.renderUI(isTypeChanged)
   }
 
   async openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control) {
@@ -81,7 +91,9 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
     const mediaUrl = `${endpoint}/ipfs/${parentCid}/${path}`;
     const result = await getFileContent(mediaUrl);
-    this.data = { content: result || '' };
+    const ext = file.name.split('.').pop();
+    this.type = ext === 'md' ? 'md' : 'designer';
+    this.content = result || '';
     this.renderUI();
     this.btnActions.visible = false;
   }
@@ -90,12 +102,10 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     if (this.editorEl) this.editorEl.onHide();
   }
 
-  private async renderUI() {
-    if (this.editorEl) {
-      this.initialContent = '';
-      this.editorEl.setValue(this.data.content);
-    } else {
-      this.editorEl = await getEmbedElement(this.createTextEditorElement(this.data.content), this.pnlEditor);
+  private async renderUI(isTypeChanged?: boolean) {
+    if (!this.editorEl || isTypeChanged) {
+      this.pnlEditor.clearInnerHTML();
+      this.editorEl = await getEmbedElement(this.createEditorElement(this.content), this.pnlEditor);
       this.initialContent = this.editorEl.value;
       this.editorEl.onChanged = (value: string) => {
         if (this.initialContent) {
@@ -104,12 +114,15 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
           this.initialContent = value
         }
       }
+    } else {
+      this.initialContent = '';
+      this.editorEl.setValue(this.content);
     }
   }
 
-  private createTextEditorElement(value: string) {
+  private createEditorElement(value: string) {
     return {
-      module: '@scom/scom-editor',
+      module: this.type === 'md' ? '@scom/scom-editor' : '@scom/scom-designer',
       data: {
         properties: {
           value
