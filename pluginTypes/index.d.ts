@@ -46,6 +46,7 @@ declare module "@scom/scom-storage/components/index.css.ts" {
     export const addressPanelStyle: string;
     export const customLinkStyle: string;
     export const uploadModalStyle: string;
+    export const fullScreenStyle: string;
 }
 /// <amd-module name="@scom/scom-storage/components/path.tsx" />
 declare module "@scom/scom-storage/components/path.tsx" {
@@ -324,6 +325,7 @@ declare module "@scom/scom-storage/components/editor.tsx" {
     interface IEditor {
         content?: string;
         type?: 'md' | 'designer';
+        isFullScreen?: boolean;
     }
     interface ScomIPFSEditorElement extends ControlElement {
         data?: IEditor;
@@ -353,6 +355,8 @@ declare module "@scom/scom-storage/components/editor.tsx" {
         set content(value: string);
         get type(): 'md' | 'designer';
         set type(value: 'md' | 'designer');
+        get isFullScreen(): boolean;
+        set isFullScreen(value: boolean);
         setData(value: IEditor): void;
         openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control): Promise<void>;
         onHide(): void;
