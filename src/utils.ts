@@ -2,6 +2,7 @@ import { Control, application } from "@ijstech/components";
 
 export const getEmbedElement = async (moduleData: any, parent: Control, callback?: any) => {
   const { module, data } = moduleData;
+  parent.clearInnerHTML();
   const elm = await application.createElement(module, true) as any;
   if (!elm) throw new Error('not found');
   elm.parent = parent;

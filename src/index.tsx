@@ -297,6 +297,9 @@ export class ScomStorage extends Module {
 
     private async setData(value: IStorageConfig) {
         this._data = value;
+        if (this.transportEndpoint) {
+            this.mobileHome.transportEndpoint = this.transportEndpoint;
+        }
         await this.initContent();
     }
 

@@ -357,7 +357,7 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
     this.editorPanel.visible = true;
     this.previewerPanel.visible = false;
     const ext = (this._data.name || '').split('.').pop().toLowerCase();
-    this.editor.setData({content: this.currentContent, type: ext === 'md' ? 'md' : 'designer'});
+    this.editor.setData({content: this.currentContent, type: ext === 'md' ? 'md' : 'designer', isFullScreen: true});
     if (this.onOpenEditor) this.onOpenEditor();
   }
 
