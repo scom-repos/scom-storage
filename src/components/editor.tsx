@@ -10,7 +10,7 @@ import {
   Control
 } from '@ijstech/components'
 import { getEmbedElement } from '../utils';
-import { addressPanelStyle } from './index.css';
+import { addressPanelStyle, fullScreenStyle } from './index.css';
 import { IFileHandler } from '../file';
 import { IIPFSData } from '../interface';
 import { getFileContent } from '../data';
@@ -19,6 +19,7 @@ const Theme = Styles.Theme.ThemeVars
 interface IEditor {
   content?: string;
   type?: 'md' | 'designer';
+  isFullScreen?: boolean;
 }
 interface ScomIPFSEditorElement extends ControlElement {
   data?: IEditor;
@@ -44,7 +45,8 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
 
   private _data: IEditor = {
     content: '',
-    type: 'md'
+    type: 'md',
+    isFullScreen: false
   };
   private initialContent: string = '';
   onClose: () => void
@@ -77,6 +79,13 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     this._data.type = value ?? 'md'
   }
 
+  get isFullScreen() {
+    return this._data.isFullScreen ?? false
+  }
+  set isFullScreen(value: boolean) {
+    this._data.isFullScreen = value ?? false
+  }
+
   setData(value: IEditor) {
     const isTypeChanged = this.type !== value.type;
     this._data = value
@@ -88,12 +97,15 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
 
   async openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control) {
     parent.append(this);
+    this.display = 'flex'
+    this.height = '100%'
     const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
     const mediaUrl = `${endpoint}/ipfs/${parentCid}/${path}`;
     const result = await getFileContent(mediaUrl);
     const ext = file.name.split('.').pop();
     this.type = ext === 'md' ? 'md' : 'designer';
     this.content = result || '';
+    this.isFullScreen = false;
     this.renderUI();
     this.btnActions.visible = false;
   }
@@ -104,7 +116,6 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
 
   private async renderUI(isTypeChanged?: boolean) {
     if (!this.editorEl || isTypeChanged) {
-      this.pnlEditor.clearInnerHTML();
       this.editorEl = await getEmbedElement(this.createEditorElement(this.content), this.pnlEditor);
       this.initialContent = this.editorEl.value;
       this.editorEl.onChanged = (value: string) => {
@@ -117,6 +128,12 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     } else {
       this.initialContent = '';
       this.editorEl.setValue(this.content);
+    }
+    if (this.isFullScreen) {
+      this.classList.add(fullScreenStyle);
+      document.body.style.overflow = 'hidden';
+    } else {
+      this.classList.remove(fullScreenStyle);
     }
   }
 
@@ -139,6 +156,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
   }
 
   private onCancel() {
+    document.body.style.overflow = 'hidden auto';
     if (this.editorEl) this.editorEl.onHide();
     if (this.btnSave.enabled) {
       this.mdAlert.showModal()
@@ -148,6 +166,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
   }
 
   private onSubmit() {
+    document.body.style.overflow = 'hidden auto';
     if (this.onClose) this.onClose()
     if (this.onChanged) this.onChanged(this.editorEl.value)
   }

@@ -81,6 +81,12 @@ export class ScomIPFSMobileHome extends Module {
         return this._transportEndpoint;
     }
     set transportEndpoint(value: string) {
+        if (value && value !== this._transportEndpoint) {
+            this._manager = new IPFS.FileManager({
+                endpoint: value,
+                signer: this._signer
+            });
+        }
         this._transportEndpoint = value;
     }
 

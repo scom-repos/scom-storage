@@ -53,7 +53,7 @@ define("@scom/scom-storage/assets.ts", ["require", "exports", "@ijstech/componen
 define("@scom/scom-storage/components/index.css.ts", ["require", "exports", "@ijstech/components", "@scom/scom-storage/assets.ts"], function (require, exports, components_2, assets_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.uploadModalStyle = exports.customLinkStyle = exports.addressPanelStyle = exports.transitionStyle = exports.backgroundStyle = void 0;
+    exports.fullScreenStyle = exports.uploadModalStyle = exports.customLinkStyle = exports.addressPanelStyle = exports.transitionStyle = exports.backgroundStyle = void 0;
     const Theme = components_2.Styles.Theme.ThemeVars;
     exports.backgroundStyle = components_2.Styles.style({
         backgroundColor: Theme.divider,
@@ -260,6 +260,18 @@ define("@scom/scom-storage/components/index.css.ts", ["require", "exports", "@ij
                 },
             },
         },
+    });
+    exports.fullScreenStyle = components_2.Styles.style({
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 100,
+        width: '100%',
+        height: '100%',
+        overflow: 'hidden',
+        background: Theme.background.modal
     });
 });
 define("@scom/scom-storage/components/path.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts"], function (require, exports, components_3, index_css_1) {
@@ -625,6 +637,12 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
             return this._transportEndpoint;
         }
         set transportEndpoint(value) {
+            if (value && value !== this._transportEndpoint) {
+                this._manager = new components_5.IPFS.FileManager({
+                    endpoint: value,
+                    signer: this._signer
+                });
+            }
             this._transportEndpoint = value;
         }
         get manager() {
@@ -1220,6 +1238,7 @@ define("@scom/scom-storage/utils.ts", ["require", "exports", "@ijstech/component
     exports.getEmbedElement = void 0;
     const getEmbedElement = async (moduleData, parent, callback) => {
         const { module, data } = moduleData;
+        parent.clearInnerHTML();
         const elm = await components_7.application.createElement(module, true);
         if (!elm)
             throw new Error('not found');
@@ -1269,7 +1288,8 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             super(parent, options);
             this._data = {
                 content: '',
-                type: 'md'
+                type: 'md',
+                isFullScreen: false
             };
             this.initialContent = '';
             this.onSubmit = this.onSubmit.bind(this);
@@ -1293,6 +1313,12 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
         set type(value) {
             this._data.type = value ?? 'md';
         }
+        get isFullScreen() {
+            return this._data.isFullScreen ?? false;
+        }
+        set isFullScreen(value) {
+            this._data.isFullScreen = value ?? false;
+        }
         setData(value) {
             const isTypeChanged = this.type !== value.type;
             this._data = value;
@@ -1303,12 +1329,15 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
         }
         async openFile(file, endpoint, parentCid, parent) {
             parent.append(this);
+            this.display = 'flex';
+            this.height = '100%';
             const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
             const mediaUrl = `${endpoint}/ipfs/${parentCid}/${path}`;
             const result = await (0, data_2.getFileContent)(mediaUrl);
             const ext = file.name.split('.').pop();
             this.type = ext === 'md' ? 'md' : 'designer';
             this.content = result || '';
+            this.isFullScreen = false;
             this.renderUI();
             this.btnActions.visible = false;
         }
@@ -1318,7 +1347,6 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
         }
         async renderUI(isTypeChanged) {
             if (!this.editorEl || isTypeChanged) {
-                this.pnlEditor.clearInnerHTML();
                 this.editorEl = await (0, utils_1.getEmbedElement)(this.createEditorElement(this.content), this.pnlEditor);
                 this.initialContent = this.editorEl.value;
                 this.editorEl.onChanged = (value) => {
@@ -1333,6 +1361,13 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             else {
                 this.initialContent = '';
                 this.editorEl.setValue(this.content);
+            }
+            if (this.isFullScreen) {
+                this.classList.add(index_css_4.fullScreenStyle);
+                document.body.style.overflow = 'hidden';
+            }
+            else {
+                this.classList.remove(index_css_4.fullScreenStyle);
             }
         }
         createEditorElement(value) {
@@ -1353,6 +1388,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             };
         }
         onCancel() {
+            document.body.style.overflow = 'hidden auto';
             if (this.editorEl)
                 this.editorEl.onHide();
             if (this.btnSave.enabled) {
@@ -1364,6 +1400,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             }
         }
         onSubmit() {
+            document.body.style.overflow = 'hidden auto';
             if (this.onClose)
                 this.onClose();
             if (this.onChanged)
@@ -1711,7 +1748,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             this.editorPanel.visible = true;
             this.previewerPanel.visible = false;
             const ext = (this._data.name || '').split('.').pop().toLowerCase();
-            this.editor.setData({ content: this.currentContent, type: ext === 'md' ? 'md' : 'designer' });
+            this.editor.setData({ content: this.currentContent, type: ext === 'md' ? 'md' : 'designer', isFullScreen: true });
             if (this.onOpenEditor)
                 this.onOpenEditor();
         }
@@ -2090,6 +2127,9 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         async setData(value) {
             this._data = value;
+            if (this.transportEndpoint) {
+                this.mobileHome.transportEndpoint = this.transportEndpoint;
+            }
             await this.initContent();
         }
         getData() {
