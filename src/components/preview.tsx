@@ -54,7 +54,7 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
     cid: '',
     name: ''
   }
-  private currentContent: string = '';
+  private currentUrl: string = '';
   private typesMapping = {
     'image': {
       fileLimit: 5 * 1024 * 1024,
@@ -202,6 +202,7 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
       const newPath = path.startsWith('/') ? path.slice(1) : path;
       mediaUrl = `${this.transportEndpoint}/ipfs/${parentCid}/${newPath}`;
     }
+    this.currentUrl = mediaUrl;
     switch (fileType) {
       case 'image':
         moduleData = this.createImageElement(mediaUrl)
@@ -218,7 +219,6 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
         if (!result) return null
         if (ext === 'md') {
           moduleData = this.createTextElement(result)
-          this.currentContent = result;
         } else {
           moduleData = { module: '', data: result }
         }
@@ -357,7 +357,12 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
     this.editorPanel.visible = true;
     this.previewerPanel.visible = false;
     const ext = (this._data.name || '').split('.').pop().toLowerCase();
-    this.editor.setData({content: this.currentContent, type: ext === 'md' ? 'md' : 'designer', isFullScreen: true});
+    this.editor.filePath = this._data?.path || '';
+    this.editor.setData({
+      type: ext === 'md' ? 'md' : 'designer',
+      isFullScreen: true,
+      url: this.currentUrl
+    });
     if (this.onOpenEditor) this.onOpenEditor();
   }
 
@@ -368,8 +373,8 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
     if (this.onClose) this.onClose();
   }
 
-  private onChanged(content: string) {
-    if (this.onFileChanged) this.onFileChanged(this._data.path, content);
+  private onChanged(path: string, content: string) {
+    if (this.onFileChanged) this.onFileChanged(path, content);
   }
 
   init() {

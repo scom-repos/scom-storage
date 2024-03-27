@@ -317,58 +317,6 @@ declare module "@scom/scom-storage/file.ts" {
     }
     export { Editor, Viewer, IFileHandler };
 }
-/// <amd-module name="@scom/scom-storage/components/editor.tsx" />
-declare module "@scom/scom-storage/components/editor.tsx" {
-    import { Container, ControlElement, Module, Control } from '@ijstech/components';
-    import { IFileHandler } from "@scom/scom-storage/file.ts";
-    import { IIPFSData } from "@scom/scom-storage/interface.ts";
-    interface IEditor {
-        content?: string;
-        type?: 'md' | 'designer';
-        isFullScreen?: boolean;
-    }
-    interface ScomIPFSEditorElement extends ControlElement {
-        data?: IEditor;
-        onClose?: () => void;
-        onChanged?: (content: string) => void;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-scom-ipfs--editor']: ScomIPFSEditorElement;
-            }
-        }
-    }
-    export class ScomIPFSEditor extends Module implements IFileHandler {
-        private pnlEditor;
-        private editorEl;
-        private btnSave;
-        private mdAlert;
-        private btnActions;
-        private _data;
-        private initialContent;
-        onClose: () => void;
-        onChanged: (content: string) => void;
-        constructor(parent?: Container, options?: any);
-        static create(options?: ScomIPFSEditorElement, parent?: Container): Promise<ScomIPFSEditor>;
-        get content(): string;
-        set content(value: string);
-        get type(): 'md' | 'designer';
-        set type(value: 'md' | 'designer');
-        get isFullScreen(): boolean;
-        set isFullScreen(value: boolean);
-        setData(value: IEditor): void;
-        openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control): Promise<void>;
-        onHide(): void;
-        private renderUI;
-        private createEditorElement;
-        private onCancel;
-        private onSubmit;
-        private onAlertConfirm;
-        init(): void;
-        render(): any;
-    }
-}
 /// <amd-module name="@scom/scom-storage/components/loadingSpinner.tsx" />
 declare module "@scom/scom-storage/components/loadingSpinner.tsx" {
     import { ControlElement, Module } from "@ijstech/components";
@@ -389,6 +337,65 @@ declare module "@scom/scom-storage/components/loadingSpinner.tsx" {
         private pnlLoadingSpinner;
         init(): Promise<void>;
         setProperties(value: ILoadingSpinnerProps): void;
+        render(): any;
+    }
+}
+/// <amd-module name="@scom/scom-storage/components/editor.tsx" />
+declare module "@scom/scom-storage/components/editor.tsx" {
+    import { Container, ControlElement, Module, Control } from '@ijstech/components';
+    import { IFileHandler } from "@scom/scom-storage/file.ts";
+    import { IIPFSData } from "@scom/scom-storage/interface.ts";
+    interface IEditor {
+        url?: string;
+        type?: 'md' | 'designer';
+        isFullScreen?: boolean;
+    }
+    type onChangedCallback = (filePath: string, content: string) => void;
+    interface ScomIPFSEditorElement extends ControlElement {
+        data?: IEditor;
+        onClose?: () => void;
+        onChanged?: onChangedCallback;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-scom-ipfs--editor']: ScomIPFSEditorElement;
+            }
+        }
+    }
+    export class ScomIPFSEditor extends Module implements IFileHandler {
+        private pnlEditor;
+        private editorEl;
+        private btnSave;
+        private mdAlert;
+        private btnActions;
+        private loadingSpinner;
+        private pnlLoading;
+        private _data;
+        private initialContent;
+        filePath: string;
+        onClose: () => void;
+        onChanged: onChangedCallback;
+        constructor(parent?: Container, options?: any);
+        static create(options?: ScomIPFSEditorElement, parent?: Container): Promise<ScomIPFSEditor>;
+        get url(): string;
+        set url(value: string);
+        get type(): 'md' | 'designer';
+        set type(value: 'md' | 'designer');
+        get isFullScreen(): boolean;
+        set isFullScreen(value: boolean);
+        showLoadingSpinner(): void;
+        hideLoadingSpinner(): void;
+        setData(value: IEditor): Promise<void>;
+        openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control): Promise<void>;
+        onHide(): void;
+        private renderUI;
+        private createEditorElement;
+        private createDesignerElement;
+        private onCancel;
+        private onSubmit;
+        private onAlertConfirm;
+        init(): void;
         render(): any;
     }
 }
@@ -425,7 +432,7 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         private pnlFileInfo;
         private iconClose;
         private _data;
-        private currentContent;
+        private currentUrl;
         private typesMapping;
         onClose: () => void;
         onOpenEditor: () => void;

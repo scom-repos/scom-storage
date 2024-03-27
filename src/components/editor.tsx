@@ -7,24 +7,28 @@ import {
   Panel,
   Styles,
   Alert,
-  Control
+  Control,
+  VStack
 } from '@ijstech/components'
 import { getEmbedElement } from '../utils';
 import { addressPanelStyle, fullScreenStyle } from './index.css';
 import { IFileHandler } from '../file';
 import { IIPFSData } from '../interface';
+import { LoadingSpinner } from './loadingSpinner';
 import { getFileContent } from '../data';
 const Theme = Styles.Theme.ThemeVars
 
 interface IEditor {
-  content?: string;
+  url?: string;
   type?: 'md' | 'designer';
   isFullScreen?: boolean;
 }
+type onChangedCallback = (filePath: string, content: string) => void
+
 interface ScomIPFSEditorElement extends ControlElement {
   data?: IEditor;
   onClose?: () => void
-  onChanged?: (content: string) => void
+  onChanged?: onChangedCallback
 }
 
 declare global {
@@ -42,15 +46,18 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
   private btnSave: Button;
   private mdAlert: Alert;
   private btnActions: Panel;
+  private loadingSpinner: LoadingSpinner;
+  private pnlLoading: VStack;
 
   private _data: IEditor = {
-    content: '',
+    url: '',
     type: 'md',
     isFullScreen: false
   };
   private initialContent: string = '';
+  filePath: string = '';
   onClose: () => void
-  onChanged: (content: string) => void
+  onChanged: onChangedCallback
 
   constructor(parent?: Container, options?: any) {
     super(parent, options)
@@ -65,11 +72,11 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     return self
   }
 
-  get content() {
-    return this._data.content ?? ''
+  get url() {
+    return this._data.url ?? ''
   }
-  set content(value: string) {
-    this._data.content = value ?? ''
+  set url(value: string) {
+    this._data.url = value ?? ''
   }
 
   get type() {
@@ -86,28 +93,44 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     this._data.isFullScreen = value ?? false
   }
 
-  setData(value: IEditor) {
+  showLoadingSpinner() {
+    if (!this.loadingSpinner) {
+      this.loadingSpinner = new LoadingSpinner();
+      this.pnlLoading.append(this.loadingSpinner);
+    }
+    this.pnlLoading.visible = true;
+  }
+
+  hideLoadingSpinner() {
+    this.pnlLoading.visible = false;
+  }
+
+  async setData(value: IEditor) {
     const isTypeChanged = this.type !== value.type;
     this._data = value
-    this.mdAlert.closeModal();
-    this.btnSave.enabled = false;
+    if (this.mdAlert) this.mdAlert.closeModal();
+    if (this.btnSave) this.btnSave.enabled = false;
     this.initialContent = '';
     this.renderUI(isTypeChanged)
   }
 
   async openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control) {
     parent.append(this);
+    this.filePath = file.path
     this.display = 'flex'
     this.height = '100%'
     const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
     const mediaUrl = `${endpoint}/ipfs/${parentCid}/${path}`;
-    const result = await getFileContent(mediaUrl);
     const ext = file.name.split('.').pop();
-    this.type = ext === 'md' ? 'md' : 'designer';
-    this.content = result || '';
-    this.isFullScreen = false;
-    this.renderUI();
+    const newType = ext === 'md' ? 'md' : 'designer';
+    const isTypeChanged = this.type !== newType;
+    this._data = {
+      url: mediaUrl,
+      type: ext === 'md' ? 'md' : 'designer',
+      isFullScreen: false
+    }
     this.btnActions.visible = false;
+    this.renderUI(isTypeChanged)
   }
 
   onHide(): void {
@@ -115,9 +138,13 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
   }
 
   private async renderUI(isTypeChanged?: boolean) {
+    this.showLoadingSpinner();
+    const content = await getFileContent(this.url);
     if (!this.editorEl || isTypeChanged) {
-      this.editorEl = await getEmbedElement(this.createEditorElement(this.content), this.pnlEditor);
+      let moduleData = this.type === 'md' ? this.createEditorElement(content) : this.createDesignerElement(this.url);
+      this.editorEl = await getEmbedElement(moduleData, this.pnlEditor);
       this.initialContent = this.editorEl.value;
+
       this.editorEl.onChanged = (value: string) => {
         if (this.initialContent) {
           this.btnSave.enabled = value !== this.initialContent;
@@ -127,7 +154,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
       }
     } else {
       this.initialContent = '';
-      this.editorEl.setValue(this.content);
+      this.editorEl.setValue(this.type === 'md' ? content : this.url);
     }
     if (this.isFullScreen) {
       this.classList.add(fullScreenStyle);
@@ -135,14 +162,33 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     } else {
       this.classList.remove(fullScreenStyle);
     }
+    this.hideLoadingSpinner();
   }
 
   private createEditorElement(value: string) {
     return {
-      module: this.type === 'md' ? '@scom/scom-editor' : '@scom/scom-designer',
+      module: '@scom/scom-editor',
       data: {
         properties: {
           value
+        },
+        tag: {
+          width: '100%',
+          pt: 0,
+          pb: 0,
+          pl: 0,
+          pr: 0,
+        },
+      },
+    }
+  }
+
+  private createDesignerElement(url: string) {
+    return {
+      module: '@scom/scom-designer',
+      data: {
+        properties: {
+          url
         },
         tag: {
           width: '100%',
@@ -168,7 +214,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
   private onSubmit() {
     document.body.style.overflow = 'hidden auto';
     if (this.onClose) this.onClose()
-    if (this.onChanged) this.onChanged(this.editorEl.value)
+    if (this.onChanged) this.onChanged(this.filePath, this.editorEl.value)
   }
 
   private onAlertConfirm() {
@@ -187,7 +233,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     return (
       <i-vstack
         maxHeight={'100%'}
-        width={'100%'}
+        width={'100%'} height={`100%`}
         overflow={'hidden'}
         gap="0.75rem"
       >
@@ -196,6 +242,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
           verticalAlignment='center'
           horizontalAlignment='end'
           width={'100%'}
+          stack={{shrink: '0'}}
           gap="0.5rem"
           padding={{ left: '1rem', right: '1rem', top: '0.75rem' }}
         >
@@ -221,14 +268,16 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
             onClick={this.onSubmit}
           ></i-button>
         </i-hstack>
-        <i-vstack
-          id="pnlEditor"
-          stack={{ shrink: '1', grow: '1' }}
-          width={'100%'}
-          overflow={{y: 'auto', x: 'hidden'}}
-          padding={{ left: '1rem', right: '1rem' }}
-          class={addressPanelStyle}
-        ></i-vstack>
+        <i-panel width={'100%'} stack={{grow: '1'}} overflow={{y: 'auto', x: 'hidden'}}>
+          <i-vstack id="pnlLoading" visible={false} />
+          <i-vstack
+            id="pnlEditor"
+            width={'100%'} height={'100%'}
+            position='relative'
+            padding={{ left: '1rem', right: '1rem' }}
+            class={addressPanelStyle}
+          ></i-vstack>
+        </i-panel>
         <i-alert
           id="mdAlert"
           title=''
