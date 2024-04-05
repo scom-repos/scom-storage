@@ -174,6 +174,7 @@ export class ScomStorage extends Module {
     private _isModal: boolean = false;
     private _isFileShown: boolean = false;
     private currentFile: string;
+    private _signer: IPFS.ISigner;
 
     onOpen: selectFileCallback;
     onCancel: cancelCallback;
@@ -218,10 +219,10 @@ export class ScomStorage extends Module {
     }
 
     get signer() {
-        return this._data.signer;
+        return this._signer;
     }
     set signer(value) {
-        this._data.signer = value;
+        this._signer = value;
     }
 
     get isFileShown() {
@@ -233,9 +234,10 @@ export class ScomStorage extends Module {
 
     setConfig(config: IStorageConfig) {
         this._data = config;
+        this._signer = config.signer;
         this.manager = new IPFS.FileManager({
             endpoint: this._data.transportEndpoint,
-            signer: this._data.signer
+            signer: this._signer
         });
     }
 
@@ -1129,6 +1131,7 @@ export class ScomStorage extends Module {
     init() {
         const transportEndpoint = this.getAttribute('transportEndpoint', true) || this._data?.transportEndpoint ||window.location.origin;
         const signer = this.getAttribute('signer', true) || this._data?.signer || null;
+        this._signer = signer;
         this.baseUrl = this.getAttribute('baseUrl', true);
         super.init();
         this.isModal = this.getAttribute('isModal', true) || this._data.isModal || false;

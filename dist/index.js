@@ -2097,10 +2097,10 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this._data.transportEndpoint = value;
         }
         get signer() {
-            return this._data.signer;
+            return this._signer;
         }
         set signer(value) {
-            this._data.signer = value;
+            this._signer = value;
         }
         get isFileShown() {
             return this._isFileShown ?? false;
@@ -2110,9 +2110,10 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         setConfig(config) {
             this._data = config;
+            this._signer = config.signer;
             this.manager = new components_12.IPFS.FileManager({
                 endpoint: this._data.transportEndpoint,
-                signer: this._data.signer
+                signer: this._signer
             });
         }
         getConfig() {
@@ -2979,6 +2980,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         init() {
             const transportEndpoint = this.getAttribute('transportEndpoint', true) || this._data?.transportEndpoint || window.location.origin;
             const signer = this.getAttribute('signer', true) || this._data?.signer || null;
+            this._signer = signer;
             this.baseUrl = this.getAttribute('baseUrl', true);
             super.init();
             this.isModal = this.getAttribute('isModal', true) || this._data.isModal || false;

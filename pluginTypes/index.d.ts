@@ -584,6 +584,7 @@ declare module "@scom/scom-storage" {
         private _isModal;
         private _isFileShown;
         private currentFile;
+        private _signer;
         onOpen: selectFileCallback;
         onCancel: cancelCallback;
         constructor(parent?: Container, options?: any);
