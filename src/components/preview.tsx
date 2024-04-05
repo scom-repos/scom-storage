@@ -353,17 +353,21 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
     // a.click();
   }
 
-  private onEditClicked() {
-    this.editorPanel.visible = true;
-    this.previewerPanel.visible = false;
-    const ext = (this._data.name || '').split('.').pop().toLowerCase();
-    this.editor.filePath = this._data?.path || '';
-    this.editor.setData({
-      type: ext === 'md' ? 'md' : 'designer',
-      isFullScreen: true,
-      url: this.currentUrl
-    });
-    if (this.onOpenEditor) this.onOpenEditor();
+  private async onEditClicked() {
+    try {
+      this.showLoadingSpinner();
+      this.editorPanel.visible = true;
+      this.previewerPanel.visible = false;
+      if (this.onOpenEditor) this.onOpenEditor();
+      const ext = (this._data.name || '').split('.').pop().toLowerCase();
+      this.editor.filePath = this._data?.path || '';
+      await this.editor.setData({
+        type: ext === 'md' ? 'md' : 'designer',
+        isFullScreen: true,
+        url: this.currentUrl
+      });
+    } catch {}
+    this.hideLoadingSpinner();
   }
 
   private closeEditor() {
@@ -390,6 +394,12 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
   render() {
     return (
       <i-panel width={'100%'} height={'100%'} class={customLinkStyle}>
+        <i-vstack
+          id="pnlLoading"
+          height={'100%'} width={'100%'}
+          visible={false}
+          verticalAlignment='center' horizontalAlignment='center'
+        />
         <i-vstack
           id="previewerPanel"
           width={'100%'}
@@ -450,7 +460,6 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
             margin={{ top: '1.5rem', bottom: '1.5rem' }}
             gap={'1.5rem'}
           >
-            <i-vstack id="pnlLoading" visible={false} />
             <i-panel
               id={'previewer'}
               width={'100%'}

@@ -111,7 +111,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     if (this.mdAlert) this.mdAlert.closeModal();
     if (this.btnSave) this.btnSave.enabled = false;
     this.initialContent = '';
-    this.renderUI(isTypeChanged)
+    await this.renderUI(isTypeChanged)
   }
 
   async openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control) {
