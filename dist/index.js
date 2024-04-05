@@ -1372,7 +1372,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             if (this.btnSave)
                 this.btnSave.enabled = false;
             this.initialContent = '';
-            this.renderUI(isTypeChanged);
+            await this.renderUI(isTypeChanged);
         }
         async openFile(file, endpoint, parentCid, parent) {
             parent.append(this);
@@ -1784,18 +1784,23 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             // a.target = '_blank';
             // a.click();
         }
-        onEditClicked() {
-            this.editorPanel.visible = true;
-            this.previewerPanel.visible = false;
-            const ext = (this._data.name || '').split('.').pop().toLowerCase();
-            this.editor.filePath = this._data?.path || '';
-            this.editor.setData({
-                type: ext === 'md' ? 'md' : 'designer',
-                isFullScreen: true,
-                url: this.currentUrl
-            });
-            if (this.onOpenEditor)
-                this.onOpenEditor();
+        async onEditClicked() {
+            try {
+                this.showLoadingSpinner();
+                this.editorPanel.visible = true;
+                this.previewerPanel.visible = false;
+                if (this.onOpenEditor)
+                    this.onOpenEditor();
+                const ext = (this._data.name || '').split('.').pop().toLowerCase();
+                this.editor.filePath = this._data?.path || '';
+                await this.editor.setData({
+                    type: ext === 'md' ? 'md' : 'designer',
+                    isFullScreen: true,
+                    url: this.currentUrl
+                });
+            }
+            catch { }
+            this.hideLoadingSpinner();
         }
         closeEditor() {
             this.editorPanel.visible = false;
@@ -1821,6 +1826,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
         }
         render() {
             return (this.$render("i-panel", { width: '100%', height: '100%', class: index_css_5.customLinkStyle },
+                this.$render("i-vstack", { id: "pnlLoading", height: '100%', width: '100%', visible: false, verticalAlignment: 'center', horizontalAlignment: 'center' }),
                 this.$render("i-vstack", { id: "previewerPanel", width: '100%', height: '100%', padding: { left: '1rem', right: '1rem' } },
                     this.$render("i-hstack", { width: '100%', height: 36, stack: { shrink: '0' }, verticalAlignment: 'center', horizontalAlignment: 'space-between', border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } }, mediaQueries: [
                             {
@@ -1838,7 +1844,6 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                     this.$render("i-hstack", { id: "pnlEdit", verticalAlignment: 'center', horizontalAlignment: 'end', visible: false, padding: { top: '1rem' } },
                         this.$render("i-button", { padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, border: { radius: '0.25rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: 'transparent' }, icon: { name: 'pencil-alt', width: '1rem', height: '1rem', fill: Theme.text.primary }, onClick: this.onEditClicked })),
                     this.$render("i-vstack", { minHeight: "3rem", stack: { shrink: '1' }, overflow: { y: 'auto' }, margin: { top: '1.5rem', bottom: '1.5rem' }, gap: '1.5rem' },
-                        this.$render("i-vstack", { id: "pnlLoading", visible: false }),
                         this.$render("i-panel", { id: 'previewer', width: '100%' })),
                     this.$render("i-hstack", { id: "pnlFileInfo", width: '100%', padding: { bottom: '1.25rem', top: '1.25rem' }, border: { top: { width: '1px', style: 'solid', color: Theme.divider } }, horizontalAlignment: "space-between", gap: "0.5rem" },
                         this.$render("i-vstack", { width: '100%', gap: "0.5rem" },
