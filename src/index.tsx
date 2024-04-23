@@ -458,7 +458,7 @@ export class ScomStorage extends Module {
             console.log(err);
         }
         this.rootCid = this.currentCid = rootNode?.cid;
-        this.readOnly = this.isModal || !this.rootCid || (cid && cid !== this.rootCid);
+        this.readOnly = !this.rootCid || (!this.isModal && (cid && cid !== this.rootCid));
         if (!this.isModal) {
             if (this.readOnly && cid) {
                 rootNode = await this.manager.setRootCid(cid);
@@ -1219,7 +1219,6 @@ export class ScomStorage extends Module {
                                     resizer={true} dock="left"
                                     height={'100%'} overflow={{ y: 'auto', x: 'hidden' }}
                                     minWidth={'10rem'} width={'15rem'}
-                                    maxWidth={'calc(100% - 35rem)'}
                                     border={{right: {width: '1px', style: 'solid', color: Theme.divider}}}
                                 >
                                     <i-tree-view

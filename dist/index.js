@@ -2334,7 +2334,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 console.log(err);
             }
             this.rootCid = this.currentCid = rootNode?.cid;
-            this.readOnly = this.isModal || !this.rootCid || (cid && cid !== this.rootCid);
+            this.readOnly = !this.rootCid || (!this.isModal && (cid && cid !== this.rootCid));
             if (!this.isModal) {
                 if (this.readOnly && cid) {
                     rootNode = await this.manager.setRootCid(cid);
@@ -3033,7 +3033,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                         ] },
                         this.$render("i-panel", { stack: { grow: '1', basis: '0%' }, overflow: 'hidden' },
                             this.$render("i-grid-layout", { id: 'gridWrapper', height: '100%', width: '100%', overflow: 'hidden', position: 'relative', templateColumns: ['15rem', '1fr'], background: { color: Theme.background.main } },
-                                this.$render("i-vstack", { id: 'ieSidebar', resizer: true, dock: "left", height: '100%', overflow: { y: 'auto', x: 'hidden' }, minWidth: '10rem', width: '15rem', maxWidth: 'calc(100% - 35rem)', border: { right: { width: '1px', style: 'solid', color: Theme.divider } } },
+                                this.$render("i-vstack", { id: 'ieSidebar', resizer: true, dock: "left", height: '100%', overflow: { y: 'auto', x: 'hidden' }, minWidth: '10rem', width: '15rem', border: { right: { width: '1px', style: 'solid', color: Theme.divider } } },
                                     this.$render("i-tree-view", { id: "uploadedFileTree", class: "file-manager-tree uploaded", stack: { grow: '1' }, maxHeight: '100%', overflow: 'auto', editable: true, actionButtons: [
                                             {
                                                 caption: `<i-icon name="ellipsis-h" width=${14} height=${14} class="inline-flex"></i-icon>`,
