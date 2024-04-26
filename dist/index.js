@@ -1861,7 +1861,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                         this.$render("i-icon", { id: "iconClose", name: "times", width: '0.875rem', height: '0.875rem', stack: { shrink: '0' }, opacity: 0.7, cursor: 'pointer', onClick: this.closePreview })),
                     this.$render("i-hstack", { id: "pnlEdit", verticalAlignment: 'center', horizontalAlignment: 'end', visible: false, padding: { top: '1rem' } },
                         this.$render("i-button", { padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, border: { radius: '0.25rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: 'transparent' }, icon: { name: 'pencil-alt', width: '1rem', height: '1rem', fill: Theme.text.primary }, onClick: this.onEditClicked })),
-                    this.$render("i-hstack", { id: "pnlFileInfo", width: '100%', padding: { bottom: '1.25rem', top: '1.25rem' }, border: { top: { width: '1px', style: 'solid', color: Theme.divider } }, horizontalAlignment: "space-between", gap: "0.5rem" },
+                    this.$render("i-hstack", { id: "pnlFileInfo", width: '100%', padding: { bottom: '1.25rem', top: '1.25rem' }, border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } }, horizontalAlignment: "space-between", gap: "0.5rem" },
                         this.$render("i-vstack", { width: '100%', gap: "0.5rem" },
                             this.$render("i-label", { id: "lblName", font: { size: '1rem', weight: 600 }, wordBreak: 'break-all', lineHeight: 1.2 }),
                             this.$render("i-label", { id: "lblSize", font: { size: `0.75rem` }, opacity: 0.7 }),
@@ -1869,9 +1869,9 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                                 this.$render("i-label", { id: "lblCid", font: { size: `0.75rem` } }),
                                 this.$render("i-icon", { id: 'imgCopy', name: 'copy', width: '0.875rem', height: '0.875rem', display: 'inline-flex' }))),
                         this.$render("i-hstack", { width: 35, height: 35, border: { radius: '50%' }, horizontalAlignment: "center", verticalAlignment: "center", stack: { shrink: "0" }, cursor: "pointer", background: { color: Theme.colors.secondary.main }, hover: { backgroundColor: Theme.action.hoverBackground }, onClick: this.downloadFile },
-                            this.$render("i-icon", { width: 15, height: 15, name: 'download' })))),
-                this.$render("i-vstack", { minHeight: "3rem", stack: { shrink: '1' }, overflow: { y: 'auto' }, gap: '1.5rem' },
-                    this.$render("i-panel", { id: 'previewer', width: '100%' })),
+                            this.$render("i-icon", { width: 15, height: 15, name: 'download' }))),
+                    this.$render("i-vstack", { minHeight: "3rem", stack: { shrink: '1' }, overflow: { y: 'auto' }, margin: { top: '1.5rem', bottom: '1.5rem' }, gap: '1.5rem' },
+                        this.$render("i-panel", { id: 'previewer', width: '100%' }))),
                 this.$render("i-vstack", { id: "editorPanel", maxHeight: '100%', overflow: 'hidden', visible: false },
                     this.$render("i-scom-ipfs--editor", { id: "editor", stack: { shrink: '1', grow: '1' }, width: '100%', display: 'flex', overflow: 'hidden', onClose: this.closeEditor.bind(this), onChanged: this.onChanged.bind(this) }))));
         }

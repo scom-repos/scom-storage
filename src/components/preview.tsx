@@ -479,7 +479,7 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
             id="pnlFileInfo"
             width={'100%'}
             padding={{ bottom: '1.25rem', top: '1.25rem' }}
-            border={{ top: { width: '1px', style: 'solid', color: Theme.divider } }}
+            border={{ bottom: { width: '1px', style: 'solid', color: Theme.divider } }}
             horizontalAlignment="space-between"
             gap="0.5rem"
           >
@@ -531,17 +531,18 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
               <i-icon width={15} height={15} name='download' />
             </i-hstack>
           </i-hstack>
-        </i-vstack>
-        <i-vstack
-          minHeight="3rem"
-          stack={{ shrink: '1' }}
-          overflow={{ y: 'auto' }}
-          gap={'1.5rem'}
-        >
-          <i-panel
-            id={'previewer'}
-            width={'100%'}
-          ></i-panel>
+          <i-vstack
+            minHeight="3rem"
+            stack={{ shrink: '1' }}
+            overflow={{ y: 'auto' }}
+            margin={{ top: '1.5rem', bottom: '1.5rem' }}
+            gap={'1.5rem'}
+          >
+            <i-panel
+              id={'previewer'}
+              width={'100%'}
+            ></i-panel>
+          </i-vstack>
         </i-vstack>
         <i-vstack
           id="editorPanel"
