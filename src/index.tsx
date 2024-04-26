@@ -130,11 +130,6 @@ export class ScomStorage extends Module {
             },
         },
         {
-            title: 'CID',
-            fieldName: 'cid',
-            background: { color: '#f8f9fa' }
-        },
-        {
             title: 'Type',
             fieldName: 'type',
             onRenderCell: (source: Control, columnData: any, rowData: any) => {

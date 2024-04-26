@@ -423,6 +423,8 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         private previewer;
         private lblName;
         private lblSize;
+        private lblCid;
+        private imgCopy;
         private pnlEdit;
         private previewerPanel;
         private editorPanel;
@@ -431,6 +433,7 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         private pnlLoading;
         private pnlFileInfo;
         private iconClose;
+        private copyTimer;
         private _data;
         private currentUrl;
         private typesMapping;
@@ -465,6 +468,7 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         private onEditClicked;
         private closeEditor;
         private onChanged;
+        private onCopyCid;
         init(): void;
         render(): any;
     }

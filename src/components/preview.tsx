@@ -1,8 +1,10 @@
 import {
+  application,
   Container,
   Control,
   ControlElement,
   customElements,
+  FormatUtils,
   Icon,
   Label,
   Module,
@@ -41,6 +43,8 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
   private previewer: Panel;
   private lblName: Label;
   private lblSize: Label;
+  private lblCid: Label;
+  private imgCopy: Icon;
   private pnlEdit: Panel;
   private previewerPanel: Panel;
   private editorPanel: Panel;
@@ -49,6 +53,7 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
   private pnlLoading: Panel;
   private pnlFileInfo: Panel;
   private iconClose: Icon;
+  private copyTimer: any;
 
   private _data: IPreview = {
     cid: '',
@@ -134,6 +139,7 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
     this.previewer.clearInnerHTML()
     this.lblName.caption = ''
     this.lblSize.caption = ''
+    this.lblCid.caption = '';
   }
 
   private renderUI(usePath = false) {
@@ -149,6 +155,9 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
   private renderFileInfo() {
     this.lblName.caption = this._data?.name || '';
     this.lblSize.caption = formatBytes(this._data?.size || 0);
+    if (this._data?.cid) {
+      this.lblCid.caption = FormatUtils.truncateWalletAddress(this._data.cid);
+    }
   }
 
   private async previewFile(usePath: boolean) {
@@ -381,6 +390,19 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
     if (this.onFileChanged) this.onFileChanged(path, content);
   }
 
+  private async onCopyCid() {
+      try {
+          await application.copyToClipboard(this._data.cid);
+          this.imgCopy.name = "check";
+          this.imgCopy.fill = Theme.colors.success.main;
+          if (this.copyTimer) clearTimeout(this.copyTimer);
+          this.copyTimer = setTimeout(() => {
+              this.imgCopy.name = "copy";
+              this.imgCopy.fill = Theme.text.primary;
+          }, 500)
+      } catch { }
+  }
+
   init() {
     super.init()
     this.onClose = this.getAttribute('onClose', true) || this.onClose
@@ -404,7 +426,7 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
           id="previewerPanel"
           width={'100%'}
           height={'100%'}
-          padding={{ left: '1rem', right: '1rem' }}
+          padding={{ top: '1.25rem', bottom: '1.25rem', left: '1rem', right: '1rem' }}
         >
           <i-hstack
             width={'100%'} height={36} stack={{shrink: '0'}}
@@ -453,18 +475,6 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
               onClick={this.onEditClicked}
             ></i-button>
           </i-hstack>
-          <i-vstack
-            minHeight="3rem"
-            stack={{ shrink: '1' }}
-            overflow={{ y: 'auto' }}
-            margin={{ top: '1.5rem', bottom: '1.5rem' }}
-            gap={'1.5rem'}
-          >
-            <i-panel
-              id={'previewer'}
-              width={'100%'}
-            ></i-panel>
-          </i-vstack>
           <i-hstack
             id="pnlFileInfo"
             width={'100%'}
@@ -484,6 +494,27 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
                 font={{ size: `0.75rem` }}
                 opacity={0.7}
               ></i-label>
+              <i-hstack
+                width="fit-content"
+                verticalAlignment='center'
+                gap="0.5rem"
+                cursor='pointer'
+                opacity={0.7}
+                hover={{ opacity: 1 }}
+                onClick={this.onCopyCid}
+              >
+                <i-label
+                  id="lblCid"
+                  font={{ size: `0.75rem` }}
+                ></i-label>
+                <i-icon
+                  id='imgCopy'
+                  name='copy'
+                  width={'0.875rem'}
+                  height={'0.875rem'}
+                  display='inline-flex'
+                ></i-icon>
+              </i-hstack>
             </i-vstack>
             <i-hstack
               width={35}
@@ -500,6 +531,17 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
               <i-icon width={15} height={15} name='download' />
             </i-hstack>
           </i-hstack>
+        </i-vstack>
+        <i-vstack
+          minHeight="3rem"
+          stack={{ shrink: '1' }}
+          overflow={{ y: 'auto' }}
+          gap={'1.5rem'}
+        >
+          <i-panel
+            id={'previewer'}
+            width={'100%'}
+          ></i-panel>
         </i-vstack>
         <i-vstack
           id="editorPanel"
