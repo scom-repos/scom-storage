@@ -39,6 +39,8 @@ interface ScomStorageElement extends ControlElement {
     isFileShown?: boolean;
     onOpen?: selectFileCallback;
     onCancel?: cancelCallback;
+    onPreview?: () => void;
+    onClosePreview?: () => void;
 }
 
 interface UploadRawFile extends File {
@@ -173,6 +175,8 @@ export class ScomStorage extends Module {
 
     onOpen: selectFileCallback;
     onCancel: cancelCallback;
+    onPreview: () => void;
+    onClosePreview: () => void;
 
     constructor(parent?: Container, options?: any) {
 		super(parent, options);
@@ -919,6 +923,7 @@ export class ScomStorage extends Module {
                         this.closeEditor();
                         this.closePreview();
                     }
+                    if (this.onClosePreview) this.onClosePreview();
                 }
             })
         } else {
@@ -926,6 +931,7 @@ export class ScomStorage extends Module {
             this.pnlPreview.visible = true;
             this.btnUpload.right = '23.125rem';
         }
+        if (this.onPreview) this.onPreview();
     }
 
     private onCellDblClick(target: Table, event: MouseEvent) {
@@ -940,6 +946,7 @@ export class ScomStorage extends Module {
     private closePreview() {
         this.pnlPreview.visible = false;
         this.btnUpload.right = '3.125rem';
+        if (this.onClosePreview) this.onClosePreview();
     }
 
     private openEditor() {
@@ -1132,6 +1139,8 @@ export class ScomStorage extends Module {
         this.isModal = this.getAttribute('isModal', true) || this._data.isModal || false;
         this.onOpen = this.getAttribute('onOpen', true) || this.onOpen;
         this.onCancel = this.getAttribute('onCancel', true) || this.onCancel;
+        this.onPreview = this.getAttribute('onPreview', true) || this.onPreview;
+        this.onClosePreview = this.getAttribute('onClosePreview', true) || this.onClosePreview;
         this.isFileShown = this.getAttribute('isFileShown', true);
         this.classList.add(customStyles);
         this.setTag(defaultColors);

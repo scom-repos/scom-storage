@@ -539,6 +539,8 @@ declare module "@scom/scom-storage" {
         isFileShown?: boolean;
         onOpen?: selectFileCallback;
         onCancel?: cancelCallback;
+        onPreview?: () => void;
+        onClosePreview?: () => void;
     }
     global {
         namespace JSX {
@@ -591,6 +593,8 @@ declare module "@scom/scom-storage" {
         private _signer;
         onOpen: selectFileCallback;
         onCancel: cancelCallback;
+        onPreview: () => void;
+        onClosePreview: () => void;
         constructor(parent?: Container, options?: any);
         get baseUrl(): string;
         set baseUrl(url: string);

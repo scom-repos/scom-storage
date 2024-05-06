@@ -2806,6 +2806,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                             this.closeEditor();
                             this.closePreview();
                         }
+                        if (this.onClosePreview)
+                            this.onClosePreview();
                     }
                 });
             }
@@ -2815,6 +2817,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.pnlPreview.visible = true;
                 this.btnUpload.right = '23.125rem';
             }
+            if (this.onPreview)
+                this.onPreview();
         }
         onCellDblClick(target, event) {
             event.stopPropagation();
@@ -2828,6 +2832,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         closePreview() {
             this.pnlPreview.visible = false;
             this.btnUpload.right = '3.125rem';
+            if (this.onClosePreview)
+                this.onClosePreview();
         }
         openEditor() {
             this.ieSidebar.visible = false;
@@ -3007,6 +3013,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.isModal = this.getAttribute('isModal', true) || this._data.isModal || false;
             this.onOpen = this.getAttribute('onOpen', true) || this.onOpen;
             this.onCancel = this.getAttribute('onCancel', true) || this.onCancel;
+            this.onPreview = this.getAttribute('onPreview', true) || this.onPreview;
+            this.onClosePreview = this.getAttribute('onClosePreview', true) || this.onClosePreview;
             this.isFileShown = this.getAttribute('isFileShown', true);
             this.classList.add(index_css_6.default);
             this.setTag(index_css_6.defaultColors);
