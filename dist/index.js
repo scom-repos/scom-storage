@@ -2209,6 +2209,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 await this.manager.setRootCid('');
             }
             catch (err) { }
+            this.pnlPreview.visible = false;
+            this.btnUpload.right = '3.125rem';
             await this.initContent();
         }
         getConfigurators() {
@@ -2420,6 +2422,13 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                 this.previewFile(record);
                                 break;
                             }
+                        }
+                    }
+                    else if (items.length === 2) {
+                        let record = ipfsData.links.find(link => link.type === 'file' && link.name === items[i]);
+                        if (record) {
+                            this.previewFile(record);
+                            break;
                         }
                     }
                 }

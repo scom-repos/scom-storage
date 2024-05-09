@@ -314,6 +314,8 @@ export class ScomStorage extends Module {
         try {
             await this.manager.setRootCid('');
         } catch (err) {}
+        this.pnlPreview.visible = false;
+        this.btnUpload.right = '3.125rem';
         await this.initContent();
     }
 
@@ -525,6 +527,12 @@ export class ScomStorage extends Module {
                             this.previewFile(record);
                             break;
                         }
+                    }
+                } else if (items.length === 2) {
+                    let record = ipfsData.links.find(link => link.type === 'file' && link.name === items[i]);
+                    if (record) {
+                        this.previewFile(record);
+                        break;
                     }
                 }
             }
