@@ -248,6 +248,7 @@ export class ScomStorage extends Module {
         const editor = new ScomIPFSEditor()
         this.registerEditor("md", editor);
         this.registerEditor("tsx", editor);
+        this.registerEditor("scconfig.json", editor);
         this.registerEditor(/(yml|yaml|json|js|s?css|ts)/i, new Editor());
         this.registerEditor(/(mp4|webm|mov|m3u8|jpeg|jpg|png|gif|bmp|svg)$/i, new ScomIPFSPreview());
     }
@@ -270,10 +271,23 @@ export class ScomStorage extends Module {
             if (this.currentEditor && this.currentEditor instanceof ScomIPFSEditor) {
                 this.currentEditor.onHide();
             }
-            const fileType = this.getFileType(ipfsData.name);
+            const fileType = ipfsData.name.includes('scconfig.json') ? 'scconfig.json' : this.getFileType(ipfsData.name);
+            let config = null;
+            if (fileType === 'scconfig.json') {
+                let parentCid = this.rootCid;
+                const parentPath = ipfsData.path.split('/').slice(0, -1).join('/');
+                const parentData = this._uploadedTreeData.find((item: any) => item.path === parentPath);
+                if (parentData?.cid) parentCid = parentData.cid;
+                config = {
+                    transportEndpoint: this.transportEndpoint,
+                    signer: this.signer,
+                    baseUrl: this.baseUrl,
+                    cid: parentCid
+                }
+            }
             if (this.fileEditors.has(fileType)) {
                 this.currentEditor = this.fileEditors.get(fileType);
-                this.currentEditor && this.currentEditor.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
+                this.currentEditor && this.currentEditor.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom, config);
             } else {
                 const fileTypes = Array.from(this.fileEditors);
                 if (fileTypes?.length) {

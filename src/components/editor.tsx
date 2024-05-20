@@ -55,6 +55,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     isFullScreen: false
   };
   private initialContent: string = '';
+  private isPackage: boolean = false;
   filePath: string = '';
   onClose: () => void
   onChanged: onChangedCallback
@@ -111,15 +112,17 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     if (this.mdAlert) this.mdAlert.closeModal();
     if (this.btnSave) this.btnSave.enabled = false;
     this.initialContent = '';
+    this.isPackage = this.url.includes('scconfig.json');
     await this.renderUI(isTypeChanged)
   }
 
-  async openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control) {
+  async openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control, config?: any) {
     parent.append(this);
     this.filePath = file.path
     this.display = 'flex'
     this.height = '100%'
     const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
+    this.isPackage = path.includes('scconfig.json');
     const mediaUrl = `${endpoint}/ipfs/${parentCid}/${path}`;
     const ext = file.name.split('.').pop();
     const newType = ext === 'md' ? 'md' : 'designer';
@@ -130,20 +133,22 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
       isFullScreen: false
     }
     this.btnActions.visible = false;
-    this.renderUI(isTypeChanged)
+    this.renderUI(isTypeChanged, config)
   }
 
   onHide(): void {
     if (this.editorEl) this.editorEl.onHide();
   }
 
-  private async renderUI(isTypeChanged?: boolean) {
+  private async renderUI(isTypeChanged?: boolean, config?: any) {
     this.showLoadingSpinner();
     const content = await getFileContent(this.url);
     if (!this.editorEl || isTypeChanged) {
-      let moduleData = this.type === 'md' ? this.createEditorElement(content) : this.createDesignerElement(this.url);
+      let moduleData = this.type === 'md' ?
+        this.createEditorElement(content) :
+        this.isPackage ? this.createPackageBuilderElement(config || {}) : this.createDesignerElement(this.url);
       this.editorEl = await getEmbedElement(moduleData, this.pnlEditor);
-      this.initialContent = this.editorEl.value;
+      this.initialContent = this.editorEl.value || '';
 
       this.editorEl.onChanged = (value: string) => {
         if (this.initialContent) {
@@ -154,7 +159,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
       }
     } else {
       this.initialContent = '';
-      this.editorEl.setValue(this.type === 'md' ? content : this.url);
+      if(this.editorEl?.setValue) this.editorEl.setValue(this.type === 'md' ? content : this.url);
     }
     if (this.isFullScreen) {
       this.classList.add(fullScreenStyle);
@@ -189,6 +194,24 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
       data: {
         properties: {
           url
+        },
+        tag: {
+          width: '100%',
+          pt: 0,
+          pb: 0,
+          pl: 0,
+          pr: 0,
+        },
+      },
+    }
+  }
+
+  private createPackageBuilderElement(data: any) {
+    return {
+      module: '@scom/scom-widget-builder',
+      data: {
+        properties: {
+          ...data
         },
         tag: {
           width: '100%',

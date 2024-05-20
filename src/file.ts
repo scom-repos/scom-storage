@@ -2,7 +2,7 @@ import { Control } from "@ijstech/components";
 import { IIPFSData } from "./interface";
 
 interface IFileHandler {
-  openFile(file: IIPFSData, transportEndpoint: string, parentCid: string, parent: Control): Promise<void>;
+  openFile(file: IIPFSData, transportEndpoint: string, parentCid: string, parent: Control, config?: any): Promise<void>;
 }
 
 class Editor implements IFileHandler {

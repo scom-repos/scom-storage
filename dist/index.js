@@ -1249,6 +1249,7 @@ define("@scom/scom-storage/utils.ts", ["require", "exports", "@ijstech/component
         elm.maxWidth = '100%';
         elm.maxHeight = '100%';
         elm.display = 'block';
+        elm.stack = { grow: '1' };
         if (builderTarget?.setData && data.properties) {
             await builderTarget.setData(data.properties);
         }
@@ -1326,6 +1327,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
                 isFullScreen: false
             };
             this.initialContent = '';
+            this.isPackage = false;
             this.filePath = '';
             this.onSubmit = this.onSubmit.bind(this);
             this.onCancel = this.onCancel.bind(this);
@@ -1372,14 +1374,16 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             if (this.btnSave)
                 this.btnSave.enabled = false;
             this.initialContent = '';
+            this.isPackage = this.url.includes('scconfig.json');
             await this.renderUI(isTypeChanged);
         }
-        async openFile(file, endpoint, parentCid, parent) {
+        async openFile(file, endpoint, parentCid, parent, config) {
             parent.append(this);
             this.filePath = file.path;
             this.display = 'flex';
             this.height = '100%';
             const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
+            this.isPackage = path.includes('scconfig.json');
             const mediaUrl = `${endpoint}/ipfs/${parentCid}/${path}`;
             const ext = file.name.split('.').pop();
             const newType = ext === 'md' ? 'md' : 'designer';
@@ -1390,19 +1394,21 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
                 isFullScreen: false
             };
             this.btnActions.visible = false;
-            this.renderUI(isTypeChanged);
+            this.renderUI(isTypeChanged, config);
         }
         onHide() {
             if (this.editorEl)
                 this.editorEl.onHide();
         }
-        async renderUI(isTypeChanged) {
+        async renderUI(isTypeChanged, config) {
             this.showLoadingSpinner();
             const content = await (0, data_2.getFileContent)(this.url);
             if (!this.editorEl || isTypeChanged) {
-                let moduleData = this.type === 'md' ? this.createEditorElement(content) : this.createDesignerElement(this.url);
+                let moduleData = this.type === 'md' ?
+                    this.createEditorElement(content) :
+                    this.isPackage ? this.createPackageBuilderElement(config || {}) : this.createDesignerElement(this.url);
                 this.editorEl = await (0, utils_1.getEmbedElement)(moduleData, this.pnlEditor);
-                this.initialContent = this.editorEl.value;
+                this.initialContent = this.editorEl.value || '';
                 this.editorEl.onChanged = (value) => {
                     if (this.initialContent) {
                         this.btnSave.enabled = value !== this.initialContent;
@@ -1414,7 +1420,8 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             }
             else {
                 this.initialContent = '';
-                this.editorEl.setValue(this.type === 'md' ? content : this.url);
+                if (this.editorEl?.setValue)
+                    this.editorEl.setValue(this.type === 'md' ? content : this.url);
             }
             if (this.isFullScreen) {
                 this.classList.add(index_css_4.fullScreenStyle);
@@ -1448,6 +1455,23 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
                 data: {
                     properties: {
                         url
+                    },
+                    tag: {
+                        width: '100%',
+                        pt: 0,
+                        pb: 0,
+                        pl: 0,
+                        pr: 0,
+                    },
+                },
+            };
+        }
+        createPackageBuilderElement(data) {
+            return {
+                module: '@scom/scom-widget-builder',
+                data: {
+                    properties: {
+                        ...data
                     },
                     tag: {
                         width: '100%',
@@ -2144,6 +2168,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             const editor = new index_1.ScomIPFSEditor();
             this.registerEditor("md", editor);
             this.registerEditor("tsx", editor);
+            this.registerEditor("scconfig.json", editor);
             this.registerEditor(/(yml|yaml|json|js|s?css|ts)/i, new file_1.Editor());
             this.registerEditor(/(mp4|webm|mov|m3u8|jpeg|jpg|png|gif|bmp|svg)$/i, new index_1.ScomIPFSPreview());
         }
@@ -2166,10 +2191,24 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 if (this.currentEditor && this.currentEditor instanceof index_1.ScomIPFSEditor) {
                     this.currentEditor.onHide();
                 }
-                const fileType = this.getFileType(ipfsData.name);
+                const fileType = ipfsData.name.includes('scconfig.json') ? 'scconfig.json' : this.getFileType(ipfsData.name);
+                let config = null;
+                if (fileType === 'scconfig.json') {
+                    let parentCid = this.rootCid;
+                    const parentPath = ipfsData.path.split('/').slice(0, -1).join('/');
+                    const parentData = this._uploadedTreeData.find((item) => item.path === parentPath);
+                    if (parentData?.cid)
+                        parentCid = parentData.cid;
+                    config = {
+                        transportEndpoint: this.transportEndpoint,
+                        signer: this.signer,
+                        baseUrl: this.baseUrl,
+                        cid: parentCid
+                    };
+                }
                 if (this.fileEditors.has(fileType)) {
                     this.currentEditor = this.fileEditors.get(fileType);
-                    this.currentEditor && this.currentEditor.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
+                    this.currentEditor && this.currentEditor.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom, config);
                 }
                 else {
                     const fileTypes = Array.from(this.fileEditors);

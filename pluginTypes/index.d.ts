@@ -307,7 +307,7 @@ declare module "@scom/scom-storage/file.ts" {
     import { Control } from "@ijstech/components";
     import { IIPFSData } from "@scom/scom-storage/interface.ts";
     interface IFileHandler {
-        openFile(file: IIPFSData, transportEndpoint: string, parentCid: string, parent: Control): Promise<void>;
+        openFile(file: IIPFSData, transportEndpoint: string, parentCid: string, parent: Control, config?: any): Promise<void>;
     }
     class Editor implements IFileHandler {
         openFile(file: IIPFSData, transportEndpoint: string, parentCid: string, parent: Control): Promise<void>;
@@ -373,6 +373,7 @@ declare module "@scom/scom-storage/components/editor.tsx" {
         private pnlLoading;
         private _data;
         private initialContent;
+        private isPackage;
         filePath: string;
         onClose: () => void;
         onChanged: onChangedCallback;
@@ -387,11 +388,12 @@ declare module "@scom/scom-storage/components/editor.tsx" {
         showLoadingSpinner(): void;
         hideLoadingSpinner(): void;
         setData(value: IEditor): Promise<void>;
-        openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control): Promise<void>;
+        openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control, config?: any): Promise<void>;
         onHide(): void;
         private renderUI;
         private createEditorElement;
         private createDesignerElement;
+        private createPackageBuilderElement;
         private onCancel;
         private onSubmit;
         private onAlertConfirm;

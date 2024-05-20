@@ -22,7 +22,8 @@
       "@scom/scom-media-player",
       "@scom/scom-video",
       "@scom/scom-editor",
-      "@scom/scom-designer"
+      "@scom/scom-designer",
+      "@scom/scom-widget-builder"
   ],
   "menus": [
   ],

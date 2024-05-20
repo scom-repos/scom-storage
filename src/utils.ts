@@ -11,6 +11,7 @@ export const getEmbedElement = async (moduleData: any, parent: Control, callback
   elm.maxWidth = '100%';
   elm.maxHeight = '100%';
   elm.display = 'block';
+  elm.stack = {grow: '1'};
   if (builderTarget?.setData && data.properties) {
     await builderTarget.setData(data.properties);
   }
