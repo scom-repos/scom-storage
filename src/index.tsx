@@ -172,6 +172,7 @@ export class ScomStorage extends Module {
     private _isFileShown: boolean = false;
     private currentFile: string;
     private _signer: IPFS.ISigner;
+    private isAssetRootNode = false;
 
     onOpen: selectFileCallback;
     onCancel: cancelCallback;
@@ -424,13 +425,35 @@ export class ScomStorage extends Module {
         this.updateStyle('--action-hover_background', this.tag[themeVar]?.hoverBackground);
         this.updateStyle('--action-hover', this.tag[themeVar]?.hover);
     }
+    
+    private async getAssetRootNode() {
+        let rootNode: IPFS.FileNode;
+        try {
+            rootNode = await this.manager.getRootNode();
+            let node = await rootNode.findItem('_assets');
+            if (node) {
+                await node.checkCid();
+                const cidInfo = node.cidInfo as IIPFSData;
+                cidInfo.name = '_assets';
+                cidInfo.path = '/_assets';
+                rootNode = node;
+            }
+            this.isAssetRootNode = !!node;
+        } catch (err) {
+            console.log(err);
+        }
+        return rootNode;
+    }
 
     private updateUrlPath(path?: string) {
         if (this.isModal) return;
         let baseUrl = this.baseUrl ? this.baseUrl + (this.baseUrl[this.baseUrl.length - 1] == '/' ? '' : '/') : '#/';
         let url = baseUrl;
         if (this.rootCid) url += this.rootCid;
-        if (path) url += path;
+        if (path) {
+            if (path.startsWith('/_assets')) path = path.slice(8);
+            url += path;
+        }
         history.replaceState({}, "", url);
     }
 
@@ -452,17 +475,7 @@ export class ScomStorage extends Module {
         if (!this.manager || this.isInitializing) return;
         this.isInitializing = true;
         const { cid, path } = this.extractUrl();
-        let rootNode;
-        try {
-            rootNode = await this.manager.getRootNode();
-            let node = await rootNode.findItem('_assets');
-            if (node) {
-                await node.checkCid();
-                rootNode = node;
-            }
-        } catch (err) {
-            console.log(err);
-        }
+        let rootNode = await this.getAssetRootNode();
         this.rootCid = this.currentCid = rootNode?.cid;
         this.readOnly = !this.rootCid || (!this.isModal && (cid && cid !== this.rootCid));
         if (!this.isModal) {
@@ -475,7 +488,7 @@ export class ScomStorage extends Module {
         }
         const ipfsData = rootNode?.cidInfo as IIPFSData;
         if (ipfsData) {
-            this.renderUI(ipfsData, path);
+            this.renderUI(ipfsData, this.isAssetRootNode && !this.readOnly ? '/_assets' + path : path);
         }
         this.isInitializing = false;
     }
@@ -498,7 +511,7 @@ export class ScomStorage extends Module {
         if (!ipfsData) return;
         const parentNode = (({ links, ...o }) => o)(ipfsData) as IIPFSData;
         parentNode.name = parentNode.name ? parentNode.name : FormatUtils.truncateWalletAddress(parentNode.cid);
-        parentNode.path = '';
+        parentNode.path = parentNode.path || '';
         parentNode.root = true;
         if (ipfsData.links?.length) {
             ipfsData.links = await this.constructLinks(parentNode, ipfsData.links);
@@ -567,6 +580,7 @@ export class ScomStorage extends Module {
         const name = nodeData.name;
         let idx: string = '';
         let items = nodeData.path?.split('/') ?? [];
+        if (this.isAssetRootNode && !this.readOnly) items.shift();
         let node: TreeNode | null = null;
         let self = this;
 
@@ -643,12 +657,12 @@ export class ScomStorage extends Module {
     }
 
     private async onFilesUploaded(newPath?: string) {
-        const rootNode = await this.manager.getRootNode();
+        const rootNode = await this.getAssetRootNode();
         const ipfsData = rootNode.cidInfo;
         
         let path: string;
         if (newPath || newPath === '') {
-            path = newPath;
+            path = this.isAssetRootNode && !this.readOnly ? '/_assets' + newPath : newPath;
         } else if (window.matchMedia('(max-width: 767px)').matches) {
             path = this.mobileHome.currentPath;
         } else {
@@ -831,7 +845,7 @@ export class ScomStorage extends Module {
         this.showLoadingSpinner();
         let fileNode;
         if (isRoot) {
-            fileNode = await this.manager.getRootNode();
+            fileNode = await this.getAssetRootNode();
         } else {
             fileNode = await this.manager.getFileNode(this.currentItem.tag.path);
         }
@@ -857,7 +871,7 @@ export class ScomStorage extends Module {
         if (ipfsData.path) {
             fileNode = await this.manager.getFileNode(ipfsData.path);
         } else {
-            fileNode = await this.manager.getRootNode();
+            fileNode = await this.getAssetRootNode();
         }
         if (!fileNode._cidInfo.links) fileNode._cidInfo.links = [];
         if (fileNode._cidInfo.links.length) {

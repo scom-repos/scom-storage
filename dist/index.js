@@ -2083,6 +2083,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.isInitializing = false;
             this._isModal = false;
             this._isFileShown = false;
+            this.isAssetRootNode = false;
             this.onCellDblClick = this.onCellDblClick.bind(this);
             this.registerDefaultEditors();
         }
@@ -2314,6 +2315,25 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.updateStyle('--action-hover_background', this.tag[themeVar]?.hoverBackground);
             this.updateStyle('--action-hover', this.tag[themeVar]?.hover);
         }
+        async getAssetRootNode() {
+            let rootNode;
+            try {
+                rootNode = await this.manager.getRootNode();
+                let node = await rootNode.findItem('_assets');
+                if (node) {
+                    await node.checkCid();
+                    const cidInfo = node.cidInfo;
+                    cidInfo.name = '_assets';
+                    cidInfo.path = '/_assets';
+                    rootNode = node;
+                }
+                this.isAssetRootNode = !!node;
+            }
+            catch (err) {
+                console.log(err);
+            }
+            return rootNode;
+        }
         updateUrlPath(path) {
             if (this.isModal)
                 return;
@@ -2321,8 +2341,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             let url = baseUrl;
             if (this.rootCid)
                 url += this.rootCid;
-            if (path)
+            if (path) {
+                if (path.startsWith('/_assets'))
+                    path = path.slice(8);
                 url += path;
+            }
             history.replaceState({}, "", url);
         }
         extractUrl() {
@@ -2344,18 +2367,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 return;
             this.isInitializing = true;
             const { cid, path } = this.extractUrl();
-            let rootNode;
-            try {
-                rootNode = await this.manager.getRootNode();
-                let node = await rootNode.findItem('_assets');
-                if (node) {
-                    await node.checkCid();
-                    rootNode = node;
-                }
-            }
-            catch (err) {
-                console.log(err);
-            }
+            let rootNode = await this.getAssetRootNode();
             this.rootCid = this.currentCid = rootNode?.cid;
             this.readOnly = !this.rootCid || (!this.isModal && (cid && cid !== this.rootCid));
             if (!this.isModal) {
@@ -2370,7 +2382,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             }
             const ipfsData = rootNode?.cidInfo;
             if (ipfsData) {
-                this.renderUI(ipfsData, path);
+                this.renderUI(ipfsData, this.isAssetRootNode && !this.readOnly ? '/_assets' + path : path);
             }
             this.isInitializing = false;
         }
@@ -2390,7 +2402,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 return;
             const parentNode = (({ links, ...o }) => o)(ipfsData);
             parentNode.name = parentNode.name ? parentNode.name : components_12.FormatUtils.truncateWalletAddress(parentNode.cid);
-            parentNode.path = '';
+            parentNode.path = parentNode.path || '';
             parentNode.root = true;
             if (ipfsData.links?.length) {
                 ipfsData.links = await this.constructLinks(parentNode, ipfsData.links);
@@ -2460,6 +2472,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             const name = nodeData.name;
             let idx = '';
             let items = nodeData.path?.split('/') ?? [];
+            if (this.isAssetRootNode && !this.readOnly)
+                items.shift();
             let node = null;
             let self = this;
             for (let i = 0; i < items.length; i++) {
@@ -2531,11 +2545,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.pnlPath.setData(node);
         }
         async onFilesUploaded(newPath) {
-            const rootNode = await this.manager.getRootNode();
+            const rootNode = await this.getAssetRootNode();
             const ipfsData = rootNode.cidInfo;
             let path;
             if (newPath || newPath === '') {
-                path = newPath;
+                path = this.isAssetRootNode && !this.readOnly ? '/_assets' + newPath : newPath;
             }
             else if (window.matchMedia('(max-width: 767px)').matches) {
                 path = this.mobileHome.currentPath;
@@ -2713,7 +2727,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.showLoadingSpinner();
             let fileNode;
             if (isRoot) {
-                fileNode = await this.manager.getRootNode();
+                fileNode = await this.getAssetRootNode();
             }
             else {
                 fileNode = await this.manager.getFileNode(this.currentItem.tag.path);
@@ -2739,7 +2753,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 fileNode = await this.manager.getFileNode(ipfsData.path);
             }
             else {
-                fileNode = await this.manager.getRootNode();
+                fileNode = await this.getAssetRootNode();
             }
             if (!fileNode._cidInfo.links)
                 fileNode._cidInfo.links = [];

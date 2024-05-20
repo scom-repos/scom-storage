@@ -591,6 +591,7 @@ declare module "@scom/scom-storage" {
         private _isFileShown;
         private currentFile;
         private _signer;
+        private isAssetRootNode;
         onOpen: selectFileCallback;
         onCancel: cancelCallback;
         onPreview: () => void;
@@ -642,6 +643,7 @@ declare module "@scom/scom-storage" {
         private setTag;
         private updateStyle;
         private updateTheme;
+        private getAssetRootNode;
         private updateUrlPath;
         private extractUrl;
         private initContent;
