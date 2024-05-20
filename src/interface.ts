@@ -21,9 +21,20 @@ export interface IStorageConfig {
     transportEndpoint?: string;
     signer?: IPFS.ISigner;
     isModal?: boolean;
+    cid?: string;
 }
 
 export interface IPreview extends IIPFSData {
-    transportEndpoint?: string;
+    config?: IStorageConfig;
+    parentCid?: string;
+}
+
+export type EditorType = 'md' | 'designer' | 'widget';
+
+export interface IEditor {
+    url?: string;
+    type?: EditorType;
+    isFullScreen?: boolean;
+    config?: IStorageConfig;
     parentCid?: string;
 }

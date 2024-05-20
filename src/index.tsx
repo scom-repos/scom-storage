@@ -16,7 +16,8 @@ import {
     Label,
     Modal,
     VStack,
-    Container
+    Container,
+    CodeEditor
 } from '@ijstech/components';
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
@@ -271,10 +272,11 @@ export class ScomStorage extends Module {
             if (this.currentEditor && this.currentEditor instanceof ScomIPFSEditor) {
                 this.currentEditor.onHide();
             }
-            const fileType = this.getFileType(ipfsData.name);
+            const fileType = this.getFileType(ipfsData.name); // ipfsData.name.includes('scconfig.json') ? 'scconfig.json' : this.getFileType(ipfsData.name);
+            const config = this.getFileConfig(ipfsData);
             if (this.fileEditors.has(fileType)) {
                 this.currentEditor = this.fileEditors.get(fileType);
-                this.currentEditor && this.currentEditor.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
+                this.currentEditor && this.currentEditor.openFile(ipfsData, this.rootCid, this.pnlCustom, config);
             } else {
                 const fileTypes = Array.from(this.fileEditors);
                 if (fileTypes?.length) {
@@ -284,13 +286,26 @@ export class ScomStorage extends Module {
                         if (key.test(fileType)) {
                             if (type[1]) {
                                 this.currentEditor = type[1];
-                                this.currentEditor.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
+                                this.currentEditor.openFile(ipfsData, this.rootCid, this.pnlCustom, config);
                             }
                             break;
                         }
                     }
                 }
             }
+        }
+    }
+
+    private getFileConfig(ipfsData: IIPFSData) {
+        let parentCid = this.rootCid;
+        const parentPath = ipfsData.path.split('/').slice(0, -1).join('/');
+        const parentData = this._uploadedTreeData.find((item: any) => item.path === parentPath);
+        if (parentData?.cid) parentCid = parentData.cid;
+        return {
+            transportEndpoint: this.transportEndpoint,
+            signer: this.signer,
+            baseUrl: this.baseUrl,
+            cid: parentCid
         }
     }
 
@@ -930,7 +945,8 @@ export class ScomStorage extends Module {
         }
         this.pnlPreview.visible = true;
         const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
-        this.iePreview.setData({...record, transportEndpoint: this.transportEndpoint, parentCid: currentCid});
+        const config = this.getFileConfig(record);
+        this.iePreview.setData({...record, parentCid: currentCid, config});
         if (window.matchMedia('(max-width: 767px)').matches) {
             this.iePreview.openModal({
                 width: '100vw',

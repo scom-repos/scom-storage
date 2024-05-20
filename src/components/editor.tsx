@@ -13,16 +13,11 @@ import {
 import { getEmbedElement } from '../utils';
 import { addressPanelStyle, fullScreenStyle } from './index.css';
 import { IFileHandler } from '../file';
-import { IIPFSData } from '../interface';
+import { EditorType, IEditor, IIPFSData, IStorageConfig } from '../interface';
 import { LoadingSpinner } from './loadingSpinner';
 import { getFileContent } from '../data';
 const Theme = Styles.Theme.ThemeVars
 
-interface IEditor {
-  url?: string;
-  type?: 'md' | 'designer';
-  isFullScreen?: boolean;
-}
 type onChangedCallback = (filePath: string, content: string) => void
 
 interface ScomIPFSEditorElement extends ControlElement {
@@ -82,7 +77,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
   get type() {
     return this._data.type ?? 'md'
   }
-  set type(value: 'md' | 'designer') {
+  set type(value: EditorType) {
     this._data.type = value ?? 'md'
   }
 
@@ -114,20 +109,23 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     await this.renderUI(isTypeChanged)
   }
 
-  async openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control) {
+  async openFile(file: IIPFSData, parentCid: string, parent: Control, config: IStorageConfig) {
     parent.append(this);
     this.filePath = file.path
     this.display = 'flex'
     this.height = '100%'
     const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
-    const mediaUrl = `${endpoint}/ipfs/${parentCid}/${path}`;
+    const mediaUrl = `${config.transportEndpoint}/ipfs/${parentCid}/${path}`;
     const ext = file.name.split('.').pop();
-    const newType = ext === 'md' ? 'md' : 'designer';
+    const isWidget = path.includes('scconfig.json');
+    const newType = isWidget ? 'widget' : ext === 'md' ? 'md' : 'designer';
     const isTypeChanged = this.type !== newType;
     this._data = {
       url: mediaUrl,
-      type: ext === 'md' ? 'md' : 'designer',
-      isFullScreen: false
+      type: newType,
+      isFullScreen: false,
+      parentCid,
+      config
     }
     this.btnActions.visible = false;
     this.renderUI(isTypeChanged)
@@ -141,9 +139,13 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     this.showLoadingSpinner();
     const content = await getFileContent(this.url);
     if (!this.editorEl || isTypeChanged) {
-      let moduleData = this.type === 'md' ? this.createEditorElement(content) : this.createDesignerElement(this.url);
+      let moduleData = this.type === 'md' ?
+        this.createEditorElement(content) :
+        this.type === 'widget' ?
+          this.createPackageBuilderElement(this._data?.config || {}) :
+          this.createDesignerElement(this.url);
       this.editorEl = await getEmbedElement(moduleData, this.pnlEditor);
-      this.initialContent = this.editorEl.value;
+      this.initialContent = this.editorEl.value || '';
 
       this.editorEl.onChanged = (value: string) => {
         if (this.initialContent) {
@@ -154,7 +156,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
       }
     } else {
       this.initialContent = '';
-      this.editorEl.setValue(this.type === 'md' ? content : this.url);
+      if(this.editorEl?.setValue) this.editorEl.setValue(this.type === 'md' ? content : this.url);
     }
     if (this.isFullScreen) {
       this.classList.add(fullScreenStyle);
@@ -189,6 +191,24 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
       data: {
         properties: {
           url
+        },
+        tag: {
+          width: '100%',
+          pt: 0,
+          pb: 0,
+          pl: 0,
+          pr: 0,
+        },
+      },
+    }
+  }
+
+  private createPackageBuilderElement(data: any) {
+    return {
+      module: '@scom/scom-widget-builder',
+      data: {
+        properties: {
+          ...data
         },
         tag: {
           width: '100%',

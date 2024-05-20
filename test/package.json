@@ -17,7 +17,8 @@
         "@scom/scom-video": "^0.1.10",
         "@scom/scom-editor": "^0.1.0",
         "@scom/scom-storage": "file:./ref",
-        "@scom/scom-designer": "https://github.com/scom-repos/scom-designer"
+        "@scom/scom-designer": "https://github.com/scom-repos/scom-designer",
+        "@scom/scom-widget-builder": "file:./repos/scom-widget-builder"
     },
     "scripts": {
         "cp:libs": "rm -rf ref && mkdir ref && cp ../package.json ref/package.json && cp -r ../dist ref/dist && cp -r ../pluginTypes ref/pluginTypes && cp -r ../pluginTypes ref/types",
