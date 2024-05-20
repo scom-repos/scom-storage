@@ -1267,13 +1267,13 @@ define("@scom/scom-storage/file.ts", ["require", "exports"], function (require, 
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Viewer = exports.Editor = void 0;
     class Editor {
-        async openFile(file, transportEndpoint, parentCid, parent) {
+        async openFile(file, parentCid, parent, config) {
             console.log(`Opening editor for file: ${file.name}`);
         }
     }
     exports.Editor = Editor;
     class Viewer {
-        async openFile(file, transportEndpoint, parentCid, parent) {
+        async openFile(file, parentCid, parent, config) {
             console.log(`Opening viewer for file: ${file.name}`);
         }
     }
@@ -1327,7 +1327,6 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
                 isFullScreen: false
             };
             this.initialContent = '';
-            this.isPackage = false;
             this.filePath = '';
             this.onSubmit = this.onSubmit.bind(this);
             this.onCancel = this.onCancel.bind(this);
@@ -1374,39 +1373,42 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             if (this.btnSave)
                 this.btnSave.enabled = false;
             this.initialContent = '';
-            this.isPackage = this.url.includes('scconfig.json');
             await this.renderUI(isTypeChanged);
         }
-        async openFile(file, endpoint, parentCid, parent, config) {
+        async openFile(file, parentCid, parent, config) {
             parent.append(this);
             this.filePath = file.path;
             this.display = 'flex';
             this.height = '100%';
             const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
-            this.isPackage = path.includes('scconfig.json');
-            const mediaUrl = `${endpoint}/ipfs/${parentCid}/${path}`;
+            const mediaUrl = `${config.transportEndpoint}/ipfs/${parentCid}/${path}`;
             const ext = file.name.split('.').pop();
-            const newType = ext === 'md' ? 'md' : 'designer';
+            const isWidget = path.includes('scconfig.json');
+            const newType = isWidget ? 'widget' : ext === 'md' ? 'md' : 'designer';
             const isTypeChanged = this.type !== newType;
             this._data = {
                 url: mediaUrl,
-                type: ext === 'md' ? 'md' : 'designer',
-                isFullScreen: false
+                type: newType,
+                isFullScreen: false,
+                parentCid,
+                config
             };
             this.btnActions.visible = false;
-            this.renderUI(isTypeChanged, config);
+            this.renderUI(isTypeChanged);
         }
         onHide() {
             if (this.editorEl)
                 this.editorEl.onHide();
         }
-        async renderUI(isTypeChanged, config) {
+        async renderUI(isTypeChanged) {
             this.showLoadingSpinner();
             const content = await (0, data_2.getFileContent)(this.url);
             if (!this.editorEl || isTypeChanged) {
                 let moduleData = this.type === 'md' ?
                     this.createEditorElement(content) :
-                    this.isPackage ? this.createPackageBuilderElement(config || {}) : this.createDesignerElement(this.url);
+                    this.type === 'widget' ?
+                        this.createPackageBuilderElement(this._data?.config || {}) :
+                        this.createDesignerElement(this.url);
                 this.editorEl = await (0, utils_1.getEmbedElement)(moduleData, this.pnlEditor);
                 this.initialContent = this.editorEl.value || '';
                 this.editorEl.onChanged = (value) => {
@@ -1540,7 +1542,8 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             super(parent, options);
             this._data = {
                 cid: '',
-                name: ''
+                name: '',
+                config: {}
             };
             this.currentUrl = '';
             this.typesMapping = {
@@ -1575,17 +1578,23 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             this._data = value;
         }
         get transportEndpoint() {
-            return this._data?.transportEndpoint;
+            return this._data?.config?.transportEndpoint;
         }
         set transportEndpoint(value) {
-            this._data.transportEndpoint = value;
+            this._data.config.transportEndpoint = value;
         }
-        async openFile(file, transportEndpoint, parentCid, parent) {
+        get parentCid() {
+            return this._data?.parentCid;
+        }
+        set parentCid(value) {
+            this._data.parentCid = value;
+        }
+        async openFile(file, parentCid, parent, config) {
             parent.append(this);
             this._data = {
                 ...file,
-                transportEndpoint,
-                parentCid
+                parentCid,
+                config
             };
             this.renderUI(true);
         }
@@ -1665,7 +1674,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             return result;
         }
         async getModuleFromExtension(usePath) {
-            const { cid, name, parentCid, size, path } = this._data;
+            const { cid, name, size, path, parentCid } = this._data;
             if (!cid)
                 return null;
             let moduleData = null;
@@ -1703,7 +1712,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                     }
                     break;
             }
-            this.pnlEdit.visible = ext === 'md' || ext === 'tsx';
+            this.pnlEdit.visible = ext === 'md' || ext === 'tsx' || path.includes('scconfig.json');
             return moduleData;
         }
         appendLabel(text) {
@@ -1792,7 +1801,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 this.onClose();
         }
         async downloadFile() {
-            let url = `${this.transportEndpoint}/ipfs/${this._data.parentCid}/${this._data.name}`;
+            let url = `${this.transportEndpoint}/ipfs/${this.parentCid}/${this._data.name}`;
             try {
                 let response = await fetch(url);
                 let blob = await response.blob();
@@ -1821,10 +1830,13 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                     this.onOpenEditor();
                 const ext = (this._data.name || '').split('.').pop().toLowerCase();
                 this.editor.filePath = this._data?.path || '';
+                const isWidget = this.editor.filePath.includes('scconfig.json');
                 await this.editor.setData({
-                    type: ext === 'md' ? 'md' : 'designer',
+                    type: isWidget ? 'widget' : ext === 'md' ? 'md' : 'designer',
                     isFullScreen: true,
-                    url: this.currentUrl
+                    url: this.currentUrl,
+                    parentCid: this.parentCid,
+                    config: this._data.config
                 });
             }
             catch { }
@@ -2168,7 +2180,6 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             const editor = new index_1.ScomIPFSEditor();
             this.registerEditor("md", editor);
             this.registerEditor("tsx", editor);
-            this.registerEditor("scconfig.json", editor);
             this.registerEditor(/(yml|yaml|json|js|s?css|ts)/i, new file_1.Editor());
             this.registerEditor(/(mp4|webm|mov|m3u8|jpeg|jpg|png|gif|bmp|svg)$/i, new index_1.ScomIPFSPreview());
         }
@@ -2191,24 +2202,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 if (this.currentEditor && this.currentEditor instanceof index_1.ScomIPFSEditor) {
                     this.currentEditor.onHide();
                 }
-                const fileType = ipfsData.name.includes('scconfig.json') ? 'scconfig.json' : this.getFileType(ipfsData.name);
-                let config = null;
-                if (fileType === 'scconfig.json') {
-                    let parentCid = this.rootCid;
-                    const parentPath = ipfsData.path.split('/').slice(0, -1).join('/');
-                    const parentData = this._uploadedTreeData.find((item) => item.path === parentPath);
-                    if (parentData?.cid)
-                        parentCid = parentData.cid;
-                    config = {
-                        transportEndpoint: this.transportEndpoint,
-                        signer: this.signer,
-                        baseUrl: this.baseUrl,
-                        cid: parentCid
-                    };
-                }
+                const fileType = this.getFileType(ipfsData.name); // ipfsData.name.includes('scconfig.json') ? 'scconfig.json' : this.getFileType(ipfsData.name);
+                const config = this.getFileConfig(ipfsData);
                 if (this.fileEditors.has(fileType)) {
                     this.currentEditor = this.fileEditors.get(fileType);
-                    this.currentEditor && this.currentEditor.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom, config);
+                    this.currentEditor && this.currentEditor.openFile(ipfsData, this.rootCid, this.pnlCustom, config);
                 }
                 else {
                     const fileTypes = Array.from(this.fileEditors);
@@ -2220,7 +2218,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                             if (key.test(fileType)) {
                                 if (type[1]) {
                                     this.currentEditor = type[1];
-                                    this.currentEditor.openFile(ipfsData, this.transportEndpoint, this.rootCid, this.pnlCustom);
+                                    this.currentEditor.openFile(ipfsData, this.rootCid, this.pnlCustom, config);
                                 }
                                 break;
                             }
@@ -2228,6 +2226,19 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     }
                 }
             }
+        }
+        getFileConfig(ipfsData) {
+            let parentCid = this.rootCid;
+            const parentPath = ipfsData.path.split('/').slice(0, -1).join('/');
+            const parentData = this._uploadedTreeData.find((item) => item.path === parentPath);
+            if (parentData?.cid)
+                parentCid = parentData.cid;
+            return {
+                transportEndpoint: this.transportEndpoint,
+                signer: this.signer,
+                baseUrl: this.baseUrl,
+                cid: parentCid
+            };
         }
         getFileType(name) {
             return (name || '').split('.').pop().toLowerCase();
@@ -2834,7 +2845,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             }
             this.pnlPreview.visible = true;
             const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
-            this.iePreview.setData({ ...record, transportEndpoint: this.transportEndpoint, parentCid: currentCid });
+            const config = this.getFileConfig(record);
+            this.iePreview.setData({ ...record, parentCid: currentCid, config });
             if (window.matchMedia('(max-width: 767px)').matches) {
                 this.iePreview.openModal({
                     width: '100vw',

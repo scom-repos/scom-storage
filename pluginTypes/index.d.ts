@@ -20,9 +20,18 @@ declare module "@scom/scom-storage/interface.ts" {
         transportEndpoint?: string;
         signer?: IPFS.ISigner;
         isModal?: boolean;
+        cid?: string;
     }
     export interface IPreview extends IIPFSData {
-        transportEndpoint?: string;
+        config?: IStorageConfig;
+        parentCid?: string;
+    }
+    export type EditorType = 'md' | 'designer' | 'widget';
+    export interface IEditor {
+        url?: string;
+        type?: EditorType;
+        isFullScreen?: boolean;
+        config?: IStorageConfig;
         parentCid?: string;
     }
 }
@@ -305,15 +314,15 @@ declare module "@scom/scom-storage/utils.ts" {
 /// <amd-module name="@scom/scom-storage/file.ts" />
 declare module "@scom/scom-storage/file.ts" {
     import { Control } from "@ijstech/components";
-    import { IIPFSData } from "@scom/scom-storage/interface.ts";
+    import { IIPFSData, IStorageConfig } from "@scom/scom-storage/interface.ts";
     interface IFileHandler {
-        openFile(file: IIPFSData, transportEndpoint: string, parentCid: string, parent: Control, config?: any): Promise<void>;
+        openFile(file: IIPFSData, parentCid: string, parent: Control, config: IStorageConfig): Promise<void>;
     }
     class Editor implements IFileHandler {
-        openFile(file: IIPFSData, transportEndpoint: string, parentCid: string, parent: Control): Promise<void>;
+        openFile(file: IIPFSData, parentCid: string, parent: Control, config: IStorageConfig): Promise<void>;
     }
     class Viewer implements IFileHandler {
-        openFile(file: IIPFSData, transportEndpoint: string, parentCid: string, parent: Control): Promise<void>;
+        openFile(file: IIPFSData, parentCid: string, parent: Control, config: IStorageConfig): Promise<void>;
     }
     export { Editor, Viewer, IFileHandler };
 }
@@ -344,12 +353,7 @@ declare module "@scom/scom-storage/components/loadingSpinner.tsx" {
 declare module "@scom/scom-storage/components/editor.tsx" {
     import { Container, ControlElement, Module, Control } from '@ijstech/components';
     import { IFileHandler } from "@scom/scom-storage/file.ts";
-    import { IIPFSData } from "@scom/scom-storage/interface.ts";
-    interface IEditor {
-        url?: string;
-        type?: 'md' | 'designer';
-        isFullScreen?: boolean;
-    }
+    import { EditorType, IEditor, IIPFSData, IStorageConfig } from "@scom/scom-storage/interface.ts";
     type onChangedCallback = (filePath: string, content: string) => void;
     interface ScomIPFSEditorElement extends ControlElement {
         data?: IEditor;
@@ -373,7 +377,6 @@ declare module "@scom/scom-storage/components/editor.tsx" {
         private pnlLoading;
         private _data;
         private initialContent;
-        private isPackage;
         filePath: string;
         onClose: () => void;
         onChanged: onChangedCallback;
@@ -381,14 +384,14 @@ declare module "@scom/scom-storage/components/editor.tsx" {
         static create(options?: ScomIPFSEditorElement, parent?: Container): Promise<ScomIPFSEditor>;
         get url(): string;
         set url(value: string);
-        get type(): 'md' | 'designer';
-        set type(value: 'md' | 'designer');
+        get type(): EditorType;
+        set type(value: EditorType);
         get isFullScreen(): boolean;
         set isFullScreen(value: boolean);
         showLoadingSpinner(): void;
         hideLoadingSpinner(): void;
         setData(value: IEditor): Promise<void>;
-        openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control, config?: any): Promise<void>;
+        openFile(file: IIPFSData, parentCid: string, parent: Control, config: IStorageConfig): Promise<void>;
         onHide(): void;
         private renderUI;
         private createEditorElement;
@@ -404,7 +407,7 @@ declare module "@scom/scom-storage/components/editor.tsx" {
 /// <amd-module name="@scom/scom-storage/components/preview.tsx" />
 declare module "@scom/scom-storage/components/preview.tsx" {
     import { Container, Control, ControlElement, Module } from '@ijstech/components';
-    import { IIPFSData, IPreview } from "@scom/scom-storage/interface.ts";
+    import { IIPFSData, IPreview, IStorageConfig } from "@scom/scom-storage/interface.ts";
     import { IFileHandler } from "@scom/scom-storage/file.ts";
     type fileChangedCallback = (filePath: string, content: string) => void;
     interface ScomIPFSPreviewElement extends ControlElement {
@@ -449,7 +452,9 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         set data(value: IPreview);
         get transportEndpoint(): string;
         set transportEndpoint(value: string);
-        openFile(file: IIPFSData, transportEndpoint: string, parentCid: string, parent: Control): Promise<void>;
+        get parentCid(): string;
+        set parentCid(value: string);
+        openFile(file: IIPFSData, parentCid: string, parent: Control, config: IStorageConfig): Promise<void>;
         showLoadingSpinner(): void;
         hideLoadingSpinner(): void;
         setData(value: IPreview): void;
@@ -615,6 +620,7 @@ declare module "@scom/scom-storage" {
         private registerDefaultEditors;
         registerEditor(fileType: string | RegExp, editor: IFileHandler): void;
         openFile(ipfsData: IIPFSData): Promise<void>;
+        private getFileConfig;
         private getFileType;
         private setData;
         private getData;

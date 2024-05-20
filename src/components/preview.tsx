@@ -14,7 +14,7 @@ import {
 import { customLinkStyle } from './index.css'
 import { formatBytes, getFileContent } from '../data'
 import { getEmbedElement } from '../utils';
-import { IIPFSData, IPreview } from '../interface';
+import { IIPFSData, IPreview, IStorageConfig } from '../interface';
 import { ScomIPFSEditor,  } from './editor';
 import { LoadingSpinner } from './loadingSpinner';
 import { IFileHandler } from '../file';
@@ -57,7 +57,8 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
 
   private _data: IPreview = {
     cid: '',
-    name: ''
+    name: '',
+    config: {}
   }
   private currentUrl: string = '';
   private typesMapping = {
@@ -102,18 +103,25 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
   }
 
   get transportEndpoint(): string {
-    return this._data?.transportEndpoint
+    return this._data?.config?.transportEndpoint
   }
   set transportEndpoint(value: string) {
-    this._data.transportEndpoint = value
+    this._data.config.transportEndpoint = value
   }
 
-  async openFile(file: IIPFSData, transportEndpoint: string, parentCid: string, parent: Control): Promise<void> {
+  get parentCid(): string {
+    return this._data?.parentCid
+  }
+  set parentCid(value: string) {
+    this._data.parentCid = value
+  }
+
+  async openFile(file: IIPFSData, parentCid: string, parent: Control, config: IStorageConfig): Promise<void> {
     parent.append(this);
     this._data = {
       ...file,
-      transportEndpoint,
-      parentCid
+      parentCid,
+      config
     };
     this.renderUI(true);
   }
@@ -199,7 +207,7 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
   }
 
   private async getModuleFromExtension(usePath: boolean) {
-    const { cid, name, parentCid, size, path } = this._data;
+    const { cid, name, size, path, parentCid } = this._data;
     if (!cid) return null
     let moduleData = null;
     const ext = (name || '').split('.').pop().toLowerCase();
@@ -233,7 +241,7 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
         }
         break;
     }
-    this.pnlEdit.visible = ext === 'md' || ext === 'tsx';
+    this.pnlEdit.visible = ext === 'md' || ext === 'tsx' || path.includes('scconfig.json');
     return moduleData
   }
 
@@ -342,7 +350,7 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
   }
 
   private async downloadFile() {
-    let url = `${this.transportEndpoint}/ipfs/${this._data.parentCid}/${this._data.name}`;
+    let url = `${this.transportEndpoint}/ipfs/${this.parentCid}/${this._data.name}`;
     try {
       let response = await fetch(url);
       let blob = await response.blob();
@@ -370,10 +378,13 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
       if (this.onOpenEditor) this.onOpenEditor();
       const ext = (this._data.name || '').split('.').pop().toLowerCase();
       this.editor.filePath = this._data?.path || '';
+      const isWidget = this.editor.filePath.includes('scconfig.json');
       await this.editor.setData({
-        type: ext === 'md' ? 'md' : 'designer',
+        type: isWidget ? 'widget' : ext === 'md' ? 'md' : 'designer',
         isFullScreen: true,
-        url: this.currentUrl
+        url: this.currentUrl,
+        parentCid: this.parentCid,
+        config: this._data.config
       });
     } catch {}
     this.hideLoadingSpinner();

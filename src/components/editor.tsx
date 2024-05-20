@@ -13,16 +13,11 @@ import {
 import { getEmbedElement } from '../utils';
 import { addressPanelStyle, fullScreenStyle } from './index.css';
 import { IFileHandler } from '../file';
-import { IIPFSData } from '../interface';
+import { EditorType, IEditor, IIPFSData, IStorageConfig } from '../interface';
 import { LoadingSpinner } from './loadingSpinner';
 import { getFileContent } from '../data';
 const Theme = Styles.Theme.ThemeVars
 
-interface IEditor {
-  url?: string;
-  type?: 'md' | 'designer';
-  isFullScreen?: boolean;
-}
 type onChangedCallback = (filePath: string, content: string) => void
 
 interface ScomIPFSEditorElement extends ControlElement {
@@ -55,7 +50,6 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     isFullScreen: false
   };
   private initialContent: string = '';
-  private isPackage: boolean = false;
   filePath: string = '';
   onClose: () => void
   onChanged: onChangedCallback
@@ -83,7 +77,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
   get type() {
     return this._data.type ?? 'md'
   }
-  set type(value: 'md' | 'designer') {
+  set type(value: EditorType) {
     this._data.type = value ?? 'md'
   }
 
@@ -112,41 +106,44 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     if (this.mdAlert) this.mdAlert.closeModal();
     if (this.btnSave) this.btnSave.enabled = false;
     this.initialContent = '';
-    this.isPackage = this.url.includes('scconfig.json');
     await this.renderUI(isTypeChanged)
   }
 
-  async openFile(file: IIPFSData, endpoint: string, parentCid: string, parent: Control, config?: any) {
+  async openFile(file: IIPFSData, parentCid: string, parent: Control, config: IStorageConfig) {
     parent.append(this);
     this.filePath = file.path
     this.display = 'flex'
     this.height = '100%'
     const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
-    this.isPackage = path.includes('scconfig.json');
-    const mediaUrl = `${endpoint}/ipfs/${parentCid}/${path}`;
+    const mediaUrl = `${config.transportEndpoint}/ipfs/${parentCid}/${path}`;
     const ext = file.name.split('.').pop();
-    const newType = ext === 'md' ? 'md' : 'designer';
+    const isWidget = path.includes('scconfig.json');
+    const newType = isWidget ? 'widget' : ext === 'md' ? 'md' : 'designer';
     const isTypeChanged = this.type !== newType;
     this._data = {
       url: mediaUrl,
-      type: ext === 'md' ? 'md' : 'designer',
-      isFullScreen: false
+      type: newType,
+      isFullScreen: false,
+      parentCid,
+      config
     }
     this.btnActions.visible = false;
-    this.renderUI(isTypeChanged, config)
+    this.renderUI(isTypeChanged)
   }
 
   onHide(): void {
     if (this.editorEl) this.editorEl.onHide();
   }
 
-  private async renderUI(isTypeChanged?: boolean, config?: any) {
+  private async renderUI(isTypeChanged?: boolean) {
     this.showLoadingSpinner();
     const content = await getFileContent(this.url);
     if (!this.editorEl || isTypeChanged) {
       let moduleData = this.type === 'md' ?
         this.createEditorElement(content) :
-        this.isPackage ? this.createPackageBuilderElement(config || {}) : this.createDesignerElement(this.url);
+        this.type === 'widget' ?
+          this.createPackageBuilderElement(this._data?.config || {}) :
+          this.createDesignerElement(this.url);
       this.editorEl = await getEmbedElement(moduleData, this.pnlEditor);
       this.initialContent = this.editorEl.value || '';
 
