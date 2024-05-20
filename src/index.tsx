@@ -455,6 +455,11 @@ export class ScomStorage extends Module {
         let rootNode;
         try {
             rootNode = await this.manager.getRootNode();
+            let node = await rootNode.findItem('_assets');
+            if (node) {
+                await node.checkCid();
+                rootNode = node;
+            }
         } catch (err) {
             console.log(err);
         }
