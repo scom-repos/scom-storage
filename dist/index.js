@@ -1411,20 +1411,35 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
                         this.createDesignerElement(this.url);
                 this.editorEl = await (0, utils_1.getEmbedElement)(moduleData, this.pnlEditor);
                 this.initialContent = this.editorEl.value || '';
-                this.editorEl.onChanged = (value) => {
-                    if (this.initialContent) {
-                        this.btnSave.enabled = value !== this.initialContent;
-                    }
-                    else {
-                        this.initialContent = value;
-                    }
-                };
+                if (this.type === 'widget') {
+                    // this.editorEl.onChanged = () => {
+                    //   if (typeof this.onChanged === 'function') this.onChanged();
+                    // }
+                    this.editorEl.onClosed = () => {
+                        document.body.style.overflow = 'hidden auto';
+                        if (typeof this.onClose === 'function')
+                            this.onClose();
+                    };
+                }
+                else {
+                    this.editorEl.onChanged = (value) => {
+                        if (this.initialContent) {
+                            this.btnSave.enabled = value !== this.initialContent;
+                        }
+                        else {
+                            this.initialContent = value;
+                        }
+                    };
+                }
             }
             else {
                 this.initialContent = '';
+                const value = this.type === 'md' ? content : this.type === 'widget' ? this._data?.config?.cid : this.url;
                 if (this.editorEl?.setValue)
-                    this.editorEl.setValue(this.type === 'md' ? content : this.url);
+                    this.editorEl.setValue(value);
             }
+            this.btnActions.visible = this.type !== 'widget';
+            this.pnlEditor.padding = this.type === 'widget' ? { left: 0, right: 0 } : { left: '1rem', right: '1rem' };
             if (this.isFullScreen) {
                 this.classList.add(index_css_4.fullScreenStyle);
                 document.body.style.overflow = 'hidden';
@@ -1518,7 +1533,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
         }
         render() {
             return (this.$render("i-vstack", { maxHeight: '100%', width: '100%', height: `100%`, overflow: 'hidden', gap: "0.75rem" },
-                this.$render("i-hstack", { id: "btnActions", verticalAlignment: 'center', horizontalAlignment: 'end', width: '100%', stack: { shrink: '0' }, gap: "0.5rem", padding: { left: '1rem', right: '1rem', top: '0.75rem' } },
+                this.$render("i-hstack", { id: "btnActions", verticalAlignment: 'center', horizontalAlignment: 'end', width: '100%', stack: { shrink: '0' }, gap: "0.5rem", visible: false, padding: { left: '1rem', right: '1rem', top: '0.75rem' } },
                     this.$render("i-button", { id: "btnCancel", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: 'transparent' }, font: { color: Theme.text.primary }, icon: { name: 'times', width: '0.875rem', height: '0.875rem', fill: Theme.text.primary }, caption: 'Cancel', onClick: this.onCancel }),
                     this.$render("i-button", { id: "btnSave", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, icon: { name: 'save', width: '0.875rem', height: '0.875rem', fill: Theme.colors.primary.contrastText }, caption: 'Save', enabled: false, onClick: this.onSubmit })),
                 this.$render("i-panel", { width: '100%', stack: { grow: '1' }, overflow: { y: 'auto', x: 'hidden' } },
@@ -1588,6 +1603,9 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
         }
         set parentCid(value) {
             this._data.parentCid = value;
+        }
+        get previewPath() {
+            return this._data?.path || '';
         }
         async openFile(file, parentCid, parent, config) {
             parent.append(this);
@@ -2896,6 +2914,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.onClosePreview();
         }
         openEditor() {
+            const path = this.iePreview.previewPath;
+            if (path?.includes('scconfig.json')) {
+                const newPath = path.split('scconfig.json')[0];
+                this.updateUrlPath(newPath);
+            }
             this.ieSidebar.visible = false;
             this.ieContent.visible = false;
             this.pnlPreview.visible = true;
@@ -2913,8 +2936,10 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.btnUpload.visible = true;
         }
         async onSubmit(filePath, content) {
-            await this.manager.addFileContent(filePath, content);
-            await this.manager.applyUpdates();
+            if (filePath && content) {
+                await this.manager.addFileContent(filePath, content);
+                await this.manager.applyUpdates();
+            }
             this.onFilesUploaded();
         }
         onBreadcrumbClick({ cid, path }) {

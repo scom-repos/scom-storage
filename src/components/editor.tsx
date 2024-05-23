@@ -18,7 +18,7 @@ import { LoadingSpinner } from './loadingSpinner';
 import { getFileContent } from '../data';
 const Theme = Styles.Theme.ThemeVars
 
-type onChangedCallback = (filePath: string, content: string) => void
+type onChangedCallback = (filePath?: string, content?: string) => void
 
 interface ScomIPFSEditorElement extends ControlElement {
   data?: IEditor;
@@ -147,17 +147,30 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
       this.editorEl = await getEmbedElement(moduleData, this.pnlEditor);
       this.initialContent = this.editorEl.value || '';
 
-      this.editorEl.onChanged = (value: string) => {
-        if (this.initialContent) {
-          this.btnSave.enabled = value !== this.initialContent;
-        } else {
-          this.initialContent = value
+      if (this.type === 'widget') {
+        // this.editorEl.onChanged = () => {
+        //   if (typeof this.onChanged === 'function') this.onChanged();
+        // }
+        this.editorEl.onClosed = () => {
+          document.body.style.overflow = 'hidden auto';
+          if (typeof this.onClose === 'function') this.onClose();
+        }
+      } else {
+        this.editorEl.onChanged = (value: string) => {
+          if (this.initialContent) {
+            this.btnSave.enabled = value !== this.initialContent;
+          } else {
+            this.initialContent = value
+          }
         }
       }
     } else {
       this.initialContent = '';
-      if(this.editorEl?.setValue) this.editorEl.setValue(this.type === 'md' ? content : this.url);
+      const value = this.type === 'md' ? content : this.type === 'widget' ? this._data?.config?.cid : this.url;
+      if(this.editorEl?.setValue) this.editorEl.setValue(value);
     }
+    this.btnActions.visible = this.type !== 'widget';
+    this.pnlEditor.padding = this.type === 'widget' ? {left: 0, right: 0} : {left: '1rem', right: '1rem'};
     if (this.isFullScreen) {
       this.classList.add(fullScreenStyle);
       document.body.style.overflow = 'hidden';
@@ -264,6 +277,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
           width={'100%'}
           stack={{shrink: '0'}}
           gap="0.5rem"
+          visible={false}
           padding={{ left: '1rem', right: '1rem', top: '0.75rem' }}
         >
           <i-button

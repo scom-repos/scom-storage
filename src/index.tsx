@@ -974,6 +974,11 @@ export class ScomStorage extends Module {
     }
 
     private openEditor() {
+        const path = this.iePreview.previewPath;
+        if (path?.includes('scconfig.json')) {
+            const newPath = path.split('scconfig.json')[0];
+            this.updateUrlPath(newPath);
+        }
         this.ieSidebar.visible = false;
         this.ieContent.visible = false;
         this.pnlPreview.visible = true;
@@ -992,9 +997,11 @@ export class ScomStorage extends Module {
         this.btnUpload.visible = true;
     }
 
-    private async onSubmit(filePath: string, content: string) {
-        await this.manager.addFileContent(filePath, content);
-        await this.manager.applyUpdates();
+    private async onSubmit(filePath?: string, content?: string) {
+        if (filePath && content) {
+            await this.manager.addFileContent(filePath, content);
+            await this.manager.applyUpdates();
+        }
         this.onFilesUploaded();
     }
 

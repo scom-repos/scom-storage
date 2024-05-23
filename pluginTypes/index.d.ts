@@ -354,7 +354,7 @@ declare module "@scom/scom-storage/components/editor.tsx" {
     import { Container, ControlElement, Module, Control } from '@ijstech/components';
     import { IFileHandler } from "@scom/scom-storage/file.ts";
     import { EditorType, IEditor, IIPFSData, IStorageConfig } from "@scom/scom-storage/interface.ts";
-    type onChangedCallback = (filePath: string, content: string) => void;
+    type onChangedCallback = (filePath?: string, content?: string) => void;
     interface ScomIPFSEditorElement extends ControlElement {
         data?: IEditor;
         onClose?: () => void;
@@ -454,6 +454,7 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         set transportEndpoint(value: string);
         get parentCid(): string;
         set parentCid(value: string);
+        get previewPath(): string;
         openFile(file: IIPFSData, parentCid: string, parent: Control, config: IStorageConfig): Promise<void>;
         showLoadingSpinner(): void;
         hideLoadingSpinner(): void;

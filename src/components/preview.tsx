@@ -116,6 +116,10 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
     this._data.parentCid = value
   }
 
+  get previewPath() {
+    return this._data?.path || ''
+  }
+
   async openFile(file: IIPFSData, parentCid: string, parent: Control, config: IStorageConfig): Promise<void> {
     parent.append(this);
     this._data = {
