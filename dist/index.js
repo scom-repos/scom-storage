@@ -2267,7 +2267,6 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             if (this.transportEndpoint) {
                 this.mobileHome.transportEndpoint = this.transportEndpoint;
             }
-            await this.initContent();
         }
         getData() {
             return this._data;

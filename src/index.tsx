@@ -318,7 +318,6 @@ export class ScomStorage extends Module {
         if (this.transportEndpoint) {
             this.mobileHome.transportEndpoint = this.transportEndpoint;
         }
-        await this.initContent();
     }
 
     private getData() {
