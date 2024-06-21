@@ -1434,7 +1434,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             }
             else {
                 this.initialContent = '';
-                const value = this.type === 'md' ? content : this.type === 'widget' ? this._data?.config?.cid : this.url;
+                const value = this.type === 'md' ? content : this.type === 'widget' ? '' : this.url;
                 if (this.editorEl?.setValue)
                     this.editorEl.setValue(value);
             }
