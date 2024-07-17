@@ -17,6 +17,7 @@ import {
     HStack,
     Progress,
     IPFS,
+    StackLayout,
 } from '@ijstech/components';
 import assets from '../assets';
 import { uploadModalStyle } from './index.css';
@@ -53,6 +54,7 @@ interface ScomIPFSUploadModalElement extends ControlElement {
     rootCid?: string;
     parentDir?: Partial<ICidInfo>;
     onUploaded?: UploadedCallback;
+    onBrowseFile?: () => void;
 }
 
 declare global {
@@ -82,7 +84,7 @@ export class ScomIPFSUploadModal extends Module {
     private fileUploader: Upload;
     private imgFile: Image;
     private lblDrag: Label;
-
+    private pnlBrowse: StackLayout;
     private pnlStatusFilter: Panel;
     private pnlFilterBar: Panel;
     private pnlFilterActions: Panel;
@@ -94,6 +96,7 @@ export class ScomIPFSUploadModal extends Module {
     private _rootCid: string;
     private _parentDir: Partial<ICidInfo>;
     public onUploaded: UploadedCallback;
+    public onBrowseFile: () => void;
 
     private isForcedCancelled = false;
     private currentRequest: XMLHttpRequest;
@@ -108,6 +111,7 @@ export class ScomIPFSUploadModal extends Module {
     }[] = [];
     private _manager: IPFS.FileManager;
     private folderPath: string;
+    private _isBrowseButtonShown: boolean = false;
 
     constructor(parent?: Container, options?: any) {
         super(parent, options);
@@ -136,7 +140,15 @@ export class ScomIPFSUploadModal extends Module {
         this._manager = value;
     }
 
-    show(path: string, files?: File[]) {
+    get isBrowseButtonShown() {
+        return this._isBrowseButtonShown;
+    }
+    set isBrowseButtonShown(value: boolean) {
+        this._isBrowseButtonShown = value;
+        if (this.pnlBrowse) this.pnlBrowse.visible = value;
+    }
+
+    show(path?: string, files?: File[]) {
         this.folderPath = path;
         this.updateBtnCaption();
         if (files?.length) {
@@ -577,6 +589,10 @@ export class ScomIPFSUploadModal extends Module {
         })
     }
 
+    private browseFile() {
+        if (this.onBrowseFile) this.onBrowseFile();
+    }
+
     reset() {
         this.pnlFileList.clearInnerHTML();
         this.pnlPagination.clearInnerHTML();
@@ -604,6 +620,8 @@ export class ScomIPFSUploadModal extends Module {
         this.classList.add(uploadModalStyle);
         this.rootCid = this.getAttribute('rootCid', true);
         this.parentDir = this.getAttribute('parentDir', true);
+        const isBrowseButtonShown = this.getAttribute('isBrowseButtonShown', true);
+        if (isBrowseButtonShown != null) this.isBrowseButtonShown = isBrowseButtonShown;
     }
 
     render() {
@@ -644,6 +662,17 @@ export class ScomIPFSUploadModal extends Module {
                         ></i-image>
                         <i-label id="lblDrag" caption="Drag and drop your files here"></i-label>
                     </i-panel>
+                    <i-stack id="pnlBrowse" direction="vertical" alignItems="center" justifyContent="center" margin={{ top: '-1rem' }} visible={false}>
+                        <i-label class="label" caption="Or"></i-label>
+                        <i-button
+                            caption="Browse File"
+                            boxShadow="none"
+                            background={{ color: Theme.colors.primary.main }}
+                            font={{ color: Theme.colors.primary.contrastText }}
+                            padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
+                            onClick={this.browseFile}
+                        ></i-button>
+                    </i-stack>
                     <i-panel id="pnlStatusFilter" class="status-filter" visible={false}>
                         <i-panel id="pnlFilterBar" class="filter-bar"></i-panel>
                         <i-panel id="pnlFilterActions" class="filter-actions" margin={{ left: 'auto' }}></i-panel>

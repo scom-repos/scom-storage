@@ -21,6 +21,7 @@ export interface IStorageConfig {
     transportEndpoint?: string;
     signer?: IPFS.ISigner;
     isModal?: boolean;
+    isUploadModal?: boolean;
     cid?: string;
 }
 

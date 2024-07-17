@@ -842,6 +842,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             this.currentFilterStatus = FILE_STATUS.LISTED;
             this.files = [];
             this.fileListData = [];
+            this._isBrowseButtonShown = false;
         }
         get rootCid() {
             return this._rootCid;
@@ -862,6 +863,14 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
         }
         set manager(value) {
             this._manager = value;
+        }
+        get isBrowseButtonShown() {
+            return this._isBrowseButtonShown;
+        }
+        set isBrowseButtonShown(value) {
+            this._isBrowseButtonShown = value;
+            if (this.pnlBrowse)
+                this.pnlBrowse.visible = value;
         }
         show(path, files) {
             this.folderPath = path;
@@ -1169,6 +1178,10 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                 }
             });
         }
+        browseFile() {
+            if (this.onBrowseFile)
+                this.onBrowseFile();
+        }
         reset() {
             this.pnlFileList.clearInnerHTML();
             this.pnlPagination.clearInnerHTML();
@@ -1195,6 +1208,9 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             this.classList.add(index_css_3.uploadModalStyle);
             this.rootCid = this.getAttribute('rootCid', true);
             this.parentDir = this.getAttribute('parentDir', true);
+            const isBrowseButtonShown = this.getAttribute('isBrowseButtonShown', true);
+            if (isBrowseButtonShown != null)
+                this.isBrowseButtonShown = isBrowseButtonShown;
         }
         render() {
             return (this.$render("i-panel", { height: "100%", overflow: "hidden", padding: { top: '3.125rem', bottom: '3.125rem', left: '8.125rem', right: '8.125rem' }, border: { radius: '0.375rem' }, mediaQueries: [
@@ -1212,6 +1228,9 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                         this.$render("i-upload", { id: "fileUploader", multiple: true, draggable: true, onBeforeDrop: this.onBeforeDrop, onUploading: this.onBeforeUpload, onChanged: this.onChangeFile, onRemoved: this.onRemove }),
                         this.$render("i-image", { id: "imgFile", width: 60, height: 60, class: "icon", url: assets_2.default.fullPath('img/file-icon.png') }),
                         this.$render("i-label", { id: "lblDrag", caption: "Drag and drop your files here" })),
+                    this.$render("i-stack", { id: "pnlBrowse", direction: "vertical", alignItems: "center", justifyContent: "center", margin: { top: '-1rem' }, visible: false },
+                        this.$render("i-label", { class: "label", caption: "Or" }),
+                        this.$render("i-button", { caption: "Browse File", boxShadow: "none", background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, onClick: this.browseFile })),
                     this.$render("i-panel", { id: "pnlStatusFilter", class: "status-filter", visible: false },
                         this.$render("i-panel", { id: "pnlFilterBar", class: "filter-bar" }),
                         this.$render("i-panel", { id: "pnlFilterActions", class: "filter-actions", margin: { left: 'auto' } })),
@@ -2136,6 +2155,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this._readOnly = false;
             this.isInitializing = false;
             this._isModal = false;
+            this._isUploadModal = false;
             this._isFileShown = false;
             this.isAssetRootNode = false;
             this.onCellDblClick = this.onCellDblClick.bind(this);
@@ -2165,6 +2185,14 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         ;
         set isModal(value) {
             this._isModal = value;
+        }
+        get isUploadModal() {
+            return this._isUploadModal;
+        }
+        set isUploadModal(value) {
+            this._isUploadModal = value;
+            if (this.pnlStorage)
+                this.pnlStorage.visible = false;
         }
         get transportEndpoint() {
             return this._data.transportEndpoint;
@@ -2402,7 +2430,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             return rootNode;
         }
         updateUrlPath(path) {
-            if (this.isModal)
+            if (this.isModal || this.isUploadModal)
                 return;
             let baseUrl = this.baseUrl ? this.baseUrl + (this.baseUrl[this.baseUrl.length - 1] == '/' ? '' : '/') : '#/';
             let url = baseUrl;
@@ -2430,14 +2458,27 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         async initContent() {
             this.pnlFooter.visible = this.isModal;
+            this.pnlStorage.visible = !this.isUploadModal;
+            if (this.uploadModal)
+                this.uploadModal.visible = this.isUploadModal || false;
             if (!this.manager || this.isInitializing)
                 return;
             this.isInitializing = true;
             const { cid, path } = this.extractUrl();
             let rootNode = await this.getAssetRootNode();
+            if (this.isUploadModal) {
+                this.uploadModal.reset();
+                if (window.matchMedia('(max-width: 767px)').matches) {
+                    this.uploadModal.manager = this.mobileHome.manager;
+                }
+                else {
+                    this.uploadModal.manager = this.manager;
+                }
+                this.uploadModal.show(this.isAssetRootNode ? '/_assets' : '');
+            }
             this.rootCid = this.currentCid = rootNode?.cid;
-            this.readOnly = !this.rootCid || (!this.isModal && (cid && cid !== this.rootCid));
-            if (!this.isModal) {
+            this.readOnly = !this.rootCid || (!this.isModal && !this.isUploadModal && (cid && cid !== this.rootCid));
+            if (!this.isModal && !this.isUploadModal) {
                 if (this.readOnly && cid) {
                     rootNode = await this.manager.setRootCid(cid);
                     if (rootNode)
@@ -2479,7 +2520,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.pnlPath.clear();
             if (parentNode.name)
                 this.pnlPath.setData(parentNode);
-            if (path && !this.isModal) {
+            if (path && !this.isModal && !this.isUploadModal) {
                 let items = path.split('/');
                 for (let i = 1; i < items.length; i++) {
                     if (!items[i])
@@ -2636,6 +2677,12 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         onOpenUploadModal(path, files) {
             if (this.readOnly)
                 return;
+            if (this.isUploadModal) {
+                this.pnlStorage.visible = false;
+                this.uploadModal.reset();
+                this.uploadModal.visible = true;
+                return;
+            }
             if (!this.uploadModal) {
                 this.uploadModal = new index_1.ScomIPFSUploadModal();
                 this.uploadModal.onUploaded = () => this.onFilesUploaded();
@@ -2875,7 +2922,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             }
         }
         previewFile(record) {
-            if (this.isModal) {
+            if (this.isModal || this.isUploadModal) {
                 this.pnlPreview.visible = false;
                 return;
             }
@@ -3107,6 +3154,18 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             if (this.onCancel)
                 this.onCancel();
         }
+        renderUploadModal() {
+            if (!this.uploadModal) {
+                this.uploadModal = new index_1.ScomIPFSUploadModal();
+                this.uploadModal.onUploaded = () => this.onFilesUploaded();
+                this.uploadModal.onBrowseFile = () => {
+                    this.pnlStorage.visible = true;
+                    this.uploadModal.visible = false;
+                };
+            }
+            this.pnlStorage.before(this.uploadModal);
+            this.uploadModal.isBrowseButtonShown = true;
+        }
         init() {
             const transportEndpoint = this.getAttribute('transportEndpoint', true) || this._data?.transportEndpoint || window.location.origin;
             const signer = this.getAttribute('signer', true) || this._data?.signer || null;
@@ -3114,6 +3173,10 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.baseUrl = this.getAttribute('baseUrl', true);
             super.init();
             this.isModal = this.getAttribute('isModal', true) || this._data.isModal || false;
+            this.isUploadModal = this.getAttribute('isUploadModal', true) || this._data.isUploadModal || false;
+            if (this.isUploadModal) {
+                this.renderUploadModal();
+            }
             this.onOpen = this.getAttribute('onOpen', true) || this.onOpen;
             this.onCancel = this.getAttribute('onCancel', true) || this.onCancel;
             this.onPreview = this.getAttribute('onPreview', true) || this.onPreview;
@@ -3126,7 +3189,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 signer: signer
             });
             if (transportEndpoint)
-                this.setData({ transportEndpoint, signer, isModal: this.isModal });
+                this.setData({ transportEndpoint, signer, isModal: this.isModal, isUploadModal: this.isUploadModal });
             this.handleOnDragEnter = this.handleOnDragEnter.bind(this);
             this.handleOnDragOver = this.handleOnDragOver.bind(this);
             this.handleOnDragLeave = this.handleOnDragLeave.bind(this);

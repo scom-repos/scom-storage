@@ -37,6 +37,7 @@ interface ScomStorageElement extends ControlElement {
     signer?: IPFS.ISigner;
     baseUrl?: string;
     isModal?: boolean;
+    isUploadModal?: boolean;
     isFileShown?: boolean;
     onOpen?: selectFileCallback;
     onCancel?: cancelCallback;
@@ -48,10 +49,10 @@ interface UploadRawFile extends File {
     uid?: number;
     path?: string;
     cid?: {
-      cid: string;
-      size: number;
+        cid: string;
+        size: number;
     };
-  }
+}
 
 declare global {
     namespace JSX {
@@ -63,6 +64,7 @@ declare global {
 
 @customElements('i-scom-storage')
 export class ScomStorage extends Module {
+    private pnlStorage: Panel;
     private pnlPath: ScomIPFSPath;
     private uploadedFileTree: TreeView;
     private mobileHome: ScomIPFSMobileHome;
@@ -79,8 +81,8 @@ export class ScomStorage extends Module {
     private pnlFooter: Panel;
     private pnlCustom: Panel;
 
-    private fileEditors: Map<string|RegExp, IFileHandler> = new Map();
-    private currentEditor: IFileHandler|null = null;
+    private fileEditors: Map<string | RegExp, IFileHandler> = new Map();
+    private currentEditor: IFileHandler | null = null;
 
     private static instance: ScomStorage;
     public static getInstance() {
@@ -94,7 +96,7 @@ export class ScomStorage extends Module {
         light: {},
         dark: {}
     }
-    private _data: IStorageConfig = {}; 
+    private _data: IStorageConfig = {};
     private pnlFileTable: Panel;
     private pnlUploadTo: Panel;
     private lblDestinationFolder: Label;
@@ -170,6 +172,7 @@ export class ScomStorage extends Module {
     private _readOnly = false;
     private isInitializing = false;
     private _isModal: boolean = false;
+    private _isUploadModal: boolean = false;
     private _isFileShown: boolean = false;
     private currentFile: string;
     private _signer: IPFS.ISigner;
@@ -181,10 +184,10 @@ export class ScomStorage extends Module {
     onClosePreview: () => void;
 
     constructor(parent?: Container, options?: any) {
-		super(parent, options);
+        super(parent, options);
         this.onCellDblClick = this.onCellDblClick.bind(this);
         this.registerDefaultEditors();
-	};
+    };
 
     get baseUrl(): string {
         return this._baseUrl;
@@ -193,7 +196,7 @@ export class ScomStorage extends Module {
     set baseUrl(url: string) {
         this._baseUrl = url;
     }
-    
+
     private get readOnly(): boolean {
         return this._readOnly;
     };
@@ -210,6 +213,14 @@ export class ScomStorage extends Module {
     };
     set isModal(value: boolean) {
         this._isModal = value;
+    }
+
+    get isUploadModal(): boolean {
+        return this._isUploadModal;
+    }
+    set isUploadModal(value: boolean) {
+        this._isUploadModal = value;
+        if (this.pnlStorage) this.pnlStorage.visible = false;
     }
 
     get transportEndpoint() {
@@ -254,7 +265,7 @@ export class ScomStorage extends Module {
         this.registerEditor(/(mp4|webm|mov|m3u8|jpeg|jpg|png|gif|bmp|svg)$/i, new ScomIPFSPreview());
     }
 
-    registerEditor(fileType: string|RegExp, editor: IFileHandler): void {
+    registerEditor(fileType: string | RegExp, editor: IFileHandler): void {
         this.fileEditors.set(fileType, editor);
     }
 
@@ -281,7 +292,7 @@ export class ScomStorage extends Module {
                 const fileTypes = Array.from(this.fileEditors);
                 if (fileTypes?.length) {
                     for (const type of fileTypes) {
-                        const key: string|RegExp = type[0];
+                        const key: string | RegExp = type[0];
                         if (typeof key === 'string') continue;
                         if (key.test(fileType)) {
                             if (type[1]) {
@@ -328,72 +339,72 @@ export class ScomStorage extends Module {
         this.manager.reset();
         try {
             await this.manager.setRootCid('');
-        } catch (err) {}
+        } catch (err) { }
         this.pnlPreview.visible = false;
         this.btnUpload.right = '3.125rem';
         await this.initContent();
     }
 
     getConfigurators() {
-      return [
-        {
-          name: 'Builder Configurator',
-          target: 'Builders',
-          getActions: () => {
-            return this._getActions();
-          },
-          getData: this.getData.bind(this),
-          setData: this.setData.bind(this),
-          getTag: this.getTag.bind(this),
-          setTag: this.setTag.bind(this)
-        }
-      ]
-    }
-  
-    private getPropertiesSchema() {
-      const schema: IDataSchema = {
-        type: "object",
-        required: ["cid"],
-        properties: {
-            cid: {
-            type: "string"
-          }
-        }
-      };
-      return schema;
-    }
-  
-    private _getActions() {
-      const propertiesSchema = this.getPropertiesSchema();
-      const actions = [
-        {
-          name: 'Edit',
-          icon: 'edit',
-          command: (builder: any, userInputData: any) => {
-            let oldData = {};
-            return {
-              execute: () => {
-                oldData = {...this._data};
-                if (userInputData?.transportEndpoint) this._data.transportEndpoint = userInputData.transportEndpoint;
-                this.initContent();
-                if (builder?.setData) builder.setData(this._data);
-              },
-              undo: () => {
-                this._data = {...oldData};
-                this.initContent();
-                if (builder?.setData) builder.setData(this._data);
-              },
-              redo: () => {}
+        return [
+            {
+                name: 'Builder Configurator',
+                target: 'Builders',
+                getActions: () => {
+                    return this._getActions();
+                },
+                getData: this.getData.bind(this),
+                setData: this.setData.bind(this),
+                getTag: this.getTag.bind(this),
+                setTag: this.setTag.bind(this)
             }
-          },
-          userInputDataSchema: propertiesSchema as IDataSchema
-        }
-      ]
-      return actions
+        ]
+    }
+
+    private getPropertiesSchema() {
+        const schema: IDataSchema = {
+            type: "object",
+            required: ["cid"],
+            properties: {
+                cid: {
+                    type: "string"
+                }
+            }
+        };
+        return schema;
+    }
+
+    private _getActions() {
+        const propertiesSchema = this.getPropertiesSchema();
+        const actions = [
+            {
+                name: 'Edit',
+                icon: 'edit',
+                command: (builder: any, userInputData: any) => {
+                    let oldData = {};
+                    return {
+                        execute: () => {
+                            oldData = { ...this._data };
+                            if (userInputData?.transportEndpoint) this._data.transportEndpoint = userInputData.transportEndpoint;
+                            this.initContent();
+                            if (builder?.setData) builder.setData(this._data);
+                        },
+                        undo: () => {
+                            this._data = { ...oldData };
+                            this.initContent();
+                            if (builder?.setData) builder.setData(this._data);
+                        },
+                        redo: () => { }
+                    }
+                },
+                userInputDataSchema: propertiesSchema as IDataSchema
+            }
+        ]
+        return actions
     }
 
     private getTag() {
-      return this.tag;
+        return this.tag;
     }
 
     private updateTag(type: 'light' | 'dark', value: any) {
@@ -439,7 +450,7 @@ export class ScomStorage extends Module {
         this.updateStyle('--action-hover_background', this.tag[themeVar]?.hoverBackground);
         this.updateStyle('--action-hover', this.tag[themeVar]?.hover);
     }
-    
+
     private async getAssetRootNode() {
         let rootNode: IPFS.FileNode;
         try {
@@ -460,7 +471,7 @@ export class ScomStorage extends Module {
     }
 
     private updateUrlPath(path?: string) {
-        if (this.isModal) return;
+        if (this.isModal || this.isUploadModal) return;
         let baseUrl = this.baseUrl ? this.baseUrl + (this.baseUrl[this.baseUrl.length - 1] == '/' ? '' : '/') : '#/';
         let url = baseUrl;
         if (this.rootCid) url += this.rootCid;
@@ -480,19 +491,30 @@ export class ScomStorage extends Module {
             path = window.location.hash.substring(2);
         }
         let arr = path?.split('/');
-        const [ cid, ...paths ] = arr;
+        const [cid, ...paths] = arr;
         return { cid, path: paths.length ? '/' + paths.join('/') : '' };
     }
 
     private async initContent() {
         this.pnlFooter.visible = this.isModal;
+        this.pnlStorage.visible = !this.isUploadModal;
+        if (this.uploadModal) this.uploadModal.visible = this.isUploadModal || false;
         if (!this.manager || this.isInitializing) return;
         this.isInitializing = true;
         const { cid, path } = this.extractUrl();
         let rootNode = await this.getAssetRootNode();
+        if (this.isUploadModal) {
+            this.uploadModal.reset();
+            if (window.matchMedia('(max-width: 767px)').matches) {
+                this.uploadModal.manager = this.mobileHome.manager;
+            } else {
+                this.uploadModal.manager = this.manager;
+            }
+            this.uploadModal.show(this.isAssetRootNode ? '/_assets' : '');
+        }
         this.rootCid = this.currentCid = rootNode?.cid;
-        this.readOnly = !this.rootCid || (!this.isModal && (cid && cid !== this.rootCid));
-        if (!this.isModal) {
+        this.readOnly = !this.rootCid || (!this.isModal && !this.isUploadModal && (cid && cid !== this.rootCid));
+        if (!this.isModal && !this.isUploadModal) {
             if (this.readOnly && cid) {
                 rootNode = await this.manager.setRootCid(cid);
                 if (rootNode) this.rootCid = cid;
@@ -506,7 +528,7 @@ export class ScomStorage extends Module {
         }
         this.isInitializing = false;
     }
-    
+
     private async constructLinks(ipfsData: IIPFSData, links: IIPFSData[]) {
         return await Promise.all(
             links.map(async (data) => {
@@ -534,7 +556,7 @@ export class ScomStorage extends Module {
         let tableData = ipfsData;
         this.pnlPath.clear();
         if (parentNode.name) this.pnlPath.setData(parentNode);
-        if (path && !this.isModal) {
+        if (path && !this.isModal && !this.isUploadModal) {
             let items = path.split('/');
             for (let i = 1; i < items.length; i++) {
                 if (!items[i]) continue;
@@ -673,7 +695,7 @@ export class ScomStorage extends Module {
     private async onFilesUploaded(newPath?: string) {
         const rootNode = await this.getAssetRootNode();
         const ipfsData = rootNode.cidInfo;
-        
+
         let path: string;
         if (newPath || newPath === '') {
             path = this.isAssetRootNode && !this.readOnly ? '/_assets' + newPath : newPath;
@@ -695,6 +717,12 @@ export class ScomStorage extends Module {
 
     private onOpenUploadModal(path?: string, files?: File[]) {
         if (this.readOnly) return;
+        if (this.isUploadModal) {
+            this.pnlStorage.visible = false;
+            this.uploadModal.reset();
+            this.uploadModal.visible = true;
+            return;
+        }
         if (!this.uploadModal) {
             this.uploadModal = new ScomIPFSUploadModal();
             this.uploadModal.onUploaded = () => this.onFilesUploaded();
@@ -742,11 +770,11 @@ export class ScomStorage extends Module {
 
     private async initModalActions() {
         this.mdActions = await Modal.create({
-          visible: false,
-          showBackdrop: false,
-          minWidth: '7rem',
-          height: 'auto',
-          popupPlacement: 'bottomRight'
+            visible: false,
+            showBackdrop: false,
+            minWidth: '7rem',
+            height: 'auto',
+            popupPlacement: 'bottomRight'
         });
         const itemActions = new VStack(undefined, { gap: 8, border: { radius: 8 } });
         itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'folder-plus', width: 12, height: 12 }} caption="New folder" class={iconButtonStyled} onClick={() => this.onAddNewFolder()} />);
@@ -776,7 +804,7 @@ export class ScomStorage extends Module {
             const { pageX, pageY, screenX } = event;
             let x = pageX;
             if (pageX + 112 >= screenX) {
-              x = screenX - 112;
+                x = screenX - 112;
             }
             const isFile = ipfsData.type === 'file';
             const firstChild = this.mdActions.item?.children[0] as Control;
@@ -935,23 +963,23 @@ export class ScomStorage extends Module {
             this.previewFile(record);
         }
     }
-    
+
 
     private previewFile(record: IPreview) {
-        if (this.isModal) {
+        if (this.isModal || this.isUploadModal) {
             this.pnlPreview.visible = false;
             return;
         }
         this.pnlPreview.visible = true;
         const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
         const config = this.getFileConfig(record);
-        this.iePreview.setData({...record, parentCid: currentCid, config});
+        this.iePreview.setData({ ...record, parentCid: currentCid, config });
         if (window.matchMedia('(max-width: 767px)').matches) {
             this.iePreview.openModal({
                 width: '100vw',
                 height: '100vh',
-                padding: {top: 0, bottom: 0, left: 0, right: 0},
-                border: {radius: 0},
+                padding: { top: 0, bottom: 0, left: 0, right: 0 },
+                border: { radius: 0 },
                 overflow: 'auto',
                 class: previewModalStyle,
                 title: 'File Preview',
@@ -1082,7 +1110,7 @@ export class ScomStorage extends Module {
             this.pnlUploadTo.visible = false;
         }
     }
-    
+
     private async handleOnDrop(event: DragEvent) {
         if (this.readOnly) return;
         event.preventDefault();
@@ -1101,91 +1129,107 @@ export class ScomStorage extends Module {
 
     // Get all the entries (files or sub-directories) in a directory by calling readEntries until it returns empty array
     private async readAllDirectoryEntries(
-      directoryReader: FileSystemDirectoryReader
+        directoryReader: FileSystemDirectoryReader
     ) {
-      let entries = [];
-      let readEntries: any = await this.readEntriesPromise(directoryReader);
-      while (readEntries.length > 0) {
-        entries.push(...readEntries);
-        readEntries = await this.readEntriesPromise(directoryReader);
-      }
-      return entries;
+        let entries = [];
+        let readEntries: any = await this.readEntriesPromise(directoryReader);
+        while (readEntries.length > 0) {
+            entries.push(...readEntries);
+            readEntries = await this.readEntriesPromise(directoryReader);
+        }
+        return entries;
     }
-  
+
     // Wrap readEntries in a promise to make working with readEntries easier
     private async readEntriesPromise(directoryReader: FileSystemDirectoryReader) {
-      try {
-        return await new Promise((resolve, reject) => {
-          directoryReader.readEntries(resolve, reject);
-        });
-      } catch (err) {
-        console.log(err);
-      }
+        try {
+            return await new Promise((resolve, reject) => {
+                directoryReader.readEntries(resolve, reject);
+            });
+        } catch (err) {
+            console.log(err);
+        }
     }
 
     private async readEntryContentAsync(entry: FileSystemEntry | any) {
-      return new Promise<UploadRawFile[]>((resolve, reject) => {
-        let reading = 0;
-        const contents: UploadRawFile[] = [];
-  
-        reading++;
-        entry.file(async (file: any) => {
-          reading--;
-          const rawFile = file as UploadRawFile;
-          rawFile.path = entry.fullPath;
-          rawFile.cid = await IPFS.hashFile(file);
-          contents.push(rawFile);
-  
-          if (reading === 0) {
-            resolve(contents);
-          }
+        return new Promise<UploadRawFile[]>((resolve, reject) => {
+            let reading = 0;
+            const contents: UploadRawFile[] = [];
+
+            reading++;
+            entry.file(async (file: any) => {
+                reading--;
+                const rawFile = file as UploadRawFile;
+                rawFile.path = entry.fullPath;
+                rawFile.cid = await IPFS.hashFile(file);
+                contents.push(rawFile);
+
+                if (reading === 0) {
+                    resolve(contents);
+                }
+            });
         });
-      });
     }
 
     private async getAllFileEntries(dataTransferItemList: DataTransferItemList) {
-      let fileEntries = [];
-      // Use BFS to traverse entire directory/file structure
-      let queue = [];
-      // Unfortunately dataTransferItemList is not iterable i.e. no forEach
-      for (let i = 0; i < dataTransferItemList.length; i++) {
-        // Note webkitGetAsEntry a non-standard feature and may change
-        // Usage is necessary for handling directories
-        queue.push(dataTransferItemList[i].webkitGetAsEntry());
-      }
-      while (queue.length > 0) {
-        let entry = queue.shift();
-        if (entry?.isFile) {
-          fileEntries.push(entry);
-        } else if (entry?.isDirectory) {
-          let reader: any = (entry as any).createReader();
-          queue.push(...(await this.readAllDirectoryEntries(reader)));
+        let fileEntries = [];
+        // Use BFS to traverse entire directory/file structure
+        let queue = [];
+        // Unfortunately dataTransferItemList is not iterable i.e. no forEach
+        for (let i = 0; i < dataTransferItemList.length; i++) {
+            // Note webkitGetAsEntry a non-standard feature and may change
+            // Usage is necessary for handling directories
+            queue.push(dataTransferItemList[i].webkitGetAsEntry());
         }
-      }
-  
-      return Promise.all(
-        fileEntries.map((entry) => this.readEntryContentAsync(entry))
-      );
+        while (queue.length > 0) {
+            let entry = queue.shift();
+            if (entry?.isFile) {
+                fileEntries.push(entry);
+            } else if (entry?.isDirectory) {
+                let reader: any = (entry as any).createReader();
+                queue.push(...(await this.readAllDirectoryEntries(reader)));
+            }
+        }
+
+        return Promise.all(
+            fileEntries.map((entry) => this.readEntryContentAsync(entry))
+        );
     }
 
     private onOpenHandler() {
         const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
         const url = `${this.transportEndpoint}/ipfs/${currentCid}/${this.currentFile}` // `${this.transportEndpoint}/${this.currentPath}`;
         if (this.onOpen) this.onOpen(url);
-      }
-    
-      private onCancelHandler() {
+    }
+
+    private onCancelHandler() {
         if (this.onCancel) this.onCancel();
-      }
+    }
     
-    
+    private renderUploadModal() {
+        if (!this.uploadModal) {
+            this.uploadModal = new ScomIPFSUploadModal();
+            this.uploadModal.onUploaded = () => this.onFilesUploaded();
+            this.uploadModal.onBrowseFile = () => {
+                this.pnlStorage.visible = true;
+                this.uploadModal.visible = false;
+            }
+        }
+        this.pnlStorage.before(this.uploadModal);
+        this.uploadModal.isBrowseButtonShown = true;
+    }
+
     init() {
-        const transportEndpoint = this.getAttribute('transportEndpoint', true) || this._data?.transportEndpoint ||window.location.origin;
+        const transportEndpoint = this.getAttribute('transportEndpoint', true) || this._data?.transportEndpoint || window.location.origin;
         const signer = this.getAttribute('signer', true) || this._data?.signer || null;
         this._signer = signer;
         this.baseUrl = this.getAttribute('baseUrl', true);
         super.init();
         this.isModal = this.getAttribute('isModal', true) || this._data.isModal || false;
+        this.isUploadModal = this.getAttribute('isUploadModal', true) || this._data.isUploadModal || false;
+        if (this.isUploadModal) {
+            this.renderUploadModal();
+        }
         this.onOpen = this.getAttribute('onOpen', true) || this.onOpen;
         this.onCancel = this.getAttribute('onCancel', true) || this.onCancel;
         this.onPreview = this.getAttribute('onPreview', true) || this.onPreview;
@@ -1197,7 +1241,7 @@ export class ScomStorage extends Module {
             endpoint: transportEndpoint,
             signer: signer
         });
-        if (transportEndpoint) this.setData({ transportEndpoint, signer, isModal: this.isModal });
+        if (transportEndpoint) this.setData({ transportEndpoint, signer, isModal: this.isModal, isUploadModal: this.isUploadModal });
         this.handleOnDragEnter = this.handleOnDragEnter.bind(this);
         this.handleOnDragOver = this.handleOnDragOver.bind(this);
         this.handleOnDragLeave = this.handleOnDragLeave.bind(this);
@@ -1219,7 +1263,7 @@ export class ScomStorage extends Module {
                     id="pnlStorage"
                     height={'100%'} width={'100%'}
                     stack={{ grow: '1' }}
-                    overflow={{y: 'auto'}}
+                    overflow={{ y: 'auto' }}
                 >
                     <i-vstack id="pnlLoading" visible={false} />
                     <i-scom-ipfs--mobile-home
@@ -1272,7 +1316,7 @@ export class ScomStorage extends Module {
                                     resizer={true} dock="left"
                                     height={'100%'} overflow={{ y: 'auto', x: 'hidden' }}
                                     minWidth={'10rem'} width={'15rem'}
-                                    border={{right: {width: '1px', style: 'solid', color: Theme.divider}}}
+                                    border={{ right: { width: '1px', style: 'solid', color: Theme.divider } }}
                                 >
                                     <i-tree-view
                                         id="uploadedFileTree"
@@ -1374,7 +1418,7 @@ export class ScomStorage extends Module {
                                 ></i-vstack>
                                 <i-panel
                                     id="pnlPreview"
-                                    border={{left: {width: '1px', style: 'solid', color: Theme.divider}}}
+                                    border={{ left: { width: '1px', style: 'solid', color: Theme.divider } }}
                                     width={'20rem'}
                                     dock='right'
                                     visible={false}
@@ -1386,7 +1430,7 @@ export class ScomStorage extends Module {
                                         display='block'
                                         onClose={this.closePreview.bind(this)}
                                         onOpenEditor={this.openEditor.bind(this)}
-                                        onCloseEditor={ this.closeEditor.bind(this)}
+                                        onCloseEditor={this.closeEditor.bind(this)}
                                         onFileChanged={this.onSubmit.bind(this)}
                                     />
                                 </i-panel>
@@ -1419,30 +1463,30 @@ export class ScomStorage extends Module {
                     id="pnlFooter"
                     horizontalAlignment='end'
                     gap="0.75rem"
-                    stack={{shrink: '0'}}
-                    padding={{top: '1rem', bottom: '1rem'}}
+                    stack={{ shrink: '0' }}
+                    padding={{ top: '1rem', bottom: '1rem' }}
                     visible={false}
                 >
-                <i-button
-                    id="btnSubmit"
-                    height={'2.25rem'}
-                    padding={{ left: '1rem', right: '1rem' }}
-                    background={{ color: Theme.colors.primary.main }}
-                    font={{ color: Theme.colors.primary.contrastText, bold: true, size: '1rem' }}
-                    border={{ radius: '0.25rem' }}
-                    caption="Select"
-                    onClick={this.onOpenHandler}
-                ></i-button>
-                <i-button
-                    id="btnCancel"
-                    height={'2.25rem'}
-                    padding={{ left: '1rem', right: '1rem' }}
-                    background={{ color: 'transparent' }}
-                    font={{ color: Theme.text.primary, bold: true, size: '1rem' }}
-                    border={{ radius: '0.25rem' }}
-                    caption="Cancel"
-                    onClick={this.onCancelHandler}
-                ></i-button>
+                    <i-button
+                        id="btnSubmit"
+                        height={'2.25rem'}
+                        padding={{ left: '1rem', right: '1rem' }}
+                        background={{ color: Theme.colors.primary.main }}
+                        font={{ color: Theme.colors.primary.contrastText, bold: true, size: '1rem' }}
+                        border={{ radius: '0.25rem' }}
+                        caption="Select"
+                        onClick={this.onOpenHandler}
+                    ></i-button>
+                    <i-button
+                        id="btnCancel"
+                        height={'2.25rem'}
+                        padding={{ left: '1rem', right: '1rem' }}
+                        background={{ color: 'transparent' }}
+                        font={{ color: Theme.text.primary, bold: true, size: '1rem' }}
+                        border={{ radius: '0.25rem' }}
+                        caption="Cancel"
+                        onClick={this.onCancelHandler}
+                    ></i-button>
                 </i-hstack>
             </i-vstack>
         )

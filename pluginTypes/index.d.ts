@@ -20,6 +20,7 @@ declare module "@scom/scom-storage/interface.ts" {
         transportEndpoint?: string;
         signer?: IPFS.ISigner;
         isModal?: boolean;
+        isUploadModal?: boolean;
         cid?: string;
     }
     export interface IPreview extends IIPFSData {
@@ -228,6 +229,7 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         rootCid?: string;
         parentDir?: Partial<ICidInfo>;
         onUploaded?: UploadedCallback;
+        onBrowseFile?: () => void;
     }
     global {
         namespace JSX {
@@ -252,6 +254,7 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         private fileUploader;
         private imgFile;
         private lblDrag;
+        private pnlBrowse;
         private pnlStatusFilter;
         private pnlFilterBar;
         private pnlFilterActions;
@@ -262,6 +265,7 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         private _rootCid;
         private _parentDir;
         onUploaded: UploadedCallback;
+        onBrowseFile: () => void;
         private isForcedCancelled;
         private currentRequest;
         private currentPage;
@@ -270,6 +274,7 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         private fileListData;
         private _manager;
         private folderPath;
+        private _isBrowseButtonShown;
         constructor(parent?: Container, options?: any);
         get rootCid(): string;
         set rootCid(value: string);
@@ -277,7 +282,9 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         set parentDir(value: Partial<ICidInfo>);
         get manager(): any;
         set manager(value: any);
-        show(path: string, files?: File[]): void;
+        get isBrowseButtonShown(): boolean;
+        set isBrowseButtonShown(value: boolean);
+        show(path?: string, files?: File[]): void;
         refresh(): void;
         private onBeforeDrop;
         private onBeforeUpload;
@@ -300,6 +307,7 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         private onRemoveFile;
         private getDirItems;
         private onUpload;
+        private browseFile;
         reset(): void;
         private toggle;
         init(): Promise<void>;
@@ -544,6 +552,7 @@ declare module "@scom/scom-storage" {
         signer?: IPFS.ISigner;
         baseUrl?: string;
         isModal?: boolean;
+        isUploadModal?: boolean;
         isFileShown?: boolean;
         onOpen?: selectFileCallback;
         onCancel?: cancelCallback;
@@ -558,6 +567,7 @@ declare module "@scom/scom-storage" {
         }
     }
     export class ScomStorage extends Module {
+        private pnlStorage;
         private pnlPath;
         private uploadedFileTree;
         private mobileHome;
@@ -596,6 +606,7 @@ declare module "@scom/scom-storage" {
         private _readOnly;
         private isInitializing;
         private _isModal;
+        private _isUploadModal;
         private _isFileShown;
         private currentFile;
         private _signer;
@@ -611,6 +622,8 @@ declare module "@scom/scom-storage" {
         private set readOnly(value);
         get isModal(): boolean;
         set isModal(value: boolean);
+        get isUploadModal(): boolean;
+        set isUploadModal(value: boolean);
         get transportEndpoint(): string;
         set transportEndpoint(value: string);
         get signer(): IPFS.ISigner;
@@ -699,6 +712,7 @@ declare module "@scom/scom-storage" {
         private getAllFileEntries;
         private onOpenHandler;
         private onCancelHandler;
+        private renderUploadModal;
         init(): void;
         render(): any;
     }
