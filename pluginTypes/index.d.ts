@@ -306,6 +306,8 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         private onRemove;
         private onRemoveFile;
         private getDirItems;
+        private getNewName;
+        private isFileExists;
         private onUpload;
         private browseFile;
         reset(): void;

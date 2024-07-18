@@ -1144,6 +1144,43 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             }
             return result;
         }
+        async getNewName(parentNode, fileName) {
+            const arr = fileName.split('.');
+            let newName = arr.slice(0, -1).join('.');
+            let ext = arr[arr.length - 1];
+            while (await parentNode.findItem(`${newName}.${ext}`)) {
+                const regex = /\((\d+)\)$/;
+                const matches = newName.match(regex);
+                if (matches) {
+                    const lastNumber = parseInt(matches[1]);
+                    const updatedString = newName.replace(/\((\d+)\)$/, '');
+                    newName = `${updatedString}(${lastNumber + 1})`;
+                }
+                else {
+                    newName = `${newName}(1)`;
+                }
+            }
+            return `${newName}.${ext}`;
+        }
+        async isFileExists(filePath) {
+            let newFilePath;
+            const arr = filePath.split('/');
+            const parentPath = arr.slice(0, -1).join('/');
+            const fileName = arr.slice(-1)[0];
+            let fileNode;
+            if (parentPath) {
+                fileNode = await this.manager.getFileNode(parentPath);
+            }
+            else {
+                fileNode = await this.manager.getRootNode();
+            }
+            const node = await fileNode.findItem(fileName);
+            if (node) {
+                let newName = await this.getNewName(fileNode, fileName);
+                newFilePath = `${parentPath}/${newName}`;
+            }
+            return { isExists: !!node, newFilePath };
+        }
         async onUpload() {
             return new Promise(async (resolve, reject) => {
                 if (!this.fileListData.length || !this.manager)
@@ -1154,7 +1191,11 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                 try {
                     for (let i = 0; i < this.fileListData.length; i++) {
                         const file = this.fileListData[i];
-                        const filePath = this.folderPath ? `${this.folderPath}${file.file.path}` : file.file.path;
+                        let filePath = this.folderPath ? `${this.folderPath}${file.file.path}` : file.file.path;
+                        const { isExists, newFilePath } = await this.isFileExists(filePath);
+                        if (isExists) {
+                            filePath = newFilePath;
+                        }
                         await this.manager.addFile(filePath, file.file);
                     }
                     await this.manager.applyUpdates();
