@@ -2459,8 +2459,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         async initContent() {
             this.pnlFooter.visible = this.isModal;
             this.pnlStorage.visible = !this.isUploadModal;
-            if (this.uploadModal)
-                this.uploadModal.visible = this.isUploadModal || false;
+            if (this.pnlUpload)
+                this.pnlUpload.visible = this.isUploadModal || false;
             if (!this.manager || this.isInitializing)
                 return;
             this.isInitializing = true;
@@ -2679,8 +2679,9 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 return;
             if (this.isUploadModal) {
                 this.pnlStorage.visible = false;
+                this.pnlFooter.visible = false;
                 this.uploadModal.reset();
-                this.uploadModal.visible = true;
+                this.pnlUpload.visible = true;
                 return;
             }
             if (!this.uploadModal) {
@@ -3160,10 +3161,11 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.uploadModal.onUploaded = () => this.onFilesUploaded();
                 this.uploadModal.onBrowseFile = () => {
                     this.pnlStorage.visible = true;
-                    this.uploadModal.visible = false;
+                    this.pnlUpload.visible = false;
+                    this.pnlFooter.visible = true;
                 };
             }
-            this.pnlStorage.before(this.uploadModal);
+            this.pnlUpload.appendChild(this.uploadModal);
             this.uploadModal.isBrowseButtonShown = true;
         }
         init() {
@@ -3202,6 +3204,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         render() {
             return (this.$render("i-vstack", { width: '100%', height: '100%', overflow: 'hidden' },
+                this.$render("i-panel", { id: "pnlUpload", visible: false }),
                 this.$render("i-panel", { id: "pnlStorage", height: '100%', width: '100%', stack: { grow: '1' }, overflow: { y: 'auto' } },
                     this.$render("i-vstack", { id: "pnlLoading", visible: false }),
                     this.$render("i-scom-ipfs--mobile-home", { id: "mobileHome", width: '100%', minHeight: '100vh', display: 'block', background: { color: Theme.background.main }, onPreview: this.previewFile.bind(this), transportEndpoint: this.transportEndpoint, signer: this.signer, visible: false, mediaQueries: [

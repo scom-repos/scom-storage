@@ -567,6 +567,7 @@ declare module "@scom/scom-storage" {
         }
     }
     export class ScomStorage extends Module {
+        private pnlUpload;
         private pnlStorage;
         private pnlPath;
         private uploadedFileTree;

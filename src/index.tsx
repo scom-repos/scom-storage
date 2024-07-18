@@ -64,6 +64,7 @@ declare global {
 
 @customElements('i-scom-storage')
 export class ScomStorage extends Module {
+    private pnlUpload: Panel;
     private pnlStorage: Panel;
     private pnlPath: ScomIPFSPath;
     private uploadedFileTree: TreeView;
@@ -498,7 +499,7 @@ export class ScomStorage extends Module {
     private async initContent() {
         this.pnlFooter.visible = this.isModal;
         this.pnlStorage.visible = !this.isUploadModal;
-        if (this.uploadModal) this.uploadModal.visible = this.isUploadModal || false;
+        if (this.pnlUpload) this.pnlUpload.visible = this.isUploadModal || false;
         if (!this.manager || this.isInitializing) return;
         this.isInitializing = true;
         const { cid, path } = this.extractUrl();
@@ -719,8 +720,9 @@ export class ScomStorage extends Module {
         if (this.readOnly) return;
         if (this.isUploadModal) {
             this.pnlStorage.visible = false;
+            this.pnlFooter.visible = false;
             this.uploadModal.reset();
-            this.uploadModal.visible = true;
+            this.pnlUpload.visible = true;
             return;
         }
         if (!this.uploadModal) {
@@ -1212,10 +1214,11 @@ export class ScomStorage extends Module {
             this.uploadModal.onUploaded = () => this.onFilesUploaded();
             this.uploadModal.onBrowseFile = () => {
                 this.pnlStorage.visible = true;
-                this.uploadModal.visible = false;
+                this.pnlUpload.visible = false;
+                this.pnlFooter.visible = true;
             }
         }
-        this.pnlStorage.before(this.uploadModal);
+        this.pnlUpload.appendChild(this.uploadModal);
         this.uploadModal.isBrowseButtonShown = true;
     }
 
@@ -1259,6 +1262,7 @@ export class ScomStorage extends Module {
                 width={'100%'} height={'100%'}
                 overflow={'hidden'}
             >
+                <i-panel id="pnlUpload" visible={false}></i-panel>
                 <i-panel
                     id="pnlStorage"
                     height={'100%'} width={'100%'}
