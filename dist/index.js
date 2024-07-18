@@ -2174,7 +2174,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         ;
         set readOnly(value) {
             this._readOnly = value;
-            this.btnUpload.visible = this.btnUpload.enabled = !value;
+            this.btnUpload.visible = this.btnUpload.enabled = this.isUploadModal ? false : !value;
             if (this.ieSidebar) {
                 this.ieSidebar.minWidth = this.readOnly ? '15rem' : '10rem';
             }
@@ -2459,6 +2459,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         async initContent() {
             this.pnlFooter.visible = this.isModal;
             this.pnlStorage.visible = !this.isUploadModal;
+            this.iconBack.visible = false;
             if (this.pnlUpload)
                 this.pnlUpload.visible = this.isUploadModal || false;
             if (!this.manager || this.isInitializing)
@@ -2474,7 +2475,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 else {
                     this.uploadModal.manager = this.manager;
                 }
-                this.uploadModal.show(this.isAssetRootNode ? '/_assets' : '');
+                this.uploadModal.show(this.isAssetRootNode ? `/_assets/uploads_${(0, components_12.moment)(new Date()).format('YYYYMMDD')}` : '');
             }
             this.rootCid = this.currentCid = rootNode?.cid;
             this.readOnly = !this.rootCid || (!this.isModal && !this.isUploadModal && (cid && cid !== this.rootCid));
@@ -2675,15 +2676,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.onOpenUploadModal();
         }
         onOpenUploadModal(path, files) {
-            if (this.readOnly)
+            if (this.readOnly || this.isUploadModal)
                 return;
-            if (this.isUploadModal) {
-                this.pnlStorage.visible = false;
-                this.pnlFooter.visible = false;
-                this.uploadModal.reset();
-                this.pnlUpload.visible = true;
-                return;
-            }
             if (!this.uploadModal) {
                 this.uploadModal = new index_1.ScomIPFSUploadModal();
                 this.uploadModal.onUploaded = () => this.onFilesUploaded();
@@ -2999,7 +2993,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.pnlPreview.visible = false;
             this.pnlPreview.width = '20rem';
             this.pnlPreview.left = 'auto';
-            this.btnUpload.visible = true;
+            this.btnUpload.visible = !this.isUploadModal;
         }
         async onSubmit(filePath, content) {
             if (filePath && content) {
@@ -3163,10 +3157,20 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     this.pnlStorage.visible = true;
                     this.pnlUpload.visible = false;
                     this.pnlFooter.visible = true;
+                    this.iconBack.visible = true;
                 };
             }
             this.pnlUpload.appendChild(this.uploadModal);
             this.uploadModal.isBrowseButtonShown = true;
+        }
+        handleBack() {
+            if (!this.isUploadModal)
+                return;
+            this.pnlStorage.visible = false;
+            this.pnlFooter.visible = false;
+            this.uploadModal.reset();
+            this.pnlUpload.visible = true;
+            this.iconBack.visible = false;
         }
         init() {
             const transportEndpoint = this.getAttribute('transportEndpoint', true) || this._data?.transportEndpoint || window.location.origin;
@@ -3204,6 +3208,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         render() {
             return (this.$render("i-vstack", { width: '100%', height: '100%', overflow: 'hidden' },
+                this.$render("i-icon", { id: "iconBack", width: "1rem", height: "1rem", position: "absolute", name: "arrow-left", top: 10, zIndex: 1, cursor: "pointer", visible: false, onClick: this.handleBack }),
                 this.$render("i-panel", { id: "pnlUpload", visible: false }),
                 this.$render("i-panel", { id: "pnlStorage", height: '100%', width: '100%', stack: { grow: '1' }, overflow: { y: 'auto' } },
                     this.$render("i-vstack", { id: "pnlLoading", visible: false }),

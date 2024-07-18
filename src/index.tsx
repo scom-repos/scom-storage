@@ -17,7 +17,9 @@ import {
     Modal,
     VStack,
     Container,
-    CodeEditor
+    CodeEditor,
+    moment,
+    Icon
 } from '@ijstech/components';
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
@@ -64,6 +66,7 @@ declare global {
 
 @customElements('i-scom-storage')
 export class ScomStorage extends Module {
+    private iconBack: Icon;
     private pnlUpload: Panel;
     private pnlStorage: Panel;
     private pnlPath: ScomIPFSPath;
@@ -203,7 +206,7 @@ export class ScomStorage extends Module {
     };
     private set readOnly(value: boolean) {
         this._readOnly = value;
-        this.btnUpload.visible = this.btnUpload.enabled = !value;
+        this.btnUpload.visible = this.btnUpload.enabled = this.isUploadModal ? false : !value;
         if (this.ieSidebar) {
             this.ieSidebar.minWidth = this.readOnly ? '15rem' : '10rem';
         }
@@ -499,6 +502,7 @@ export class ScomStorage extends Module {
     private async initContent() {
         this.pnlFooter.visible = this.isModal;
         this.pnlStorage.visible = !this.isUploadModal;
+        this.iconBack.visible = false;
         if (this.pnlUpload) this.pnlUpload.visible = this.isUploadModal || false;
         if (!this.manager || this.isInitializing) return;
         this.isInitializing = true;
@@ -511,7 +515,7 @@ export class ScomStorage extends Module {
             } else {
                 this.uploadModal.manager = this.manager;
             }
-            this.uploadModal.show(this.isAssetRootNode ? '/_assets' : '');
+            this.uploadModal.show(this.isAssetRootNode ? `/_assets/uploads_${ moment(new Date()).format('YYYYMMDD')}` : '');
         }
         this.rootCid = this.currentCid = rootNode?.cid;
         this.readOnly = !this.rootCid || (!this.isModal && !this.isUploadModal && (cid && cid !== this.rootCid));
@@ -717,14 +721,7 @@ export class ScomStorage extends Module {
     }
 
     private onOpenUploadModal(path?: string, files?: File[]) {
-        if (this.readOnly) return;
-        if (this.isUploadModal) {
-            this.pnlStorage.visible = false;
-            this.pnlFooter.visible = false;
-            this.uploadModal.reset();
-            this.pnlUpload.visible = true;
-            return;
-        }
+        if (this.readOnly || this.isUploadModal) return;
         if (!this.uploadModal) {
             this.uploadModal = new ScomIPFSUploadModal();
             this.uploadModal.onUploaded = () => this.onFilesUploaded();
@@ -1042,7 +1039,7 @@ export class ScomStorage extends Module {
         this.pnlPreview.visible = false;
         this.pnlPreview.width = '20rem';
         this.pnlPreview.left = 'auto';
-        this.btnUpload.visible = true;
+        this.btnUpload.visible = !this.isUploadModal;
     }
 
     private async onSubmit(filePath?: string, content?: string) {
@@ -1216,10 +1213,20 @@ export class ScomStorage extends Module {
                 this.pnlStorage.visible = true;
                 this.pnlUpload.visible = false;
                 this.pnlFooter.visible = true;
+                this.iconBack.visible = true;
             }
         }
         this.pnlUpload.appendChild(this.uploadModal);
         this.uploadModal.isBrowseButtonShown = true;
+    }
+
+    private handleBack() {
+        if (!this.isUploadModal) return;
+        this.pnlStorage.visible = false;
+        this.pnlFooter.visible = false;
+        this.uploadModal.reset();
+        this.pnlUpload.visible = true;
+        this.iconBack.visible = false;
     }
 
     init() {
@@ -1262,6 +1269,18 @@ export class ScomStorage extends Module {
                 width={'100%'} height={'100%'}
                 overflow={'hidden'}
             >
+                <i-icon
+                    id="iconBack"
+                    width="1rem"
+                    height="1rem"
+                    position="absolute"
+                    name="arrow-left"
+                    top={10}
+                    zIndex={1}
+                    cursor="pointer"
+                    visible={false}
+                    onClick={this.handleBack}
+                ></i-icon>
                 <i-panel id="pnlUpload" visible={false}></i-panel>
                 <i-panel
                     id="pnlStorage"

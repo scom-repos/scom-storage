@@ -567,6 +567,7 @@ declare module "@scom/scom-storage" {
         }
     }
     export class ScomStorage extends Module {
+        private iconBack;
         private pnlUpload;
         private pnlStorage;
         private pnlPath;
@@ -714,6 +715,7 @@ declare module "@scom/scom-storage" {
         private onOpenHandler;
         private onCancelHandler;
         private renderUploadModal;
+        private handleBack;
         init(): void;
         render(): any;
     }
