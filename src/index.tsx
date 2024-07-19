@@ -715,6 +715,7 @@ export class ScomStorage extends Module {
             this.rootCid = this.currentCid = ipfsData.cid;
             this.renderUI(ipfsData, path);
             this.updateUrlPath(path);
+            this.currentFile = null;
         }
     }
 
@@ -1206,6 +1207,7 @@ export class ScomStorage extends Module {
     }
 
     private onCancelHandler() {
+        this.currentFile = null;
         if (this.onCancel) this.onCancel();
     }
     

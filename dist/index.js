@@ -2712,6 +2712,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.rootCid = this.currentCid = ipfsData.cid;
                 this.renderUI(ipfsData, path);
                 this.updateUrlPath(path);
+                this.currentFile = null;
             }
         }
         handleUploadButtonClick() {
@@ -3191,6 +3192,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.onOpen(url);
         }
         onCancelHandler() {
+            this.currentFile = null;
             if (this.onCancel)
                 this.onCancel();
         }
