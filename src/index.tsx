@@ -84,6 +84,7 @@ export class ScomStorage extends Module {
     private loadingSpinner: LoadingSpinner;
     private pnlFooter: Panel;
     private pnlCustom: Panel;
+    private btnBack: Button;
 
     private fileEditors: Map<string | RegExp, IFileHandler> = new Map();
     private currentEditor: IFileHandler | null = null;
@@ -501,6 +502,7 @@ export class ScomStorage extends Module {
 
     private async initContent() {
         this.pnlFooter.visible = this.isModal;
+        this.btnBack.visible = this.isUploadModal || false;
         this.pnlStorage.visible = !this.isUploadModal;
         this.iconBack.visible = false;
         if (this.pnlUpload) this.pnlUpload.visible = this.isUploadModal || false;
@@ -1197,7 +1199,9 @@ export class ScomStorage extends Module {
 
     private onOpenHandler() {
         const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
+        if (!currentCid || !this.currentFile) return;
         const url = `${this.transportEndpoint}/ipfs/${currentCid}/${this.currentFile}` // `${this.transportEndpoint}/${this.currentPath}`;
+        this.currentFile = null;
         if (this.onOpen) this.onOpen(url);
     }
 
@@ -1501,11 +1505,22 @@ export class ScomStorage extends Module {
                         onClick={this.onOpenHandler}
                     ></i-button>
                     <i-button
+                        id="btnBack"
+                        height={'2.25rem'}
+                        padding={{ left: '1rem', right: '1rem' }}
+                        background={{ color: 'transparent' }}
+                        font={{ color: Theme.colors.primary.main, bold: true, size: '1rem' }}
+                        border={{ width: 1, style: 'solid', color: Theme.colors.primary.main, radius: '0.25rem' }}
+                        caption="Back to Upload"
+                        visible={false}
+                        onClick={this.handleBack}
+                    ></i-button>
+                    <i-button
                         id="btnCancel"
                         height={'2.25rem'}
                         padding={{ left: '1rem', right: '1rem' }}
                         background={{ color: 'transparent' }}
-                        font={{ color: Theme.text.primary, bold: true, size: '1rem' }}
+                        font={{ color: Theme.colors.primary.main, bold: true, size: '1rem' }}
                         border={{ radius: '0.25rem' }}
                         caption="Cancel"
                         onClick={this.onCancelHandler}

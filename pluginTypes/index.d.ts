@@ -587,6 +587,7 @@ declare module "@scom/scom-storage" {
         private loadingSpinner;
         private pnlFooter;
         private pnlCustom;
+        private btnBack;
         private fileEditors;
         private currentEditor;
         private static instance;

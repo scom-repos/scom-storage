@@ -2499,6 +2499,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         async initContent() {
             this.pnlFooter.visible = this.isModal;
+            this.btnBack.visible = this.isUploadModal || false;
             this.pnlStorage.visible = !this.isUploadModal;
             this.iconBack.visible = false;
             if (this.pnlUpload)
@@ -3182,7 +3183,10 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         onOpenHandler() {
             const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
+            if (!currentCid || !this.currentFile)
+                return;
             const url = `${this.transportEndpoint}/ipfs/${currentCid}/${this.currentFile}`; // `${this.transportEndpoint}/${this.currentPath}`;
+            this.currentFile = null;
             if (this.onOpen)
                 this.onOpen(url);
         }
@@ -3322,7 +3326,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                         ] })),
                 this.$render("i-hstack", { id: "pnlFooter", horizontalAlignment: 'end', gap: "0.75rem", stack: { shrink: '0' }, padding: { top: '1rem', bottom: '1rem' }, visible: false },
                     this.$render("i-button", { id: "btnSubmit", height: '2.25rem', padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true, size: '1rem' }, border: { radius: '0.25rem' }, caption: "Select", onClick: this.onOpenHandler }),
-                    this.$render("i-button", { id: "btnCancel", height: '2.25rem', padding: { left: '1rem', right: '1rem' }, background: { color: 'transparent' }, font: { color: Theme.text.primary, bold: true, size: '1rem' }, border: { radius: '0.25rem' }, caption: "Cancel", onClick: this.onCancelHandler }))));
+                    this.$render("i-button", { id: "btnBack", height: '2.25rem', padding: { left: '1rem', right: '1rem' }, background: { color: 'transparent' }, font: { color: Theme.colors.primary.main, bold: true, size: '1rem' }, border: { width: 1, style: 'solid', color: Theme.colors.primary.main, radius: '0.25rem' }, caption: "Back to Upload", visible: false, onClick: this.handleBack }),
+                    this.$render("i-button", { id: "btnCancel", height: '2.25rem', padding: { left: '1rem', right: '1rem' }, background: { color: 'transparent' }, font: { color: Theme.colors.primary.main, bold: true, size: '1rem' }, border: { radius: '0.25rem' }, caption: "Cancel", onClick: this.onCancelHandler }))));
         }
     };
     ScomStorage = ScomStorage_1 = __decorate([
