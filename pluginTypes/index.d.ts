@@ -224,9 +224,10 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         size: number;
         type?: 'dir' | 'file';
     }
-    type UploadedCallback = (target: ScomIPFSUploadModal, rootCid: string) => void;
+    type UploadedCallback = (target: ScomIPFSUploadModal, rootCid: string, filePaths: string[]) => void;
     interface ScomIPFSUploadModalElement extends ControlElement {
         rootCid?: string;
+        mulitiple?: boolean;
         parentDir?: Partial<ICidInfo>;
         onUploaded?: UploadedCallback;
         onBrowseFile?: () => void;
@@ -251,6 +252,7 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         data?: IIPFSItem;
     }
     export class ScomIPFSUploadModal extends Module {
+        private lblTitle;
         private fileUploader;
         private imgFile;
         private lblDrag;
@@ -275,6 +277,7 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         private _manager;
         private folderPath;
         private _isBrowseButtonShown;
+        private _mulitiple;
         constructor(parent?: Container, options?: any);
         get rootCid(): string;
         set rootCid(value: string);
@@ -284,6 +287,9 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         set manager(value: any);
         get isBrowseButtonShown(): boolean;
         set isBrowseButtonShown(value: boolean);
+        get mulitiple(): boolean;
+        set mulitiple(value: boolean);
+        private updateUI;
         show(path?: string, files?: File[]): void;
         refresh(): void;
         private onBeforeDrop;
@@ -555,11 +561,13 @@ declare module "@scom/scom-storage" {
         baseUrl?: string;
         isModal?: boolean;
         isUploadModal?: boolean;
+        uploadMultiple?: boolean;
         isFileShown?: boolean;
         onOpen?: selectFileCallback;
         onCancel?: cancelCallback;
         onPreview?: () => void;
         onClosePreview?: () => void;
+        onUploadedFile?: selectFileCallback;
     }
     global {
         namespace JSX {
@@ -612,6 +620,7 @@ declare module "@scom/scom-storage" {
         private isInitializing;
         private _isModal;
         private _isUploadModal;
+        private isUploadMultiple;
         private _isFileShown;
         private currentFile;
         private _signer;
@@ -620,6 +629,7 @@ declare module "@scom/scom-storage" {
         onCancel: cancelCallback;
         onPreview: () => void;
         onClosePreview: () => void;
+        onUploadedFile: selectFileCallback;
         constructor(parent?: Container, options?: any);
         get baseUrl(): string;
         set baseUrl(url: string);
@@ -629,6 +639,8 @@ declare module "@scom/scom-storage" {
         set isModal(value: boolean);
         get isUploadModal(): boolean;
         set isUploadModal(value: boolean);
+        get uploadMultiple(): boolean;
+        set uploadMultiple(value: boolean);
         get transportEndpoint(): string;
         set transportEndpoint(value: string);
         get signer(): IPFS.ISigner;

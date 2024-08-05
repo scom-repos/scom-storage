@@ -40,11 +40,13 @@ interface ScomStorageElement extends ControlElement {
     baseUrl?: string;
     isModal?: boolean;
     isUploadModal?: boolean;
+    uploadMultiple?: boolean;
     isFileShown?: boolean;
     onOpen?: selectFileCallback;
     onCancel?: cancelCallback;
     onPreview?: () => void;
     onClosePreview?: () => void;
+    onUploadedFile?: selectFileCallback;
 }
 
 interface UploadRawFile extends File {
@@ -178,6 +180,7 @@ export class ScomStorage extends Module {
     private isInitializing = false;
     private _isModal: boolean = false;
     private _isUploadModal: boolean = false;
+    private isUploadMultiple: boolean = true;
     private _isFileShown: boolean = false;
     private currentFile: string;
     private _signer: IPFS.ISigner;
@@ -187,6 +190,7 @@ export class ScomStorage extends Module {
     onCancel: cancelCallback;
     onPreview: () => void;
     onClosePreview: () => void;
+    onUploadedFile: selectFileCallback;
 
     constructor(parent?: Container, options?: any) {
         super(parent, options);
@@ -226,6 +230,14 @@ export class ScomStorage extends Module {
     set isUploadModal(value: boolean) {
         this._isUploadModal = value;
         if (this.pnlStorage) this.pnlStorage.visible = false;
+    }
+
+    get uploadMultiple(): boolean {
+        return this.isUploadMultiple;
+    }
+    set uploadMultiple(value: boolean) {
+        this.isUploadMultiple = value;
+        if (this.uploadModal) this.uploadModal.mulitiple = value;
     }
 
     get transportEndpoint() {
@@ -760,6 +772,7 @@ export class ScomStorage extends Module {
             this.uploadModal.manager = this.manager;
         }
         this.uploadModal.show(path, files);
+        this.uploadModal.mulitiple = this.uploadMultiple;
         modal.refresh();
     }
 
@@ -1201,7 +1214,7 @@ export class ScomStorage extends Module {
     private onOpenHandler() {
         const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
         if (!currentCid || !this.currentFile) return;
-        const url = `${this.transportEndpoint}/ipfs/${currentCid}/${this.currentFile}` // `${this.transportEndpoint}/${this.currentPath}`;
+        const url = `${this.transportEndpoint}/ipfs/${currentCid}/${this.currentFile}`;
         this.currentFile = null;
         if (this.onOpen) this.onOpen(url);
     }
@@ -1214,7 +1227,23 @@ export class ScomStorage extends Module {
     private renderUploadModal() {
         if (!this.uploadModal) {
             this.uploadModal = new ScomIPFSUploadModal();
-            this.uploadModal.onUploaded = () => this.onFilesUploaded();
+            this.uploadModal.onUploaded = async (target: ScomIPFSUploadModal, rootCid: string, filePaths: string[]) => {
+                this.onFilesUploaded();
+                if (!this.uploadMultiple && filePaths.length && this.onUploadedFile) {
+                    let parentCid;
+                    const arr = filePaths[0].split('/');
+                    const parentPath = arr.slice(0, -1).join('/');
+                    const fileName = arr.slice(-1)[0];
+                    if (parentPath) {
+                        let fileNode = await this.manager.getFileNode(parentPath);
+                        parentCid = fileNode.cid
+                    } else {
+                        parentCid = rootCid;
+                    }
+                    const url = `${this.transportEndpoint}/ipfs/${parentCid}/${fileName}`;
+                    this.onUploadedFile(url);
+                }
+            }
             this.uploadModal.onBrowseFile = () => {
                 this.pnlStorage.visible = true;
                 this.pnlUpload.visible = false;
@@ -1223,6 +1252,7 @@ export class ScomStorage extends Module {
             }
         }
         this.pnlUpload.appendChild(this.uploadModal);
+        this.uploadModal.mulitiple = this.uploadMultiple;
         this.uploadModal.isBrowseButtonShown = true;
     }
 
@@ -1250,6 +1280,7 @@ export class ScomStorage extends Module {
         this.onCancel = this.getAttribute('onCancel', true) || this.onCancel;
         this.onPreview = this.getAttribute('onPreview', true) || this.onPreview;
         this.onClosePreview = this.getAttribute('onClosePreview', true) || this.onClosePreview;
+        this.onUploadedFile = this.getAttribute('onUploadedFile', true) || this.onUploadedFile;
         this.isFileShown = this.getAttribute('isFileShown', true);
         this.classList.add(customStyles);
         this.setTag(defaultColors);

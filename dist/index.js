@@ -843,6 +843,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             this.files = [];
             this.fileListData = [];
             this._isBrowseButtonShown = false;
+            this._mulitiple = true;
         }
         get rootCid() {
             return this._rootCid;
@@ -871,6 +872,19 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             this._isBrowseButtonShown = value;
             if (this.pnlBrowse)
                 this.pnlBrowse.visible = value;
+        }
+        get mulitiple() {
+            return this._mulitiple;
+        }
+        set mulitiple(value) {
+            this._mulitiple = value;
+            this.updateUI();
+        }
+        updateUI() {
+            this.lblTitle.caption = this.mulitiple ? "Upload more files" : "Upload file";
+            this.fileUploader.multiple = this.mulitiple;
+            this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : "Confirm";
+            this.pnlPagination.visible = this.mulitiple;
         }
         show(path, files) {
             this.folderPath = path;
@@ -1185,10 +1199,11 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             return new Promise(async (resolve, reject) => {
                 if (!this.fileListData.length || !this.manager)
                     reject();
-                this.btnUpload.caption = 'Uploading files to IPFS...';
+                this.btnUpload.caption = 'Uploading file(s) to IPFS...';
                 this.btnUpload.enabled = false;
                 this.isForcedCancelled = false;
                 try {
+                    let filePaths = [];
                     for (let i = 0; i < this.fileListData.length; i++) {
                         const file = this.fileListData[i];
                         let filePath = this.folderPath ? `${this.folderPath}${file.file.path}` : file.file.path;
@@ -1196,6 +1211,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                         if (isExists) {
                             filePath = newFilePath;
                         }
+                        filePaths.push(filePath);
                         await this.manager.addFile(filePath, file.file);
                     }
                     await this.manager.applyUpdates();
@@ -1206,11 +1222,11 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                     }
                     let rootNode = await this.manager.getRootNode();
                     if (this.onUploaded)
-                        this.onUploaded(this, rootNode.cid);
+                        this.onUploaded(this, rootNode.cid, filePaths);
                     this.renderFilterBar();
                     this.renderFileList();
                     this.renderPagination();
-                    this.btnUpload.caption = 'Upload file to IPFS';
+                    this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : "Confirm";
                     this.btnUpload.enabled = true;
                     this.refresh();
                 }
@@ -1226,7 +1242,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
         reset() {
             this.pnlFileList.clearInnerHTML();
             this.pnlPagination.clearInnerHTML();
-            this.btnUpload.caption = 'Upload file to IPFS';
+            this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : "Confirm";
             this.btnUpload.enabled = true;
             this.fileListData = [];
             this.files = [];
@@ -1252,6 +1268,9 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             const isBrowseButtonShown = this.getAttribute('isBrowseButtonShown', true);
             if (isBrowseButtonShown != null)
                 this.isBrowseButtonShown = isBrowseButtonShown;
+            const mulitiple = this.getAttribute('mulitiple', true);
+            if (mulitiple != null)
+                this.mulitiple = mulitiple;
         }
         render() {
             return (this.$render("i-panel", { height: "100%", overflow: "hidden", padding: { top: '3.125rem', bottom: '3.125rem', left: '8.125rem', right: '8.125rem' }, border: { radius: '0.375rem' }, mediaQueries: [
@@ -1262,7 +1281,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                         }
                     }
                 ] },
-                this.$render("i-label", { class: "heading", caption: "Upload more files" }),
+                this.$render("i-label", { id: "lblTitle", class: "heading", caption: "Upload more files" }),
                 this.$render("i-label", { class: "label", caption: "Choose file to upload to IPFS network" }),
                 this.$render("i-panel", { class: "file-uploader-dropzone", maxHeight: "calc(100% - 4.5rem)" },
                     this.$render("i-panel", { class: "droparea" },
@@ -2197,6 +2216,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.isInitializing = false;
             this._isModal = false;
             this._isUploadModal = false;
+            this.isUploadMultiple = true;
             this._isFileShown = false;
             this.isAssetRootNode = false;
             this.onCellDblClick = this.onCellDblClick.bind(this);
@@ -2234,6 +2254,14 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this._isUploadModal = value;
             if (this.pnlStorage)
                 this.pnlStorage.visible = false;
+        }
+        get uploadMultiple() {
+            return this.isUploadMultiple;
+        }
+        set uploadMultiple(value) {
+            this.isUploadMultiple = value;
+            if (this.uploadModal)
+                this.uploadModal.mulitiple = value;
         }
         get transportEndpoint() {
             return this._data.transportEndpoint;
@@ -2759,6 +2787,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 this.uploadModal.manager = this.manager;
             }
             this.uploadModal.show(path, files);
+            this.uploadModal.mulitiple = this.uploadMultiple;
             modal.refresh();
         }
         onShowActions(top, left) {
@@ -3186,7 +3215,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
             if (!currentCid || !this.currentFile)
                 return;
-            const url = `${this.transportEndpoint}/ipfs/${currentCid}/${this.currentFile}`; // `${this.transportEndpoint}/${this.currentPath}`;
+            const url = `${this.transportEndpoint}/ipfs/${currentCid}/${this.currentFile}`;
             this.currentFile = null;
             if (this.onOpen)
                 this.onOpen(url);
@@ -3199,7 +3228,24 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         renderUploadModal() {
             if (!this.uploadModal) {
                 this.uploadModal = new index_1.ScomIPFSUploadModal();
-                this.uploadModal.onUploaded = () => this.onFilesUploaded();
+                this.uploadModal.onUploaded = async (target, rootCid, filePaths) => {
+                    this.onFilesUploaded();
+                    if (!this.uploadMultiple && filePaths.length && this.onUploadedFile) {
+                        let parentCid;
+                        const arr = filePaths[0].split('/');
+                        const parentPath = arr.slice(0, -1).join('/');
+                        const fileName = arr.slice(-1)[0];
+                        if (parentPath) {
+                            let fileNode = await this.manager.getFileNode(parentPath);
+                            parentCid = fileNode.cid;
+                        }
+                        else {
+                            parentCid = rootCid;
+                        }
+                        const url = `${this.transportEndpoint}/ipfs/${parentCid}/${fileName}`;
+                        this.onUploadedFile(url);
+                    }
+                };
                 this.uploadModal.onBrowseFile = () => {
                     this.pnlStorage.visible = true;
                     this.pnlUpload.visible = false;
@@ -3208,6 +3254,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 };
             }
             this.pnlUpload.appendChild(this.uploadModal);
+            this.uploadModal.mulitiple = this.uploadMultiple;
             this.uploadModal.isBrowseButtonShown = true;
         }
         handleBack() {
@@ -3234,6 +3281,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.onCancel = this.getAttribute('onCancel', true) || this.onCancel;
             this.onPreview = this.getAttribute('onPreview', true) || this.onPreview;
             this.onClosePreview = this.getAttribute('onClosePreview', true) || this.onClosePreview;
+            this.onUploadedFile = this.getAttribute('onUploadedFile', true) || this.onUploadedFile;
             this.isFileShown = this.getAttribute('isFileShown', true);
             this.classList.add(index_css_6.default);
             this.setTag(index_css_6.defaultColors);

@@ -48,10 +48,11 @@ interface IUploadItem {
     data?: File | string
 };
 
-type UploadedCallback = (target: ScomIPFSUploadModal, rootCid: string) => void;
+type UploadedCallback = (target: ScomIPFSUploadModal, rootCid: string, filePaths: string[]) => void;
 
 interface ScomIPFSUploadModalElement extends ControlElement {
     rootCid?: string;
+    mulitiple?: boolean;
     parentDir?: Partial<ICidInfo>;
     onUploaded?: UploadedCallback;
     onBrowseFile?: () => void;
@@ -81,6 +82,7 @@ export interface IUploadResult {
 
 @customElements('i-scom-ipfs--upload-modal')
 export class ScomIPFSUploadModal extends Module {
+    private lblTitle: Label;
     private fileUploader: Upload;
     private imgFile: Image;
     private lblDrag: Label;
@@ -112,6 +114,7 @@ export class ScomIPFSUploadModal extends Module {
     private _manager: IPFS.FileManager;
     private folderPath: string;
     private _isBrowseButtonShown: boolean = false;
+    private _mulitiple: boolean = true;
 
     constructor(parent?: Container, options?: any) {
         super(parent, options);
@@ -146,6 +149,22 @@ export class ScomIPFSUploadModal extends Module {
     set isBrowseButtonShown(value: boolean) {
         this._isBrowseButtonShown = value;
         if (this.pnlBrowse) this.pnlBrowse.visible = value;
+    }
+
+    get mulitiple() {
+        return this._mulitiple;
+    }
+
+    set mulitiple(value: boolean) {
+        this._mulitiple = value;
+        this.updateUI();
+    }
+
+    private updateUI() {
+        this.lblTitle.caption = this.mulitiple ? "Upload more files" : "Upload file";
+        this.fileUploader.multiple = this.mulitiple;
+        this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : "Confirm";
+        this.pnlPagination.visible = this.mulitiple;
     }
 
     show(path?: string, files?: File[]) {
@@ -591,11 +610,12 @@ export class ScomIPFSUploadModal extends Module {
     private async onUpload() {
         return new Promise(async (resolve, reject) => {
             if (!this.fileListData.length || !this.manager) reject();
-            this.btnUpload.caption = 'Uploading files to IPFS...';
+            this.btnUpload.caption = 'Uploading file(s) to IPFS...';
             this.btnUpload.enabled = false;
             this.isForcedCancelled = false;
 
             try {
+                let filePaths: string[] = [];
                 for (let i = 0; i < this.fileListData.length; i++) {
                     const file = this.fileListData[i];
                     let filePath = this.folderPath ? `${this.folderPath}${file.file.path}` : file.file.path;
@@ -603,6 +623,7 @@ export class ScomIPFSUploadModal extends Module {
                     if (isExists) {
                         filePath = newFilePath;
                     }
+                    filePaths.push(filePath);
                     await this.manager.addFile(filePath, file.file);
                 }
     
@@ -616,12 +637,12 @@ export class ScomIPFSUploadModal extends Module {
                 
                 let rootNode = await this.manager.getRootNode();
 
-                if (this.onUploaded) this.onUploaded(this, rootNode.cid);
+                if (this.onUploaded) this.onUploaded(this, rootNode.cid, filePaths);
     
                 this.renderFilterBar();
                 this.renderFileList();
                 this.renderPagination();
-                this.btnUpload.caption = 'Upload file to IPFS';
+                this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : "Confirm";
                 this.btnUpload.enabled = true;
                 this.refresh();
             } catch (err) {
@@ -637,7 +658,7 @@ export class ScomIPFSUploadModal extends Module {
     reset() {
         this.pnlFileList.clearInnerHTML();
         this.pnlPagination.clearInnerHTML();
-        this.btnUpload.caption = 'Upload file to IPFS';
+        this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : "Confirm";
         this.btnUpload.enabled = true;
         this.fileListData = [];
         this.files = [];
@@ -663,6 +684,8 @@ export class ScomIPFSUploadModal extends Module {
         this.parentDir = this.getAttribute('parentDir', true);
         const isBrowseButtonShown = this.getAttribute('isBrowseButtonShown', true);
         if (isBrowseButtonShown != null) this.isBrowseButtonShown = isBrowseButtonShown;
+        const mulitiple = this.getAttribute('mulitiple', true);
+        if (mulitiple != null) this.mulitiple = mulitiple;
     }
 
     render() {
@@ -681,7 +704,7 @@ export class ScomIPFSUploadModal extends Module {
                     }
                 ]}
             >
-                <i-label class="heading" caption="Upload more files"></i-label>
+                <i-label id="lblTitle" class="heading" caption="Upload more files"></i-label>
                 <i-label class="label" caption="Choose file to upload to IPFS network"></i-label>
                 <i-panel class="file-uploader-dropzone" maxHeight="calc(100% - 4.5rem)">
                     <i-panel class="droparea">
