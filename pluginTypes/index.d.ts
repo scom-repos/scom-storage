@@ -254,6 +254,7 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
     export class ScomIPFSUploadModal extends Module {
         private lblTitle;
         private fileUploader;
+        private btnBrowseFile;
         private imgFile;
         private lblDrag;
         private pnlBrowse;
@@ -298,6 +299,7 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         private numPages;
         private setCurrentPage;
         private get isSmallWidth();
+        private updateFilterBar;
         private renderFilterBar;
         private renderFileList;
         private formatBytes;
