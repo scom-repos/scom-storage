@@ -33,6 +33,29 @@ enum FILE_STATUS {
     UPLOADING,
 }
 
+const BUTTON_FILTERS = [
+    {
+        id: 'btnAll',
+        caption: 'All',
+        status: FILE_STATUS.LISTED
+    },
+    {
+        id: 'btnSuccess',
+        caption: 'Success',
+        status: FILE_STATUS.SUCCESS
+    },
+    {
+        id: 'btnFail',
+        caption: 'Fail',
+        status: FILE_STATUS.FAILED
+    },
+    {
+        id: 'btnUploading',
+        caption: 'Uploading',
+        status: FILE_STATUS.UPLOADING
+    }
+]
+
 const ITEMS_PER_PAGE = 5;
 
 interface ICidInfo {
@@ -84,6 +107,7 @@ export interface IUploadResult {
 export class ScomIPFSUploadModal extends Module {
     private lblTitle: Label;
     private fileUploader: Upload;
+    private btnBrowseFile: Button;
     private imgFile: Image;
     private lblDrag: Label;
     private pnlBrowse: StackLayout;
@@ -181,8 +205,8 @@ export class ScomIPFSUploadModal extends Module {
             this.toggle(true);
         }
     }
-    
-    refresh() {}
+
+    refresh() { }
 
     private onBeforeDrop(target: Upload) {
         console.log('onBeforeDrop: ', target);
@@ -217,30 +241,24 @@ export class ScomIPFSUploadModal extends Module {
         return !!window.matchMedia('(max-width: 767px)').matches;
     }
 
+    private updateFilterBar() {
+        BUTTON_FILTERS.forEach(v => {
+            const btn = this[v.id] as Button;
+            if (this.currentFilterStatus === v.status) {
+                btn.classList.add('filter-btn-active');
+            } else {
+                btn.classList.remove('filter-btn-active');
+            }
+            if (v.status === FILE_STATUS.LISTED) {
+                btn.caption = `All (${this.fileListData.length})`;
+            } else {
+                btn.caption = `${v.caption} (${this.fileListData.filter((i) => i.status === v.status).length})`;
+            }
+        });
+    }
+
     private async renderFilterBar() {
-        this.pnlFilterBar.clearInnerHTML();
-        this.pnlFilterBar.append(
-            <i-button
-                class={`filter-btn ${this.currentFilterStatus === FILE_STATUS.LISTED ? 'filter-btn-active' : ''}`}
-                caption={`All (${this.fileListData.length})`}
-                onClick={() => this.onChangeCurrentFilterStatus(FILE_STATUS.LISTED)}
-            ></i-button>,
-            <i-button
-                class={`filter-btn ${this.currentFilterStatus === FILE_STATUS.SUCCESS ? 'filter-btn-active' : ''}`}
-                caption={`Success (${this.fileListData.filter((i) => i.status === FILE_STATUS.SUCCESS).length})`}
-                onClick={() => this.onChangeCurrentFilterStatus(FILE_STATUS.SUCCESS)}
-            ></i-button>,
-            <i-button
-                class={`filter-btn ${this.currentFilterStatus === FILE_STATUS.FAILED ? 'filter-btn-active' : ''}`}
-                caption={`Fail (${this.fileListData.filter((i) => i.status === FILE_STATUS.FAILED).length})`}
-                onClick={() => this.onChangeCurrentFilterStatus(FILE_STATUS.FAILED)}
-            ></i-button>,
-            <i-button
-                class={`filter-btn ${this.currentFilterStatus === FILE_STATUS.UPLOADING ? 'filter-btn-active' : ''}`}
-                caption={`Uploading (${this.fileListData.filter((i) => i.status === FILE_STATUS.UPLOADING).length})`}
-                onClick={() => this.onChangeCurrentFilterStatus(FILE_STATUS.UPLOADING)}
-            ></i-button>,
-        );
+        this.updateFilterBar();
 
         this.pnlFilterActions.clearInnerHTML();
         if (this.currentFilterStatus === FILE_STATUS.UPLOADING) {
@@ -261,6 +279,7 @@ export class ScomIPFSUploadModal extends Module {
             (this.currentPage - 1) * ITEMS_PER_PAGE,
             ITEMS_PER_PAGE * this.currentPage
         );
+        const startIdx = this.isSmallWidth ? 0 : (this.currentPage - 1) * ITEMS_PER_PAGE;
 
         for (let i = 0; i < paginatedFilteredFileListData.length; i++) {
             const fileData = paginatedFilteredFileListData[i];
@@ -276,7 +295,7 @@ export class ScomIPFSUploadModal extends Module {
                     ></i-label>
                 </i-hstack>
             );
-            this.renderStatus(fileData.status, pnlRow2)
+            this.renderStatus(fileData.status, pnlRow2, startIdx + i);
 
             this.pnlFileList.appendChild(
                 <i-hstack
@@ -313,7 +332,7 @@ export class ScomIPFSUploadModal extends Module {
                             ></i-icon>
                         </i-hstack>
                         {pnlRow2}
-                        <i-hstack verticalAlignment='center' gap="0.75rem">
+                        <i-hstack id={`progress-${startIdx + i}`} verticalAlignment='center' gap="0.75rem" visible={fileData.status === FILE_STATUS.UPLOADING}>
                             <i-progress
                                 height="auto"
                                 percent={+fileData.percentage}
@@ -341,36 +360,36 @@ export class ScomIPFSUploadModal extends Module {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
     }
 
-    private renderStatus(status: number, parent: HStack) {
+    private renderStatus(status: number, parent: HStack, idx: number) {
         let uploadStatus = "";
         let iconOptions = { name: 'times', background: { color: Theme.text.primary }, visible: false };
         switch (status) {
-            case 1:
+            case FILE_STATUS.SUCCESS:
                 iconOptions.name = 'check';
                 iconOptions.background.color = Theme.colors.success.main;
                 iconOptions.visible = true;
                 uploadStatus = 'Completed';
                 break;
-            case 2:
+            case FILE_STATUS.FAILED:
                 iconOptions.name = 'times';
                 iconOptions.background.color = Theme.colors.error.main;
                 iconOptions.visible = true;
                 uploadStatus = 'Failed';
-            case 3:
+            case FILE_STATUS.UPLOADING:
                 uploadStatus = 'Uploading';
         }
         parent.appendChild(
-            <i-icon
-                width="0.875rem"
-                height="0.875rem"
-                padding={{ top: '0.125rem', bottom: '0.125rem', left: '0.125rem', right: '0.125rem' }}
-                border={{ radius: '50%' }}
-                fill={Theme.colors.primary.contrastText}
-                {...iconOptions as any}
-            ></i-icon>
-        );
-        parent.appendChild(
-            <i-label caption={uploadStatus}></i-label>
+            <i-hstack id={`status-${idx}`} verticalAlignment="center" gap="0.5rem">
+                <i-label caption={uploadStatus} />
+                <i-icon
+                    width="0.875rem"
+                    height="0.875rem"
+                    padding={{ top: '0.125rem', bottom: '0.125rem', left: '0.125rem', right: '0.125rem' }}
+                    border={{ radius: '50%' }}
+                    fill={Theme.colors.primary.contrastText}
+                    {...iconOptions as any}
+                />
+            </i-hstack>
         );
     }
 
@@ -500,6 +519,17 @@ export class ScomIPFSUploadModal extends Module {
     private onCancel() {
         this.currentRequest.abort();
         this.isForcedCancelled = true;
+        if (this.fileListData && this.fileListData.some(f => f.status === FILE_STATUS.UPLOADING)) {
+            this.fileListData = this.fileListData.map(f => {
+                if (f.status === FILE_STATUS.UPLOADING) {
+                    return {
+                        ...f,
+                        status: FILE_STATUS.LISTED
+                    }
+                }
+                return f;
+            })
+        }
     }
 
     private async onChangeFile(source: Control, files: File[]) {
@@ -613,6 +643,8 @@ export class ScomIPFSUploadModal extends Module {
             this.btnUpload.caption = 'Uploading file(s) to IPFS...';
             this.btnUpload.enabled = false;
             this.isForcedCancelled = false;
+            this.btnBrowseFile.enabled = false;
+            this.fileUploader.enabled = false;
 
             try {
                 let filePaths: string[] = [];
@@ -624,26 +656,46 @@ export class ScomIPFSUploadModal extends Module {
                         filePath = newFilePath;
                     }
                     filePaths.push(filePath);
+
+                    file.status = FILE_STATUS.UPLOADING;
+                    this.updateFilterBar();
+                    this.renderFileList();
+                    this.renderPagination();
+                    const statusWrapper = this.pnlFileList.querySelector(`#status-${i}`) as HStack;
+                    if (statusWrapper) {
+                        statusWrapper.visible = false;
+                    }
+                    const progressWrapper = this.pnlFileList.querySelector(`#progress-${i}`) as HStack;
+                    if (progressWrapper) {
+                        progressWrapper.visible = true;
+                    }
                     await this.manager.addFile(filePath, file.file);
-                }
-    
-                await this.manager.applyUpdates();
-    
-                for (let i = 0; i < this.fileListData.length; i++) {
-                    const file = this.fileListData[i];
-                    file.status = FILE_STATUS.SUCCESS;
                     file.percentage = 100;
+                    if (progressWrapper) {
+                        const progress = progressWrapper.firstElementChild as Progress;
+                        const label = progressWrapper.lastElementChild as Label;
+                        if (progress) progress.percent = 100;
+                        if (label) label.caption = '100%';
+                    }
                 }
-                
+
+                await this.manager.applyUpdates();
+
+                for (const file of this.fileListData) {
+                    file.status = FILE_STATUS.SUCCESS;
+                }
+
                 let rootNode = await this.manager.getRootNode();
 
                 if (this.onUploaded) this.onUploaded(this, rootNode.cid, filePaths);
-    
+
                 this.renderFilterBar();
                 this.renderFileList();
                 this.renderPagination();
                 this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : "Confirm";
                 this.btnUpload.enabled = true;
+                this.btnBrowseFile.enabled = true;
+                this.fileUploader.enabled = true;
                 this.refresh();
             } catch (err) {
                 console.log('Error! ', err);
@@ -660,6 +712,8 @@ export class ScomIPFSUploadModal extends Module {
         this.pnlPagination.clearInnerHTML();
         this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : "Confirm";
         this.btnUpload.enabled = true;
+        this.btnBrowseFile.enabled = true;
+        this.fileUploader.enabled = true;
         this.fileListData = [];
         this.files = [];
         this.toggle(false);
@@ -729,6 +783,7 @@ export class ScomIPFSUploadModal extends Module {
                     <i-stack id="pnlBrowse" direction="vertical" alignItems="center" justifyContent="center" margin={{ top: '-1rem' }} visible={false}>
                         <i-label class="label" caption="Or"></i-label>
                         <i-button
+                            id="btnBrowseFile"
                             caption="Browse File"
                             boxShadow="none"
                             background={{ color: Theme.colors.primary.main }}
@@ -738,7 +793,16 @@ export class ScomIPFSUploadModal extends Module {
                         ></i-button>
                     </i-stack>
                     <i-panel id="pnlStatusFilter" class="status-filter" visible={false}>
-                        <i-panel id="pnlFilterBar" class="filter-bar"></i-panel>
+                        <i-panel id="pnlFilterBar" class="filter-bar">
+                            {
+                                BUTTON_FILTERS.map(v => <i-button
+                                    id={v.id}
+                                    class={`filter-btn ${v.status === FILE_STATUS.LISTED ? 'filter-btn-active' : ''}`}
+                                    caption={`${v.caption} (0)`}
+                                    onClick={() => this.onChangeCurrentFilterStatus(v.status)}
+                                />)
+                            }
+                        </i-panel>
                         <i-panel id="pnlFilterActions" class="filter-actions" margin={{ left: 'auto' }}></i-panel>
                     </i-panel>
                     <i-vstack id="pnlFileList" class="filelist" gap="0.5rem"></i-vstack>

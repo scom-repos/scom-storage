@@ -831,6 +831,28 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
         FILE_STATUS[FILE_STATUS["FAILED"] = 2] = "FAILED";
         FILE_STATUS[FILE_STATUS["UPLOADING"] = 3] = "UPLOADING";
     })(FILE_STATUS || (FILE_STATUS = {}));
+    const BUTTON_FILTERS = [
+        {
+            id: 'btnAll',
+            caption: 'All',
+            status: FILE_STATUS.LISTED
+        },
+        {
+            id: 'btnSuccess',
+            caption: 'Success',
+            status: FILE_STATUS.SUCCESS
+        },
+        {
+            id: 'btnFail',
+            caption: 'Fail',
+            status: FILE_STATUS.FAILED
+        },
+        {
+            id: 'btnUploading',
+            caption: 'Uploading',
+            status: FILE_STATUS.UPLOADING
+        }
+    ];
     const ITEMS_PER_PAGE = 5;
     ;
     ;
@@ -929,9 +951,25 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
         get isSmallWidth() {
             return !!window.matchMedia('(max-width: 767px)').matches;
         }
+        updateFilterBar() {
+            BUTTON_FILTERS.forEach(v => {
+                const btn = this[v.id];
+                if (this.currentFilterStatus === v.status) {
+                    btn.classList.add('filter-btn-active');
+                }
+                else {
+                    btn.classList.remove('filter-btn-active');
+                }
+                if (v.status === FILE_STATUS.LISTED) {
+                    btn.caption = `All (${this.fileListData.length})`;
+                }
+                else {
+                    btn.caption = `${v.caption} (${this.fileListData.filter((i) => i.status === v.status).length})`;
+                }
+            });
+        }
         async renderFilterBar() {
-            this.pnlFilterBar.clearInnerHTML();
-            this.pnlFilterBar.append(this.$render("i-button", { class: `filter-btn ${this.currentFilterStatus === FILE_STATUS.LISTED ? 'filter-btn-active' : ''}`, caption: `All (${this.fileListData.length})`, onClick: () => this.onChangeCurrentFilterStatus(FILE_STATUS.LISTED) }), this.$render("i-button", { class: `filter-btn ${this.currentFilterStatus === FILE_STATUS.SUCCESS ? 'filter-btn-active' : ''}`, caption: `Success (${this.fileListData.filter((i) => i.status === FILE_STATUS.SUCCESS).length})`, onClick: () => this.onChangeCurrentFilterStatus(FILE_STATUS.SUCCESS) }), this.$render("i-button", { class: `filter-btn ${this.currentFilterStatus === FILE_STATUS.FAILED ? 'filter-btn-active' : ''}`, caption: `Fail (${this.fileListData.filter((i) => i.status === FILE_STATUS.FAILED).length})`, onClick: () => this.onChangeCurrentFilterStatus(FILE_STATUS.FAILED) }), this.$render("i-button", { class: `filter-btn ${this.currentFilterStatus === FILE_STATUS.UPLOADING ? 'filter-btn-active' : ''}`, caption: `Uploading (${this.fileListData.filter((i) => i.status === FILE_STATUS.UPLOADING).length})`, onClick: () => this.onChangeCurrentFilterStatus(FILE_STATUS.UPLOADING) }));
+            this.updateFilterBar();
             this.pnlFilterActions.clearInnerHTML();
             if (this.currentFilterStatus === FILE_STATUS.UPLOADING) {
                 this.pnlFilterActions.appendChild(this.$render("i-button", { caption: "Cancel", onClick: this.onCancel.bind(this) }));
@@ -944,11 +982,12 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             this.pnlFileList.clearInnerHTML();
             const filteredFileListData = this.filteredFileListData();
             const paginatedFilteredFileListData = this.isSmallWidth ? this.fileListData : [...filteredFileListData].slice((this.currentPage - 1) * ITEMS_PER_PAGE, ITEMS_PER_PAGE * this.currentPage);
+            const startIdx = this.isSmallWidth ? 0 : (this.currentPage - 1) * ITEMS_PER_PAGE;
             for (let i = 0; i < paginatedFilteredFileListData.length; i++) {
                 const fileData = paginatedFilteredFileListData[i];
                 const pnlRow2 = (this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
                     this.$render("i-label", { maxWidth: "100%", caption: this.formatBytes(fileData.file.size || 0), font: { size: '0.75rem' }, textOverflow: "ellipsis", opacity: 0.75 })));
-                this.renderStatus(fileData.status, pnlRow2);
+                this.renderStatus(fileData.status, pnlRow2, startIdx + i);
                 this.pnlFileList.appendChild(this.$render("i-hstack", { class: `file file-${i} status-${fileData.status}`, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, stack: { shrink: '0', grow: '1' }, overflow: "hidden", gap: "1rem" },
                     this.$render("i-icon", { width: "1.75rem", height: "1.75rem", name: "file", fill: Theme.colors.primary.main, border: { radius: '0.5rem', width: '1px', color: Theme.divider, style: 'solid' }, padding: { top: '0.35rem', bottom: '0.35rem', left: '0.35rem', right: '0.35rem' }, stack: { shrink: '0' } }),
                     this.$render("i-vstack", { maxWidth: "100%", stack: { shrink: '1', grow: '1' }, gap: "0.25rem", overflow: "hidden" },
@@ -956,7 +995,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                             this.$render("i-label", { maxWidth: "100%", caption: fileData.file.path || fileData.file.name, font: { weight: 600, size: '0.875rem' }, textOverflow: "ellipsis" }),
                             this.$render("i-icon", { width: "0.875rem", height: "0.875rem", name: "times", fill: Theme.text.primary, cursor: "pointer", onClick: () => this.onRemoveFile(i) })),
                         pnlRow2,
-                        this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.75rem" },
+                        this.$render("i-hstack", { id: `progress-${startIdx + i}`, verticalAlignment: 'center', gap: "0.75rem", visible: fileData.status === FILE_STATUS.UPLOADING },
                             this.$render("i-progress", { height: "auto", percent: +fileData.percentage, strokeWidth: 10, stack: { grow: '1', shrink: '1', basis: '60%' }, border: { radius: '0.5rem' } }),
                             this.$render("i-label", { caption: `${fileData.percentage}%`, font: { size: '0.75rem' }, stack: { grow: '1', shrink: '0' } })))));
             }
@@ -970,26 +1009,27 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             const i = Math.floor(Math.log(bytes) / Math.log(k));
             return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
         }
-        renderStatus(status, parent) {
+        renderStatus(status, parent, idx) {
             let uploadStatus = "";
             let iconOptions = { name: 'times', background: { color: Theme.text.primary }, visible: false };
             switch (status) {
-                case 1:
+                case FILE_STATUS.SUCCESS:
                     iconOptions.name = 'check';
                     iconOptions.background.color = Theme.colors.success.main;
                     iconOptions.visible = true;
                     uploadStatus = 'Completed';
                     break;
-                case 2:
+                case FILE_STATUS.FAILED:
                     iconOptions.name = 'times';
                     iconOptions.background.color = Theme.colors.error.main;
                     iconOptions.visible = true;
                     uploadStatus = 'Failed';
-                case 3:
+                case FILE_STATUS.UPLOADING:
                     uploadStatus = 'Uploading';
             }
-            parent.appendChild(this.$render("i-icon", { width: "0.875rem", height: "0.875rem", padding: { top: '0.125rem', bottom: '0.125rem', left: '0.125rem', right: '0.125rem' }, border: { radius: '50%' }, fill: Theme.colors.primary.contrastText, ...iconOptions }));
-            parent.appendChild(this.$render("i-label", { caption: uploadStatus }));
+            parent.appendChild(this.$render("i-hstack", { id: `status-${idx}`, verticalAlignment: "center", gap: "0.5rem" },
+                this.$render("i-label", { caption: uploadStatus }),
+                this.$render("i-icon", { width: "0.875rem", height: "0.875rem", padding: { top: '0.125rem', bottom: '0.125rem', left: '0.125rem', right: '0.125rem' }, border: { radius: '50%' }, fill: Theme.colors.primary.contrastText, ...iconOptions })));
         }
         getPagination(currentIndex, totalPages) {
             let current = currentIndex, last = totalPages, delta = 2, left = current - delta, right = current + delta + 1, range = [], rangeWithDots = [], l;
@@ -1095,6 +1135,17 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
         onCancel() {
             this.currentRequest.abort();
             this.isForcedCancelled = true;
+            if (this.fileListData && this.fileListData.some(f => f.status === FILE_STATUS.UPLOADING)) {
+                this.fileListData = this.fileListData.map(f => {
+                    if (f.status === FILE_STATUS.UPLOADING) {
+                        return {
+                            ...f,
+                            status: FILE_STATUS.LISTED
+                        };
+                    }
+                    return f;
+                });
+            }
         }
         async onChangeFile(source, files) {
             console.log('onChangeFile: ', files);
@@ -1202,6 +1253,8 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                 this.btnUpload.caption = 'Uploading file(s) to IPFS...';
                 this.btnUpload.enabled = false;
                 this.isForcedCancelled = false;
+                this.btnBrowseFile.enabled = false;
+                this.fileUploader.enabled = false;
                 try {
                     let filePaths = [];
                     for (let i = 0; i < this.fileListData.length; i++) {
@@ -1212,13 +1265,32 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                             filePath = newFilePath;
                         }
                         filePaths.push(filePath);
+                        file.status = FILE_STATUS.UPLOADING;
+                        this.updateFilterBar();
+                        this.renderFileList();
+                        this.renderPagination();
+                        const statusWrapper = this.pnlFileList.querySelector(`#status-${i}`);
+                        if (statusWrapper) {
+                            statusWrapper.visible = false;
+                        }
+                        const progressWrapper = this.pnlFileList.querySelector(`#progress-${i}`);
+                        if (progressWrapper) {
+                            progressWrapper.visible = true;
+                        }
                         await this.manager.addFile(filePath, file.file);
+                        file.percentage = 100;
+                        if (progressWrapper) {
+                            const progress = progressWrapper.firstElementChild;
+                            const label = progressWrapper.lastElementChild;
+                            if (progress)
+                                progress.percent = 100;
+                            if (label)
+                                label.caption = '100%';
+                        }
                     }
                     await this.manager.applyUpdates();
-                    for (let i = 0; i < this.fileListData.length; i++) {
-                        const file = this.fileListData[i];
+                    for (const file of this.fileListData) {
                         file.status = FILE_STATUS.SUCCESS;
-                        file.percentage = 100;
                     }
                     let rootNode = await this.manager.getRootNode();
                     if (this.onUploaded)
@@ -1228,6 +1300,8 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                     this.renderPagination();
                     this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : "Confirm";
                     this.btnUpload.enabled = true;
+                    this.btnBrowseFile.enabled = true;
+                    this.fileUploader.enabled = true;
                     this.refresh();
                 }
                 catch (err) {
@@ -1244,6 +1318,8 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             this.pnlPagination.clearInnerHTML();
             this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : "Confirm";
             this.btnUpload.enabled = true;
+            this.btnBrowseFile.enabled = true;
+            this.fileUploader.enabled = true;
             this.fileListData = [];
             this.files = [];
             this.toggle(false);
@@ -1290,9 +1366,9 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                         this.$render("i-label", { id: "lblDrag", caption: "Drag and drop your files here" })),
                     this.$render("i-stack", { id: "pnlBrowse", direction: "vertical", alignItems: "center", justifyContent: "center", margin: { top: '-1rem' }, visible: false },
                         this.$render("i-label", { class: "label", caption: "Or" }),
-                        this.$render("i-button", { caption: "Browse File", boxShadow: "none", background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, onClick: this.browseFile })),
+                        this.$render("i-button", { id: "btnBrowseFile", caption: "Browse File", boxShadow: "none", background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, onClick: this.browseFile })),
                     this.$render("i-panel", { id: "pnlStatusFilter", class: "status-filter", visible: false },
-                        this.$render("i-panel", { id: "pnlFilterBar", class: "filter-bar" }),
+                        this.$render("i-panel", { id: "pnlFilterBar", class: "filter-bar" }, BUTTON_FILTERS.map(v => this.$render("i-button", { id: v.id, class: `filter-btn ${v.status === FILE_STATUS.LISTED ? 'filter-btn-active' : ''}`, caption: `${v.caption} (0)`, onClick: () => this.onChangeCurrentFilterStatus(v.status) }))),
                         this.$render("i-panel", { id: "pnlFilterActions", class: "filter-actions", margin: { left: 'auto' } })),
                     this.$render("i-vstack", { id: "pnlFileList", class: "filelist", gap: "0.5rem" }),
                     this.$render("i-panel", { id: "pnlPagination", class: "pagination" }),
