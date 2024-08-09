@@ -1567,29 +1567,22 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
                 this.editorEl = await (0, utils_1.getEmbedElement)(moduleData, this.pnlEditor);
                 this.initialContent = this.editorEl.value || '';
                 if (this.type === 'widget') {
-                    // this.editorEl.onChanged = () => {
-                    //   if (typeof this.onChanged === 'function') this.onChanged();
-                    // }
                     this.editorEl.onClosed = () => {
                         document.body.style.overflow = 'hidden auto';
                         if (typeof this.onClose === 'function')
                             this.onClose();
                     };
                 }
+                else if (this.type === 'md') {
+                    this.editorEl.onChanged = this.handleEditorChanged.bind(this);
+                }
                 else {
-                    this.editorEl.onChanged = (value) => {
-                        if (this.initialContent) {
-                            this.btnSave.enabled = value !== this.initialContent;
-                        }
-                        else {
-                            this.initialContent = value;
-                        }
-                    };
+                    this.editorEl.onChange = (editor) => this.handleEditorChanged(editor.value);
                 }
             }
             else {
                 this.initialContent = '';
-                const value = this.type === 'md' ? content : this.type === 'widget' ? '' : this.url;
+                const value = this.type === 'md' ? content : this.type === 'widget' ? '' : { url: this.url };
                 if (this.editorEl?.setValue)
                     this.editorEl.setValue(value);
             }
@@ -1603,6 +1596,14 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
                 this.classList.remove(index_css_4.fullScreenStyle);
             }
             this.hideLoadingSpinner();
+        }
+        handleEditorChanged(value) {
+            if (this.initialContent) {
+                this.btnSave.enabled = value !== this.initialContent;
+            }
+            else {
+                this.initialContent = value;
+            }
         }
         createEditorElement(value) {
             return {

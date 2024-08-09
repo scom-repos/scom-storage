@@ -412,6 +412,7 @@ declare module "@scom/scom-storage/components/editor.tsx" {
         openFile(file: IIPFSData, parentCid: string, parent: Control, config: IStorageConfig): Promise<void>;
         onHide(): void;
         private renderUI;
+        private handleEditorChanged;
         private createEditorElement;
         private createDesignerElement;
         private createPackageBuilderElement;
