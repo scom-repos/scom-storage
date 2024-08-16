@@ -214,6 +214,16 @@ declare module "@scom/scom-storage/components/home.tsx" {
         render(): any;
     }
 }
+/// <amd-module name="@scom/scom-storage/utils.ts" />
+declare module "@scom/scom-storage/utils.ts" {
+    import { Control, IPFS } from "@ijstech/components";
+    export const getEmbedElement: (moduleData: any, parent: Control, callback?: any) => Promise<any>;
+    export const getNewFileName: (parentNode: any, fileName: string) => Promise<string>;
+    export const isFileExists: (manager: IPFS.FileManager, filePath: string) => Promise<{
+        isExists: boolean;
+        newFilePath: string;
+    }>;
+}
 /// <amd-module name="@scom/scom-storage/components/uploadModal.tsx" />
 declare module "@scom/scom-storage/components/uploadModal.tsx" {
     import { ControlElement, Module, Container } from '@ijstech/components';
@@ -315,7 +325,6 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         private onRemoveFile;
         private getDirItems;
         private getNewName;
-        private isFileExists;
         private onUpload;
         private browseFile;
         reset(): void;
@@ -323,11 +332,6 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         init(): Promise<void>;
         render(): any;
     }
-}
-/// <amd-module name="@scom/scom-storage/utils.ts" />
-declare module "@scom/scom-storage/utils.ts" {
-    import { Control } from "@ijstech/components";
-    export const getEmbedElement: (moduleData: any, parent: Control, callback?: any) => Promise<any>;
 }
 /// <amd-module name="@scom/scom-storage/file.ts" />
 declare module "@scom/scom-storage/file.ts" {
@@ -572,6 +576,14 @@ declare module "@scom/scom-storage" {
         onClosePreview?: () => void;
         onUploadedFile?: selectFileCallback;
     }
+    interface UploadRawFile extends File {
+        uid?: number;
+        path?: string;
+        cid?: {
+            cid: string;
+            size: number;
+        };
+    }
     global {
         namespace JSX {
             interface IntrinsicElements {
@@ -733,6 +745,10 @@ declare module "@scom/scom-storage" {
         private onOpenHandler;
         private onCancelHandler;
         private renderUploadModal;
+        uploadFiles(files: UploadRawFile[]): Promise<{
+            fileName: string;
+            path: string;
+        }[]>;
         private handleBack;
         init(): void;
         render(): any;

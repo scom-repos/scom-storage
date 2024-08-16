@@ -819,11 +819,80 @@ define("@scom/scom-storage/components/home.tsx", ["require", "exports", "@ijstec
     ], ScomIPFSMobileHome);
     exports.ScomIPFSMobileHome = ScomIPFSMobileHome;
 });
-define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/assets.ts", "@scom/scom-storage/components/index.css.ts"], function (require, exports, components_6, assets_2, index_css_3) {
+define("@scom/scom-storage/utils.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_6) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.isFileExists = exports.getNewFileName = exports.getEmbedElement = void 0;
+    const getEmbedElement = async (moduleData, parent, callback) => {
+        const { module, data } = moduleData;
+        parent.clearInnerHTML();
+        const elm = await components_6.application.createElement(module, true);
+        if (!elm)
+            throw new Error('not found');
+        elm.parent = parent;
+        const builderTarget = elm.getConfigurators ? elm.getConfigurators().find((conf) => conf.target === 'Builders') : null;
+        if (elm.ready)
+            await elm.ready();
+        elm.maxWidth = '100%';
+        elm.maxHeight = '100%';
+        elm.display = 'block';
+        elm.stack = { grow: '1' };
+        if (builderTarget?.setData && data.properties) {
+            await builderTarget.setData(data.properties);
+        }
+        if (builderTarget?.setTag && data.tag) {
+            await builderTarget.setTag(data.tag);
+        }
+        if (callback)
+            callback(elm);
+        return elm;
+    };
+    exports.getEmbedElement = getEmbedElement;
+    const getNewFileName = async (parentNode, fileName) => {
+        const arr = fileName.split('.');
+        let newName = arr.slice(0, -1).join('.');
+        let ext = arr[arr.length - 1];
+        while (await parentNode.findItem(`${newName}.${ext}`)) {
+            const regex = /\((\d+)\)$/;
+            const matches = newName.match(regex);
+            if (matches) {
+                const lastNumber = parseInt(matches[1]);
+                const updatedString = newName.replace(/\((\d+)\)$/, '');
+                newName = `${updatedString}(${lastNumber + 1})`;
+            }
+            else {
+                newName = `${newName}(1)`;
+            }
+        }
+        return `${newName}.${ext}`;
+    };
+    exports.getNewFileName = getNewFileName;
+    const isFileExists = async (manager, filePath) => {
+        let newFilePath;
+        const arr = filePath.split('/');
+        const parentPath = arr.slice(0, -1).join('/');
+        const fileName = arr.slice(-1)[0];
+        let fileNode;
+        if (parentPath) {
+            fileNode = await manager.getFileNode(parentPath);
+        }
+        else {
+            fileNode = await manager.getRootNode();
+        }
+        const node = await fileNode.findItem(fileName);
+        if (node) {
+            let newName = await (0, exports.getNewFileName)(fileNode, fileName);
+            newFilePath = `${parentPath}/${newName}`;
+        }
+        return { isExists: !!node, newFilePath };
+    };
+    exports.isFileExists = isFileExists;
+});
+define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/assets.ts", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/utils.ts"], function (require, exports, components_7, assets_2, index_css_3, utils_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSUploadModal = void 0;
-    const Theme = components_6.Styles.Theme.ThemeVars;
+    const Theme = components_7.Styles.Theme.ThemeVars;
     var FILE_STATUS;
     (function (FILE_STATUS) {
         FILE_STATUS[FILE_STATUS["LISTED"] = 0] = "LISTED";
@@ -856,7 +925,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
     const ITEMS_PER_PAGE = 5;
     ;
     ;
-    let ScomIPFSUploadModal = class ScomIPFSUploadModal extends components_6.Module {
+    let ScomIPFSUploadModal = class ScomIPFSUploadModal extends components_7.Module {
         constructor(parent, options) {
             super(parent, options);
             this.isForcedCancelled = false;
@@ -1061,14 +1130,14 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                 }
                 else {
                     this.pnlPagination.clearInnerHTML();
-                    const prevBtn = new components_6.Button(this.pnlPagination, {
+                    const prevBtn = new components_7.Button(this.pnlPagination, {
                         icon: { name: 'chevron-left' },
                     });
                     prevBtn.onClick = () => {
                         this.setCurrentPage(this.currentPage - 1);
                     };
                     for (let i = 0; i < rangeWithDots.length; i++) {
-                        const pageBtn = new components_6.Button(this.pnlPagination, {
+                        const pageBtn = new components_7.Button(this.pnlPagination, {
                             class: this.currentPage === rangeWithDots[i] ? 'active' : '',
                             caption: rangeWithDots[i].toString(),
                         });
@@ -1081,7 +1150,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                             };
                         }
                     }
-                    const nexBtn = new components_6.Button(this.pnlPagination, {
+                    const nexBtn = new components_7.Button(this.pnlPagination, {
                         icon: { name: 'chevron-right' },
                     });
                     nexBtn.onClick = () => {
@@ -1227,25 +1296,6 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             }
             return `${newName}.${ext}`;
         }
-        async isFileExists(filePath) {
-            let newFilePath;
-            const arr = filePath.split('/');
-            const parentPath = arr.slice(0, -1).join('/');
-            const fileName = arr.slice(-1)[0];
-            let fileNode;
-            if (parentPath) {
-                fileNode = await this.manager.getFileNode(parentPath);
-            }
-            else {
-                fileNode = await this.manager.getRootNode();
-            }
-            const node = await fileNode.findItem(fileName);
-            if (node) {
-                let newName = await this.getNewName(fileNode, fileName);
-                newFilePath = `${parentPath}/${newName}`;
-            }
-            return { isExists: !!node, newFilePath };
-        }
         async onUpload() {
             return new Promise(async (resolve, reject) => {
                 if (!this.fileListData.length || !this.manager)
@@ -1260,7 +1310,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                     for (let i = 0; i < this.fileListData.length; i++) {
                         const file = this.fileListData[i];
                         let filePath = this.folderPath ? `${this.folderPath}${file.file.path}` : file.file.path;
-                        const { isExists, newFilePath } = await this.isFileExists(filePath);
+                        const { isExists, newFilePath } = await (0, utils_1.isFileExists)(this.manager, filePath);
                         if (isExists) {
                             filePath = newFilePath;
                         }
@@ -1383,39 +1433,9 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
         }
     };
     ScomIPFSUploadModal = __decorate([
-        (0, components_6.customElements)('i-scom-ipfs--upload-modal')
+        (0, components_7.customElements)('i-scom-ipfs--upload-modal')
     ], ScomIPFSUploadModal);
     exports.ScomIPFSUploadModal = ScomIPFSUploadModal;
-});
-define("@scom/scom-storage/utils.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_7) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getEmbedElement = void 0;
-    const getEmbedElement = async (moduleData, parent, callback) => {
-        const { module, data } = moduleData;
-        parent.clearInnerHTML();
-        const elm = await components_7.application.createElement(module, true);
-        if (!elm)
-            throw new Error('not found');
-        elm.parent = parent;
-        const builderTarget = elm.getConfigurators ? elm.getConfigurators().find((conf) => conf.target === 'Builders') : null;
-        if (elm.ready)
-            await elm.ready();
-        elm.maxWidth = '100%';
-        elm.maxHeight = '100%';
-        elm.display = 'block';
-        elm.stack = { grow: '1' };
-        if (builderTarget?.setData && data.properties) {
-            await builderTarget.setData(data.properties);
-        }
-        if (builderTarget?.setTag && data.tag) {
-            await builderTarget.setTag(data.tag);
-        }
-        if (callback)
-            callback(elm);
-        return elm;
-    };
-    exports.getEmbedElement = getEmbedElement;
 });
 define("@scom/scom-storage/file.ts", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -1468,7 +1488,7 @@ define("@scom/scom-storage/components/loadingSpinner.tsx", ["require", "exports"
     ], LoadingSpinner);
     exports.LoadingSpinner = LoadingSpinner;
 });
-define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/components/loadingSpinner.tsx", "@scom/scom-storage/data.ts"], function (require, exports, components_9, utils_1, index_css_4, loadingSpinner_1, data_2) {
+define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/components/loadingSpinner.tsx", "@scom/scom-storage/data.ts"], function (require, exports, components_9, utils_2, index_css_4, loadingSpinner_1, data_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSEditor = void 0;
@@ -1564,7 +1584,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
                     this.type === 'widget' ?
                         this.createPackageBuilderElement(this._data?.config || {}) :
                         this.createDesignerElement(this.url);
-                this.editorEl = await (0, utils_1.getEmbedElement)(moduleData, this.pnlEditor);
+                this.editorEl = await (0, utils_2.getEmbedElement)(moduleData, this.pnlEditor);
                 this.initialContent = this.editorEl.value || '';
                 if (this.type === 'widget') {
                     this.editorEl.onClosed = () => {
@@ -1703,7 +1723,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
     ], ScomIPFSEditor);
     exports.ScomIPFSEditor = ScomIPFSEditor;
 });
-define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/loadingSpinner.tsx"], function (require, exports, components_10, index_css_5, data_3, utils_2, loadingSpinner_2) {
+define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/loadingSpinner.tsx"], function (require, exports, components_10, index_css_5, data_3, utils_3, loadingSpinner_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSPreview = void 0;
@@ -1814,7 +1834,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 this.showLoadingSpinner();
                 const moduleData = await this.getModuleFromExtension(usePath);
                 if (moduleData?.module) {
-                    const elm = await (0, utils_2.getEmbedElement)(moduleData, this.previewer);
+                    const elm = await (0, utils_3.getEmbedElement)(moduleData, this.previewer);
                     if (moduleData?.module === '@scom/scom-image' && usePath) {
                         elm.maxWidth = '50%';
                         elm.margin = { left: 'auto', right: 'auto' };
@@ -2212,7 +2232,7 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
         }
     });
 });
-define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts"], function (require, exports, components_12, data_4, index_1, file_1, index_css_6) {
+define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts", "@scom/scom-storage/utils.ts"], function (require, exports, components_12, data_4, index_1, file_1, index_css_6, utils_4) {
     "use strict";
     var ScomStorage_1;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -3333,6 +3353,36 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.pnlUpload.appendChild(this.uploadModal);
             this.uploadModal.mulitiple = this.uploadMultiple;
             this.uploadModal.isBrowseButtonShown = true;
+        }
+        async uploadFiles(files) {
+            let result = [];
+            try {
+                for (const file of files) {
+                    let filePath = file.path;
+                    const { isExists, newFilePath } = await (0, utils_4.isFileExists)(this.manager, filePath);
+                    if (isExists) {
+                        filePath = newFilePath;
+                    }
+                    const data = await this.manager.addFile(filePath, file);
+                    result.push({
+                        fileName: file.name,
+                        path: data.file.name
+                    });
+                }
+                await this.manager.applyUpdates();
+                const rootNode = await this.manager.getRootNode();
+                const path = `${this.transportEndpoint}/ipfs/${rootNode.cid}`;
+                result = result.map(v => {
+                    return {
+                        ...v,
+                        path: `${path}/${v.path}`
+                    };
+                });
+            }
+            catch (error) {
+                console.log('uploadFiles', error);
+            }
+            return result;
         }
         handleBack() {
             if (!this.isUploadModal)
