@@ -21,6 +21,7 @@ import {
 } from '@ijstech/components';
 import assets from '../assets';
 import { uploadModalStyle } from './index.css';
+import { isFileExists } from '../utils';
 
 declare var require: any;
 
@@ -618,25 +619,6 @@ export class ScomIPFSUploadModal extends Module {
         return `${newName}.${ext}`;
     }
 
-    private async isFileExists(filePath: string): Promise<{ isExists: boolean; newFilePath: string; }> {
-        let newFilePath: string;
-        const arr = filePath.split('/');
-        const parentPath = arr.slice(0, -1).join('/');
-        const fileName = arr.slice(-1)[0];
-        let fileNode;
-        if (parentPath) {
-            fileNode = await this.manager.getFileNode(parentPath);
-        } else {
-            fileNode = await this.manager.getRootNode();
-        }
-        const node = await fileNode.findItem(fileName);
-        if (node) {
-            let newName = await this.getNewName(fileNode, fileName);
-            newFilePath = `${parentPath}/${newName}`;
-        }
-        return { isExists: !!node, newFilePath };
-    }
-
     private async onUpload() {
         return new Promise(async (resolve, reject) => {
             if (!this.fileListData.length || !this.manager) reject();
@@ -651,7 +633,7 @@ export class ScomIPFSUploadModal extends Module {
                 for (let i = 0; i < this.fileListData.length; i++) {
                     const file = this.fileListData[i];
                     let filePath = this.folderPath ? `${this.folderPath}${file.file.path}` : file.file.path;
-                    const { isExists, newFilePath } = await this.isFileExists(filePath);
+                    const { isExists, newFilePath } = await isFileExists(this.manager, filePath);
                     if (isExists) {
                         filePath = newFilePath;
                     }

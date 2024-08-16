@@ -26,6 +26,7 @@ import { formatBytes } from './data';
 import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview, LoadingSpinner, ScomIPFSEditor } from './components/index';
 import { Editor, IFileHandler } from './file';
 import customStyles, { defaultColors, dragAreaStyle, iconButtonStyled, previewModalStyle, selectedRowStyle } from './index.css';
+import { isFileExists } from './utils';
 
 export { IFileHandler, IIPFSData };
 
@@ -1254,6 +1255,36 @@ export class ScomStorage extends Module {
         this.pnlUpload.appendChild(this.uploadModal);
         this.uploadModal.mulitiple = this.uploadMultiple;
         this.uploadModal.isBrowseButtonShown = true;
+    }
+
+    async uploadFiles(files: UploadRawFile[]) {
+        let result: { fileName: string, path: string }[] = [];
+        try {
+            for (const file of files) {
+                let filePath = file.path;
+                const { isExists, newFilePath } = await isFileExists(this.manager, filePath);
+                if (isExists) {
+                    filePath = newFilePath;
+                }
+                const data = await this.manager.addFile(filePath, file);
+                result.push({
+                    fileName: file.name,
+                    path: data.file.name
+                })
+            }
+            await this.manager.applyUpdates();
+            const rootNode = await this.manager.getRootNode();
+            const path = `${this.transportEndpoint}/ipfs/${rootNode.cid}`;
+            result = result.map(v => {
+                return {
+                    ...v,
+                    path: `${path}/${v.path}`
+                }
+            })
+        } catch (error) {
+            console.log('uploadFiles', error);
+        }
+        return result;
     }
 
     private handleBack() {
