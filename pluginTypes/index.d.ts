@@ -709,7 +709,6 @@ declare module "@scom/scom-storage" {
         private onFilesUploaded;
         private handleUploadButtonClick;
         private onOpenUploadModal;
-        private onShowActions;
         private initModalActions;
         private onActiveChange;
         private onActionButton;

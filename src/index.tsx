@@ -17,7 +17,6 @@ import {
     Modal,
     VStack,
     Container,
-    CodeEditor,
     moment,
     Icon
 } from '@ijstech/components';
@@ -530,7 +529,7 @@ export class ScomStorage extends Module {
             } else {
                 this.uploadModal.manager = this.manager;
             }
-            this.uploadModal.show(this.isAssetRootNode ? `/_assets/uploads_${ moment(new Date()).format('YYYYMMDD')}` : '');
+            this.uploadModal.show(this.isAssetRootNode ? `/_assets/uploads_${moment(new Date()).format('YYYYMMDD')}` : '');
         }
         this.rootCid = this.currentCid = rootNode?.cid;
         this.readOnly = !this.rootCid || (!this.isModal && !this.isUploadModal && (cid && cid !== this.rootCid));
@@ -777,18 +776,11 @@ export class ScomStorage extends Module {
         modal.refresh();
     }
 
-    private onShowActions(top: number, left: number) {
-        const mdWrapper = this.mdActions.querySelector('.modal-wrapper') as HTMLElement;
-        mdWrapper.style.top = `${top}px`;
-        mdWrapper.style.left = `${left}px`;
-        this.mdActions.visible = true;
-    }
-
     private async initModalActions() {
         this.mdActions = await Modal.create({
             visible: false,
             showBackdrop: false,
-            minWidth: '7rem',
+            minWidth: '8rem',
             height: 'auto',
             popupPlacement: 'bottomRight'
         });
@@ -817,17 +809,13 @@ export class ScomStorage extends Module {
             if (ipfsData.type === 'folder') {
                 this.onOpenFolder(ipfsData, true);
             }
-            const { pageX, pageY, screenX } = event;
-            let x = pageX;
-            if (pageX + 112 >= screenX) {
-                x = screenX - 112;
-            }
+            this.mdActions.parent = this.currentItem;
             const isFile = ipfsData.type === 'file';
             const firstChild = this.mdActions.item?.children[0] as Control;
             if (firstChild) {
                 firstChild.visible = !isFile;
             }
-            this.onShowActions(pageY + 5, x);
+            this.mdActions.visible = true;
         }
     }
 
@@ -1224,7 +1212,7 @@ export class ScomStorage extends Module {
         this.currentFile = null;
         if (this.onCancel) this.onCancel();
     }
-    
+
     private renderUploadModal() {
         if (!this.uploadModal) {
             this.uploadModal = new ScomIPFSUploadModal();
