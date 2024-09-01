@@ -3,15 +3,12 @@ import {
     ControlElement,
     customElements,
     Button,
-    Icon,
     Image,
     Label,
     Module,
     Panel,
     Styles,
     Upload,
-    application,
-    Modal,
     VStack,
     Container,
     HStack,
@@ -67,11 +64,6 @@ interface ICidInfo {
     type?: 'dir' | 'file';
 };
 
-interface IUploadItem {
-    cid: ICidInfo,
-    data?: File | string
-};
-
 type UploadedCallback = (target: ScomIPFSUploadModal, rootCid: string, filePaths: string[]) => void;
 
 interface ScomIPFSUploadModalElement extends ControlElement {
@@ -113,7 +105,6 @@ export class ScomIPFSUploadModal extends Module {
     private lblDrag: Label;
     private pnlBrowse: StackLayout;
     private pnlStatusFilter: Panel;
-    private pnlFilterBar: Panel;
     private pnlFilterActions: Panel;
     private pnlFileList: VStack;
     private btnUpload: Button;
@@ -574,51 +565,6 @@ export class ScomIPFSUploadModal extends Module {
         this.refresh();
     }
 
-    private getDirItems(cidItem: ICidInfo, result?: ICidInfo[]): ICidInfo[] {
-        result = result || [];
-        if (cidItem.type == 'dir') {
-            let items: ICidInfo[] = [];
-            if (cidItem.links) {
-                for (let i = 0; i < cidItem.links?.length; i++) {
-                    let item = cidItem.links[i];
-                    if (item.type == 'dir') this.getDirItems(item, result);
-                    items.push({
-                        cid: item.cid,
-                        name: item.name,
-                        size: item.size,
-                        type: item.type,
-                    });
-                }
-            }
-            result.push({
-                cid: cidItem.cid,
-                name: cidItem.name,
-                size: cidItem.size,
-                type: 'dir',
-                links: items,
-            });
-        }
-        return result;
-    }
-
-    private async getNewName(parentNode: any, fileName: string) {
-        const arr = fileName.split('.');
-        let newName = arr.slice(0, -1).join('.');
-        let ext = arr[arr.length - 1];
-        while (await parentNode.findItem(`${newName}.${ext}`)) {
-            const regex = /\((\d+)\)$/;
-            const matches = newName.match(regex);
-            if (matches) {
-                const lastNumber = parseInt(matches[1]);
-                const updatedString = newName.replace(/\((\d+)\)$/, '');
-                newName = `${updatedString}(${lastNumber + 1})`;
-            } else {
-                newName = `${newName}(1)`;
-            }
-        }
-        return `${newName}.${ext}`;
-    }
-
     private async onUpload() {
         return new Promise(async (resolve, reject) => {
             if (!this.fileListData.length || !this.manager) reject();
@@ -670,18 +616,28 @@ export class ScomIPFSUploadModal extends Module {
                 let rootNode = await this.manager.getRootNode();
 
                 if (this.onUploaded) this.onUploaded(this, rootNode.cid, filePaths);
-
-                this.renderFilterBar();
-                this.renderFileList();
-                this.renderPagination();
-                this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : "Confirm";
-                this.btnUpload.enabled = true;
-                this.btnBrowseFile.enabled = true;
-                this.fileUploader.enabled = true;
-                this.refresh();
             } catch (err) {
-                console.log('Error! ', err);
+                console.log('onUpload ', err);
+                if (this.fileListData && this.fileListData.length) {
+                    this.fileListData = this.fileListData.map(f => {
+                        if ([FILE_STATUS.LISTED, FILE_STATUS.UPLOADING].includes(f.status)) {
+                            return {
+                                ...f,
+                                status: FILE_STATUS.FAILED
+                            }
+                        }
+                        return f;
+                    })
+                }
             }
+            this.renderFilterBar();
+            this.renderFileList();
+            this.renderPagination();
+            this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : 'Confirm';
+            this.btnUpload.enabled = true;
+            this.btnBrowseFile.enabled = true;
+            this.fileUploader.enabled = true;
+            this.refresh();
         })
     }
 
@@ -775,7 +731,7 @@ export class ScomIPFSUploadModal extends Module {
                         ></i-button>
                     </i-stack>
                     <i-panel id="pnlStatusFilter" class="status-filter" visible={false}>
-                        <i-panel id="pnlFilterBar" class="filter-bar">
+                        <i-panel class="filter-bar">
                             {
                                 BUTTON_FILTERS.map(v => <i-button
                                     id={v.id}
