@@ -924,7 +924,6 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
     ];
     const ITEMS_PER_PAGE = 5;
     ;
-    ;
     let ScomIPFSUploadModal = class ScomIPFSUploadModal extends components_7.Module {
         constructor(parent, options) {
             super(parent, options);
@@ -1251,51 +1250,6 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             }
             this.refresh();
         }
-        getDirItems(cidItem, result) {
-            result = result || [];
-            if (cidItem.type == 'dir') {
-                let items = [];
-                if (cidItem.links) {
-                    for (let i = 0; i < cidItem.links?.length; i++) {
-                        let item = cidItem.links[i];
-                        if (item.type == 'dir')
-                            this.getDirItems(item, result);
-                        items.push({
-                            cid: item.cid,
-                            name: item.name,
-                            size: item.size,
-                            type: item.type,
-                        });
-                    }
-                }
-                result.push({
-                    cid: cidItem.cid,
-                    name: cidItem.name,
-                    size: cidItem.size,
-                    type: 'dir',
-                    links: items,
-                });
-            }
-            return result;
-        }
-        async getNewName(parentNode, fileName) {
-            const arr = fileName.split('.');
-            let newName = arr.slice(0, -1).join('.');
-            let ext = arr[arr.length - 1];
-            while (await parentNode.findItem(`${newName}.${ext}`)) {
-                const regex = /\((\d+)\)$/;
-                const matches = newName.match(regex);
-                if (matches) {
-                    const lastNumber = parseInt(matches[1]);
-                    const updatedString = newName.replace(/\((\d+)\)$/, '');
-                    newName = `${updatedString}(${lastNumber + 1})`;
-                }
-                else {
-                    newName = `${newName}(1)`;
-                }
-            }
-            return `${newName}.${ext}`;
-        }
         async onUpload() {
             return new Promise(async (resolve, reject) => {
                 if (!this.fileListData.length || !this.manager)
@@ -1429,7 +1383,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                         this.$render("i-label", { class: "label", caption: "Or" }),
                         this.$render("i-button", { id: "btnBrowseFile", caption: "Browse File", boxShadow: "none", background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, onClick: this.browseFile })),
                     this.$render("i-panel", { id: "pnlStatusFilter", class: "status-filter", visible: false },
-                        this.$render("i-panel", { id: "pnlFilterBar", class: "filter-bar" }, BUTTON_FILTERS.map(v => this.$render("i-button", { id: v.id, class: `filter-btn ${v.status === FILE_STATUS.LISTED ? 'filter-btn-active' : ''}`, caption: `${v.caption} (0)`, onClick: () => this.onChangeCurrentFilterStatus(v.status) }))),
+                        this.$render("i-panel", { class: "filter-bar" }, BUTTON_FILTERS.map(v => this.$render("i-button", { id: v.id, class: `filter-btn ${v.status === FILE_STATUS.LISTED ? 'filter-btn-active' : ''}`, caption: `${v.caption} (0)`, onClick: () => this.onChangeCurrentFilterStatus(v.status) }))),
                         this.$render("i-panel", { id: "pnlFilterActions", class: "filter-actions", margin: { left: 'auto' } })),
                     this.$render("i-vstack", { id: "pnlFileList", class: "filelist", gap: "0.5rem" }),
                     this.$render("i-panel", { id: "pnlPagination", class: "pagination" }),
@@ -1499,12 +1453,82 @@ define("@scom/scom-storage/components/loadingSpinner.tsx", ["require", "exports"
     ], LoadingSpinner);
     exports.LoadingSpinner = LoadingSpinner;
 });
-define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/components/loadingSpinner.tsx", "@scom/scom-storage/data.ts"], function (require, exports, components_9, utils_2, index_css_4, loadingSpinner_1, data_2) {
+define("@scom/scom-storage/components/codeEditor.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts"], function (require, exports, components_9, data_2) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ScomIPFSCodeEditor = void 0;
+    let ScomIPFSCodeEditor = class ScomIPFSCodeEditor extends components_9.Module {
+        constructor(parent, options) {
+            super(parent, options);
+            this._data = {
+                url: '',
+                path: '',
+                content: ''
+            };
+        }
+        static async create(options, parent) {
+            let self = new this(parent, options);
+            await self.ready();
+            return self;
+        }
+        get url() {
+            return this._data.url ?? '';
+        }
+        set url(value) {
+            this._data.url = value ?? '';
+        }
+        get content() {
+            return this._data.content ?? '';
+        }
+        set content(value) {
+            this._data.content = value ?? '';
+        }
+        get path() {
+            return this._data.path ?? '';
+        }
+        set path(value) {
+            this._data.path = value ?? '';
+        }
+        get value() {
+            return this.codeEditor?.value || '';
+        }
+        async setData(value) {
+            this._data = value;
+            await this.renderUI();
+        }
+        onHide() {
+        }
+        async renderUI() {
+            const content = this.content || await (0, data_2.getFileContent)(this.url);
+            await this.codeEditor.loadContent(content, 'json', this.path);
+        }
+        handleEditorChanged(target, event) {
+            if (typeof this.onChange === 'function')
+                this.onChange(target, event);
+        }
+        init() {
+            super.init();
+            const url = this.getAttribute('url', true);
+            const content = this.getAttribute('content', true);
+            const path = this.getAttribute('path', true);
+            if (url || content)
+                this.setData({ url, content, path });
+        }
+        render() {
+            return (this.$render("i-code-editor", { id: "codeEditor", width: '100%', height: '100%', onChange: this.handleEditorChanged }));
+        }
+    };
+    ScomIPFSCodeEditor = __decorate([
+        (0, components_9.customElements)('i-scom-ipfs--code-editor')
+    ], ScomIPFSCodeEditor);
+    exports.ScomIPFSCodeEditor = ScomIPFSCodeEditor;
+});
+define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/components/loadingSpinner.tsx", "@scom/scom-storage/data.ts"], function (require, exports, components_10, utils_2, index_css_4, loadingSpinner_1, data_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSEditor = void 0;
-    const Theme = components_9.Styles.Theme.ThemeVars;
-    let ScomIPFSEditor = class ScomIPFSEditor extends components_9.Module {
+    const Theme = components_10.Styles.Theme.ThemeVars;
+    let ScomIPFSEditor = class ScomIPFSEditor extends components_10.Module {
         constructor(parent, options) {
             super(parent, options);
             this._data = {
@@ -1568,9 +1592,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             this.height = '100%';
             const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
             const mediaUrl = `${config.transportEndpoint}/ipfs/${parentCid}/${path}`;
-            const ext = file.name.split('.').pop();
-            const isWidget = path.includes('scconfig.json');
-            const newType = isWidget ? 'widget' : ext === 'md' ? 'md' : 'designer';
+            const newType = this.getEditorType(file.name);
             const isTypeChanged = this.type !== newType;
             this._data = {
                 url: mediaUrl,
@@ -1586,16 +1608,34 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             if (this.editorEl)
                 this.editorEl.onHide();
         }
+        getEditorType(name) {
+            const ext = name.split('.').pop().toLowerCase();
+            const extMap = {
+                'md': 'md',
+                'json': 'code'
+            };
+            const isWidget = this.filePath.includes('scconfig.json');
+            return isWidget ? 'widget' : extMap[ext] || 'designer';
+        }
         async renderUI(isTypeChanged) {
             this.showLoadingSpinner();
-            const content = await (0, data_2.getFileContent)(this.url);
+            const content = await (0, data_3.getFileContent)(this.url);
             if (!this.editorEl || isTypeChanged) {
-                let moduleData = this.type === 'md' ?
-                    this.createEditorElement(content) :
-                    this.type === 'widget' ?
-                        this.createPackageBuilderElement(this._data?.config || {}) :
-                        this.createDesignerElement(this.url);
-                this.editorEl = await (0, utils_2.getEmbedElement)(moduleData, this.pnlEditor);
+                if (this.type === 'code') {
+                    this.pnlEditor.clearInnerHTML();
+                    this.editorEl = this.createElement('i-scom-ipfs--code-editor', this.pnlEditor);
+                    this.editorEl.width = '100%';
+                    this.editorEl.height = '100%';
+                    await this.editorEl.setData({ content, url: this.url, path: this.filePath });
+                }
+                else {
+                    let moduleData = this.type === 'md' ?
+                        this.createEditorElement(content) :
+                        this.type === 'widget' ?
+                            this.createPackageBuilderElement(this._data?.config || {}) :
+                            this.createDesignerElement(this.url);
+                    this.editorEl = await (0, utils_2.getEmbedElement)(moduleData, this.pnlEditor);
+                }
                 this.initialContent = this.editorEl.value || '';
                 if (this.type === 'widget') {
                     this.editorEl.onClosed = () => {
@@ -1613,9 +1653,14 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             }
             else {
                 this.initialContent = '';
-                const value = this.type === 'md' ? content : this.type === 'widget' ? '' : { url: this.url };
-                if (this.editorEl?.setValue)
-                    this.editorEl.setValue(value);
+                if (this.type === 'code') {
+                    await this.editorEl.setData({ content, url: this.url, path: this.filePath });
+                }
+                else {
+                    const value = this.type === 'md' ? content : this.type === 'widget' ? '' : { url: this.url };
+                    if (this.editorEl?.setValue)
+                        this.editorEl.setValue(value);
+                }
             }
             this.btnActions.visible = this.type !== 'widget';
             this.pnlEditor.padding = this.type === 'widget' ? { left: 0, right: 0 } : { left: '1rem', right: '1rem' };
@@ -1730,16 +1775,16 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
         }
     };
     ScomIPFSEditor = __decorate([
-        (0, components_9.customElements)('i-scom-ipfs--editor')
+        (0, components_10.customElements)('i-scom-ipfs--editor')
     ], ScomIPFSEditor);
     exports.ScomIPFSEditor = ScomIPFSEditor;
 });
-define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/loadingSpinner.tsx"], function (require, exports, components_10, index_css_5, data_3, utils_3, loadingSpinner_2) {
+define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/loadingSpinner.tsx"], function (require, exports, components_11, index_css_5, data_4, utils_3, loadingSpinner_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSPreview = void 0;
-    const Theme = components_10.Styles.Theme.ThemeVars;
-    let ScomIPFSPreview = class ScomIPFSPreview extends components_10.Module {
+    const Theme = components_11.Styles.Theme.ThemeVars;
+    let ScomIPFSPreview = class ScomIPFSPreview extends components_11.Module {
         constructor(parent, options) {
             super(parent, options);
             this._data = {
@@ -1764,6 +1809,10 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 'video': {
                     fileLimit: 100 * 1024,
                     extensions: ['mp4', 'webm', 'mov']
+                },
+                'json': {
+                    fileLimit: 5 * 1024 * 1024,
+                    extensions: ['json']
                 }
             };
             this.closePreview = this.closePreview.bind(this);
@@ -1834,9 +1883,9 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
         }
         renderFileInfo() {
             this.lblName.caption = this._data?.name || '';
-            this.lblSize.caption = (0, data_3.formatBytes)(this._data?.size || 0);
+            this.lblSize.caption = (0, data_4.formatBytes)(this._data?.size || 0);
             if (this._data?.cid) {
-                this.lblCid.caption = components_10.FormatUtils.truncateWalletAddress(this._data.cid);
+                this.lblCid.caption = components_11.FormatUtils.truncateWalletAddress(this._data.cid);
             }
         }
         async previewFile(usePath) {
@@ -1894,6 +1943,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 mediaUrl = `${this.transportEndpoint}/ipfs/${parentCid}/${newPath}`;
             }
             this.currentUrl = mediaUrl;
+            this.pnlEdit.visible = ext === 'md' || ext === 'tsx' || ext === 'json' || path.includes('scconfig.json');
             switch (fileType) {
                 case 'image':
                     moduleData = this.createImageElement(mediaUrl);
@@ -1906,7 +1956,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                     moduleData = this.createVideoElement(mediaUrl);
                     break;
                 default:
-                    const result = await (0, data_3.getFileContent)(mediaUrl);
+                    const result = await (0, data_4.getFileContent)(mediaUrl);
                     if (!result)
                         return null;
                     if (ext === 'md') {
@@ -1917,7 +1967,6 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                     }
                     break;
             }
-            this.pnlEdit.visible = ext === 'md' || ext === 'tsx' || path.includes('scconfig.json');
             return moduleData;
         }
         appendLabel(text) {
@@ -2033,11 +2082,9 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 this.previewerPanel.visible = false;
                 if (this.onOpenEditor)
                     this.onOpenEditor();
-                const ext = (this._data.name || '').split('.').pop().toLowerCase();
                 this.editor.filePath = this._data?.path || '';
-                const isWidget = this.editor.filePath.includes('scconfig.json');
                 await this.editor.setData({
-                    type: isWidget ? 'widget' : ext === 'md' ? 'md' : 'designer',
+                    type: this.getEditorType(),
                     isFullScreen: true,
                     url: this.currentUrl,
                     parentCid: this.parentCid,
@@ -2046,6 +2093,15 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             }
             catch { }
             this.hideLoadingSpinner();
+        }
+        getEditorType() {
+            const ext = (this._data.name || '').split('.').pop().toLowerCase();
+            const extMap = {
+                'md': 'md',
+                'json': 'code'
+            };
+            const isWidget = this.editor.filePath.includes('scconfig.json');
+            return isWidget ? 'widget' : extMap[ext] || 'designer';
         }
         closeEditor() {
             this.editorPanel.visible = false;
@@ -2061,7 +2117,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
         }
         async onCopyCid() {
             try {
-                await components_10.application.copyToClipboard(this._data.cid);
+                await components_11.application.copyToClipboard(this._data.cid);
                 this.imgCopy.name = "check";
                 this.imgCopy.fill = Theme.colors.success.main;
                 if (this.copyTimer)
@@ -2118,26 +2174,27 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
         }
     };
     ScomIPFSPreview = __decorate([
-        (0, components_10.customElements)('i-scom-ipfs--preview')
+        (0, components_11.customElements)('i-scom-ipfs--preview')
     ], ScomIPFSPreview);
     exports.ScomIPFSPreview = ScomIPFSPreview;
 });
-define("@scom/scom-storage/components/index.ts", ["require", "exports", "@scom/scom-storage/components/home.tsx", "@scom/scom-storage/components/path.tsx", "@scom/scom-storage/components/uploadModal.tsx", "@scom/scom-storage/components/editor.tsx", "@scom/scom-storage/components/preview.tsx", "@scom/scom-storage/components/loadingSpinner.tsx"], function (require, exports, home_1, path_1, uploadModal_1, editor_1, preview_1, loadingSpinner_3) {
+define("@scom/scom-storage/components/index.ts", ["require", "exports", "@scom/scom-storage/components/home.tsx", "@scom/scom-storage/components/path.tsx", "@scom/scom-storage/components/uploadModal.tsx", "@scom/scom-storage/components/editor.tsx", "@scom/scom-storage/components/codeEditor.tsx", "@scom/scom-storage/components/preview.tsx", "@scom/scom-storage/components/loadingSpinner.tsx"], function (require, exports, home_1, path_1, uploadModal_1, editor_1, codeEditor_1, preview_1, loadingSpinner_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.LoadingSpinner = exports.ScomIPFSPreview = exports.ScomIPFSEditor = exports.ScomIPFSUploadModal = exports.ScomIPFSPath = exports.ScomIPFSMobileHome = void 0;
+    exports.LoadingSpinner = exports.ScomIPFSPreview = exports.ScomIPFSCodeEditor = exports.ScomIPFSEditor = exports.ScomIPFSUploadModal = exports.ScomIPFSPath = exports.ScomIPFSMobileHome = void 0;
     Object.defineProperty(exports, "ScomIPFSMobileHome", { enumerable: true, get: function () { return home_1.ScomIPFSMobileHome; } });
     Object.defineProperty(exports, "ScomIPFSPath", { enumerable: true, get: function () { return path_1.ScomIPFSPath; } });
     Object.defineProperty(exports, "ScomIPFSUploadModal", { enumerable: true, get: function () { return uploadModal_1.ScomIPFSUploadModal; } });
     Object.defineProperty(exports, "ScomIPFSEditor", { enumerable: true, get: function () { return editor_1.ScomIPFSEditor; } });
+    Object.defineProperty(exports, "ScomIPFSCodeEditor", { enumerable: true, get: function () { return codeEditor_1.ScomIPFSCodeEditor; } });
     Object.defineProperty(exports, "ScomIPFSPreview", { enumerable: true, get: function () { return preview_1.ScomIPFSPreview; } });
     Object.defineProperty(exports, "LoadingSpinner", { enumerable: true, get: function () { return loadingSpinner_3.LoadingSpinner; } });
 });
-define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_11) {
+define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_12) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.selectedRowStyle = exports.dragAreaStyle = exports.previewModalStyle = exports.iconButtonStyled = exports.defaultColors = void 0;
-    const Theme = components_11.Styles.Theme.ThemeVars;
+    const Theme = components_12.Styles.Theme.ThemeVars;
     exports.defaultColors = {
         light: {
             primaryColor: '#3f51b5',
@@ -2170,7 +2227,7 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
             selectedBackground: '#0b3a53'
         }
     };
-    exports.default = components_11.Styles.style({
+    exports.default = components_12.Styles.style({
         $nest: {
             '.storage-meter-uploaded': {
                 backgroundSize: '410%',
@@ -2213,7 +2270,7 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
             }
         }
     });
-    exports.iconButtonStyled = components_11.Styles.style({
+    exports.iconButtonStyled = components_12.Styles.style({
         fontSize: '0.75rem',
         justifyContent: 'start',
         padding: '4px 8px',
@@ -2224,18 +2281,18 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
             }
         }
     });
-    exports.previewModalStyle = components_11.Styles.style({
+    exports.previewModalStyle = components_12.Styles.style({
         $nest: {
             '.i-modal_header': {
                 padding: '1rem'
             }
         }
     });
-    exports.dragAreaStyle = components_11.Styles.style({
+    exports.dragAreaStyle = components_12.Styles.style({
         border: `2px solid ${Theme.colors.info.dark}`,
         opacity: 0.7
     });
-    exports.selectedRowStyle = components_11.Styles.style({
+    exports.selectedRowStyle = components_12.Styles.style({
         $nest: {
             '& > .i-table-cell': {
                 background: `${Theme.action.focusBackground} !important`
@@ -2243,13 +2300,13 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
         }
     });
 });
-define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts", "@scom/scom-storage/utils.ts"], function (require, exports, components_12, data_4, index_1, file_1, index_css_6, utils_4) {
+define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts", "@scom/scom-storage/utils.ts"], function (require, exports, components_13, data_5, index_1, file_1, index_css_6, utils_4) {
     "use strict";
     var ScomStorage_1;
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomStorage = void 0;
-    const Theme = components_12.Styles.Theme.ThemeVars;
-    let ScomStorage = ScomStorage_1 = class ScomStorage extends components_12.Module {
+    const Theme = components_13.Styles.Theme.ThemeVars;
+    let ScomStorage = ScomStorage_1 = class ScomStorage extends components_13.Module {
         static getInstance() {
             if (!ScomStorage_1.instance) {
                 ScomStorage_1.instance = new ScomStorage_1();
@@ -2308,7 +2365,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     title: 'Size',
                     fieldName: 'size',
                     onRenderCell: (source, columnData, rowData) => {
-                        return (0, data_4.formatBytes)(columnData);
+                        return (0, data_5.formatBytes)(columnData);
                     },
                 },
                 {
@@ -2392,7 +2449,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         setConfig(config) {
             this._data = config;
             this._signer = config.signer;
-            this.manager = new components_12.IPFS.FileManager({
+            this.manager = new components_13.IPFS.FileManager({
                 endpoint: this._data.transportEndpoint,
                 signer: this._signer
             });
@@ -2404,7 +2461,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             const editor = new index_1.ScomIPFSEditor();
             this.registerEditor("md", editor);
             this.registerEditor("tsx", editor);
-            this.registerEditor(/(yml|yaml|json|js|s?css|ts)/i, new file_1.Editor());
+            this.registerEditor('json', editor);
+            this.registerEditor(/(yml|yaml|js|s?css|ts)/i, new file_1.Editor());
             this.registerEditor(/(mp4|webm|mov|m3u8|jpeg|jpg|png|gif|bmp|svg)$/i, new index_1.ScomIPFSPreview());
         }
         registerEditor(fileType, editor) {
@@ -2653,7 +2711,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 else {
                     this.uploadModal.manager = this.manager;
                 }
-                this.uploadModal.show(this.isAssetRootNode ? `/_assets/uploads_${(0, components_12.moment)(new Date()).format('YYYYMMDD')}` : '');
+                this.uploadModal.show(this.isAssetRootNode ? `/_assets/uploads_${(0, components_13.moment)(new Date()).format('YYYYMMDD')}` : '');
             }
             this.rootCid = this.currentCid = rootNode?.cid;
             this.readOnly = !this.rootCid || (!this.isModal && !this.isUploadModal && (cid && cid !== this.rootCid));
@@ -2688,7 +2746,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             if (!ipfsData)
                 return;
             const parentNode = (({ links, ...o }) => o)(ipfsData);
-            parentNode.name = parentNode.name ? parentNode.name : components_12.FormatUtils.truncateWalletAddress(parentNode.cid);
+            parentNode.name = parentNode.name ? parentNode.name : components_13.FormatUtils.truncateWalletAddress(parentNode.cid);
             parentNode.path = parentNode.path || '';
             parentNode.root = true;
             if (ipfsData.links?.length) {
@@ -2899,14 +2957,14 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             modal.refresh();
         }
         async initModalActions() {
-            this.mdActions = await components_12.Modal.create({
+            this.mdActions = await components_13.Modal.create({
                 visible: false,
                 showBackdrop: false,
                 minWidth: '8rem',
                 height: 'auto',
                 popupPlacement: 'bottomRight'
             });
-            const itemActions = new components_12.VStack(undefined, { gap: 8, border: { radius: 8 } });
+            const itemActions = new components_13.VStack(undefined, { gap: 8, border: { radius: 8 } });
             itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'folder-plus', width: 12, height: 12 }, caption: "New folder", class: index_css_6.iconButtonStyled, onClick: () => this.onAddNewFolder() }));
             itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'edit', width: 12, height: 12 }, caption: "Rename", class: index_css_6.iconButtonStyled, onClick: () => this.onRenameFolder() }));
             itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'trash', width: 12, height: 12 }, caption: "Delete", class: index_css_6.iconButtonStyled, onClick: () => this.onDeleteFolder() }));
@@ -3193,7 +3251,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 const rowData = tableColumn?.rowData;
                 if (rowData?.type === 'dir') {
                     folder.path = rowData.path;
-                    folder.name = rowData.name || components_12.FormatUtils.truncateWalletAddress(rowData.cid);
+                    folder.name = rowData.name || components_13.FormatUtils.truncateWalletAddress(rowData.cid);
                 }
             }
             if (!folder.path) {
@@ -3279,7 +3337,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     reading--;
                     const rawFile = file;
                     rawFile.path = entry.fullPath;
-                    rawFile.cid = await components_12.IPFS.hashFile(file);
+                    rawFile.cid = await components_13.IPFS.hashFile(file);
                     contents.push(rawFile);
                     if (reading === 0) {
                         resolve(contents);
@@ -3413,7 +3471,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.isFileShown = this.getAttribute('isFileShown', true);
             this.classList.add(index_css_6.default);
             this.setTag(index_css_6.defaultColors);
-            this.manager = new components_12.IPFS.FileManager({
+            this.manager = new components_13.IPFS.FileManager({
                 endpoint: transportEndpoint,
                 signer: signer
             });
@@ -3509,7 +3567,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
     };
     ScomStorage = ScomStorage_1 = __decorate([
-        (0, components_12.customElements)('i-scom-storage')
+        (0, components_13.customElements)('i-scom-storage')
     ], ScomStorage);
     exports.ScomStorage = ScomStorage;
 });

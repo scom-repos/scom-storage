@@ -278,7 +278,8 @@ export class ScomStorage extends Module {
         const editor = new ScomIPFSEditor()
         this.registerEditor("md", editor);
         this.registerEditor("tsx", editor);
-        this.registerEditor(/(yml|yaml|json|js|s?css|ts)/i, new Editor());
+        this.registerEditor('json', editor);
+        this.registerEditor(/(yml|yaml|js|s?css|ts)/i, new Editor());
         this.registerEditor(/(mp4|webm|mov|m3u8|jpeg|jpg|png|gif|bmp|svg)$/i, new ScomIPFSPreview());
     }
 

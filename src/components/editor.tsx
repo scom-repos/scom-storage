@@ -16,6 +16,7 @@ import { IFileHandler } from '../file';
 import { EditorType, IEditor, IIPFSData, IStorageConfig } from '../interface';
 import { LoadingSpinner } from './loadingSpinner';
 import { getFileContent } from '../data';
+import { ScomIPFSCodeEditor } from './codeEditor';
 const Theme = Styles.Theme.ThemeVars
 
 type onChangedCallback = (filePath?: string, content?: string) => void
@@ -116,9 +117,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     this.height = '100%'
     const path = file.path.startsWith('/') ? file.path.slice(1) : file.path;
     const mediaUrl = `${config.transportEndpoint}/ipfs/${parentCid}/${path}`;
-    const ext = file.name.split('.').pop();
-    const isWidget = path.includes('scconfig.json');
-    const newType = isWidget ? 'widget' : ext === 'md' ? 'md' : 'designer';
+    const newType = this.getEditorType(file.name);
     const isTypeChanged = this.type !== newType;
     this._data = {
       url: mediaUrl,
@@ -135,16 +134,35 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     if (this.editorEl) this.editorEl.onHide();
   }
 
+  private getEditorType(name: string) {
+    const ext = name.split('.').pop().toLowerCase();
+    const extMap = {
+      'md': 'md',
+      'json': 'code'
+    }
+    const isWidget = this.filePath.includes('scconfig.json');
+    return isWidget ? 'widget' : extMap[ext] || 'designer';
+  }
+
   private async renderUI(isTypeChanged?: boolean) {
     this.showLoadingSpinner();
     const content = await getFileContent(this.url);
     if (!this.editorEl || isTypeChanged) {
-      let moduleData = this.type === 'md' ?
+      if (this.type === 'code') {
+        this.pnlEditor.clearInnerHTML();
+        this.editorEl = this.createElement('i-scom-ipfs--code-editor', this.pnlEditor) as ScomIPFSCodeEditor;
+        this.editorEl.width = '100%';
+        this.editorEl.height = '100%';
+        await this.editorEl.setData({ content, url: this.url, path: this.filePath });
+      } else {
+        let moduleData = this.type === 'md' ?
         this.createEditorElement(content) :
         this.type === 'widget' ?
           this.createPackageBuilderElement(this._data?.config || {}) :
           this.createDesignerElement(this.url);
-      this.editorEl = await getEmbedElement(moduleData, this.pnlEditor);
+        this.editorEl = await getEmbedElement(moduleData, this.pnlEditor);
+      }
+
       this.initialContent = this.editorEl.value || '';
 
       if (this.type === 'widget') {
@@ -159,8 +177,12 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
       }
     } else {
       this.initialContent = '';
-      const value = this.type === 'md' ? content : this.type === 'widget' ? '' : { url: this.url };
-      if(this.editorEl?.setValue) this.editorEl.setValue(value);
+      if (this.type === 'code') {
+        await this.editorEl.setData({ content, url: this.url, path: this.filePath });
+      } else {
+        const value = this.type === 'md' ? content : this.type === 'widget' ? '' : { url: this.url };
+        if(this.editorEl?.setValue) this.editorEl.setValue(value);
+      }
     }
     this.btnActions.visible = this.type !== 'widget';
     this.pnlEditor.padding = this.type === 'widget' ? {left: 0, right: 0} : {left: '1rem', right: '1rem'};
@@ -177,7 +199,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     if (this.initialContent) {
       this.btnSave.enabled = value !== this.initialContent;
     } else {
-      this.initialContent = value
+      this.initialContent = value;
     }
   }
 
