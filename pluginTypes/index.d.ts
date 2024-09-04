@@ -27,7 +27,7 @@ declare module "@scom/scom-storage/interface.ts" {
         config?: IStorageConfig;
         parentCid?: string;
     }
-    export type EditorType = 'md' | 'designer' | 'widget';
+    export type EditorType = 'md' | 'designer' | 'widget' | 'code';
     export interface IEditor {
         url?: string;
         type?: EditorType;
@@ -269,7 +269,6 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         private lblDrag;
         private pnlBrowse;
         private pnlStatusFilter;
-        private pnlFilterBar;
         private pnlFilterActions;
         private pnlFileList;
         private btnUpload;
@@ -323,8 +322,6 @@ declare module "@scom/scom-storage/components/uploadModal.tsx" {
         private updateBtnCaption;
         private onRemove;
         private onRemoveFile;
-        private getDirItems;
-        private getNewName;
         private onUpload;
         private browseFile;
         reset(): void;
@@ -368,6 +365,49 @@ declare module "@scom/scom-storage/components/loadingSpinner.tsx" {
         private pnlLoadingSpinner;
         init(): Promise<void>;
         setProperties(value: ILoadingSpinnerProps): void;
+        render(): any;
+    }
+}
+/// <amd-module name="@scom/scom-storage/components/codeEditor.tsx" />
+declare module "@scom/scom-storage/components/codeEditor.tsx" {
+    import { Container, ControlElement, Module, CodeEditor } from '@ijstech/components';
+    type onChangedCallback = (target: CodeEditor, event: Event) => void;
+    interface ICodeEditor {
+        url?: string;
+        content?: string;
+        path?: string;
+    }
+    interface ScomIPFSCodecodeEditorement extends ControlElement {
+        url?: string;
+        content?: string;
+        path?: string;
+        onChange?: onChangedCallback;
+    }
+    global {
+        namespace JSX {
+            interface IntrinsicElements {
+                ['i-scom-ipfs--code-editor']: ScomIPFSCodecodeEditorement;
+            }
+        }
+    }
+    export class ScomIPFSCodeEditor extends Module {
+        private codeEditor;
+        private _data;
+        onChange: onChangedCallback;
+        constructor(parent?: Container, options?: any);
+        static create(options?: ScomIPFSCodecodeEditorement, parent?: Container): Promise<ScomIPFSCodeEditor>;
+        get url(): string;
+        set url(value: string);
+        get content(): string;
+        set content(value: string);
+        get path(): string;
+        set path(value: string);
+        get value(): string;
+        setData(value: ICodeEditor): Promise<void>;
+        onHide(): void;
+        private renderUI;
+        private handleEditorChanged;
+        init(): void;
         render(): any;
     }
 }
@@ -415,6 +455,7 @@ declare module "@scom/scom-storage/components/editor.tsx" {
         setData(value: IEditor): Promise<void>;
         openFile(file: IIPFSData, parentCid: string, parent: Control, config: IStorageConfig): Promise<void>;
         onHide(): void;
+        private getEditorType;
         private renderUI;
         private handleEditorChanged;
         private createEditorElement;
@@ -497,6 +538,7 @@ declare module "@scom/scom-storage/components/preview.tsx" {
         private closePreview;
         private downloadFile;
         private onEditClicked;
+        private getEditorType;
         private closeEditor;
         private onChanged;
         private onCopyCid;
@@ -510,6 +552,7 @@ declare module "@scom/scom-storage/components/index.ts" {
     export { ScomIPFSPath } from "@scom/scom-storage/components/path.tsx";
     export { ScomIPFSUploadModal } from "@scom/scom-storage/components/uploadModal.tsx";
     export { ScomIPFSEditor } from "@scom/scom-storage/components/editor.tsx";
+    export { ScomIPFSCodeEditor } from "@scom/scom-storage/components/codeEditor.tsx";
     export { ScomIPFSPreview } from "@scom/scom-storage/components/preview.tsx";
     export { LoadingSpinner } from "@scom/scom-storage/components/loadingSpinner.tsx";
 }

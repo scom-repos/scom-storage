@@ -30,7 +30,7 @@ export interface IPreview extends IIPFSData {
     parentCid?: string;
 }
 
-export type EditorType = 'md' | 'designer' | 'widget';
+export type EditorType = 'md' | 'designer' | 'widget' | 'code';
 
 export interface IEditor {
     url?: string;

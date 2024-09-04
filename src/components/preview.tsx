@@ -15,7 +15,7 @@ import { customLinkStyle } from './index.css'
 import { formatBytes, getFileContent } from '../data'
 import { getEmbedElement } from '../utils';
 import { IIPFSData, IPreview, IStorageConfig } from '../interface';
-import { ScomIPFSEditor,  } from './editor';
+import { ScomIPFSEditor } from './editor';
 import { LoadingSpinner } from './loadingSpinner';
 import { IFileHandler } from '../file';
 const Theme = Styles.Theme.ThemeVars
@@ -77,6 +77,10 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
     'video': {
       fileLimit: 100 * 1024,
       extensions: ['mp4', 'webm', 'mov']
+    },
+    'json': {
+      fileLimit: 5 * 1024 * 1024,
+      extensions: ['json']
     }
   }
   onClose: () => void
@@ -224,6 +228,7 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
       mediaUrl = `${this.transportEndpoint}/ipfs/${parentCid}/${newPath}`;
     }
     this.currentUrl = mediaUrl;
+    this.pnlEdit.visible = ext === 'md' || ext === 'tsx' || ext === 'json' || path.includes('scconfig.json');
     switch (fileType) {
       case 'image':
         moduleData = this.createImageElement(mediaUrl)
@@ -245,7 +250,6 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
         }
         break;
     }
-    this.pnlEdit.visible = ext === 'md' || ext === 'tsx' || path.includes('scconfig.json');
     return moduleData
   }
 
@@ -380,11 +384,9 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
       this.editorPanel.visible = true;
       this.previewerPanel.visible = false;
       if (this.onOpenEditor) this.onOpenEditor();
-      const ext = (this._data.name || '').split('.').pop().toLowerCase();
       this.editor.filePath = this._data?.path || '';
-      const isWidget = this.editor.filePath.includes('scconfig.json');
       await this.editor.setData({
-        type: isWidget ? 'widget' : ext === 'md' ? 'md' : 'designer',
+        type: this.getEditorType(),
         isFullScreen: true,
         url: this.currentUrl,
         parentCid: this.parentCid,
@@ -392,6 +394,16 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
       });
     } catch {}
     this.hideLoadingSpinner();
+  }
+
+  private getEditorType() {
+    const ext = (this._data.name || '').split('.').pop().toLowerCase();
+    const extMap = {
+      'md': 'md',
+      'json': 'code'
+    }
+    const isWidget = this.editor.filePath.includes('scconfig.json');
+    return isWidget ? 'widget' : extMap[ext] || 'designer';
   }
 
   private closeEditor() {
