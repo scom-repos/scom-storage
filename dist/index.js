@@ -3371,7 +3371,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             const currentCid = window.matchMedia('(max-width: 767px)').matches ? this.mobileHome.currentCid : this.currentCid;
             if (!currentCid || !this.currentFile)
                 return;
-            const url = `${this.transportEndpoint}/ipfs/${currentCid}/${this.currentFile}`;
+            const url = `${this.transportEndpoint}/ipfs/${currentCid}/${encodeURIComponent(this.currentFile)}`;
             this.currentFile = null;
             if (this.onOpen)
                 this.onOpen(url);
@@ -3398,7 +3398,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                         else {
                             parentCid = rootCid;
                         }
-                        const url = `${this.transportEndpoint}/ipfs/${parentCid}/${fileName}`;
+                        const url = `${this.transportEndpoint}/ipfs/${parentCid}/${encodeURIComponent(fileName)}`;
                         this.onUploadedFile(url);
                     }
                 };
