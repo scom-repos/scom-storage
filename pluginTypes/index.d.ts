@@ -368,49 +368,6 @@ declare module "@scom/scom-storage/components/loadingSpinner.tsx" {
         render(): any;
     }
 }
-/// <amd-module name="@scom/scom-storage/components/codeEditor.tsx" />
-declare module "@scom/scom-storage/components/codeEditor.tsx" {
-    import { Container, ControlElement, Module, CodeEditor } from '@ijstech/components';
-    type onChangedCallback = (target: CodeEditor, event: Event) => void;
-    interface ICodeEditor {
-        url?: string;
-        content?: string;
-        path?: string;
-    }
-    interface ScomIPFSCodecodeEditorement extends ControlElement {
-        url?: string;
-        content?: string;
-        path?: string;
-        onChange?: onChangedCallback;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-scom-ipfs--code-editor']: ScomIPFSCodecodeEditorement;
-            }
-        }
-    }
-    export class ScomIPFSCodeEditor extends Module {
-        private codeEditor;
-        private _data;
-        onChange: onChangedCallback;
-        constructor(parent?: Container, options?: any);
-        static create(options?: ScomIPFSCodecodeEditorement, parent?: Container): Promise<ScomIPFSCodeEditor>;
-        get url(): string;
-        set url(value: string);
-        get content(): string;
-        set content(value: string);
-        get path(): string;
-        set path(value: string);
-        get value(): string;
-        setData(value: ICodeEditor): Promise<void>;
-        onHide(): void;
-        private renderUI;
-        private handleEditorChanged;
-        init(): void;
-        render(): any;
-    }
-}
 /// <amd-module name="@scom/scom-storage/components/editor.tsx" />
 declare module "@scom/scom-storage/components/editor.tsx" {
     import { Container, ControlElement, Module, Control } from '@ijstech/components';
@@ -552,7 +509,6 @@ declare module "@scom/scom-storage/components/index.ts" {
     export { ScomIPFSPath } from "@scom/scom-storage/components/path.tsx";
     export { ScomIPFSUploadModal } from "@scom/scom-storage/components/uploadModal.tsx";
     export { ScomIPFSEditor } from "@scom/scom-storage/components/editor.tsx";
-    export { ScomIPFSCodeEditor } from "@scom/scom-storage/components/codeEditor.tsx";
     export { ScomIPFSPreview } from "@scom/scom-storage/components/preview.tsx";
     export { LoadingSpinner } from "@scom/scom-storage/components/loadingSpinner.tsx";
 }

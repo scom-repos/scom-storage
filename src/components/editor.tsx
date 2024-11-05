@@ -16,7 +16,7 @@ import { IFileHandler } from '../file';
 import { EditorType, IEditor, IIPFSData, IStorageConfig } from '../interface';
 import { LoadingSpinner } from './loadingSpinner';
 import { getFileContent } from '../data';
-import { ScomIPFSCodeEditor } from './codeEditor';
+
 const Theme = Styles.Theme.ThemeVars
 
 type onChangedCallback = (filePath?: string, content?: string) => void
@@ -150,10 +150,10 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     if (!this.editorEl || isTypeChanged) {
       if (this.type === 'code') {
         this.pnlEditor.clearInnerHTML();
-        this.editorEl = this.createElement('i-scom-ipfs--code-editor', this.pnlEditor) as ScomIPFSCodeEditor;
+        this.editorEl = this.createElement('i-scom-code-editor', this.pnlEditor) as any;
         this.editorEl.width = '100%';
         this.editorEl.height = '100%';
-        await this.editorEl.setData({ content, url: this.url, path: this.filePath });
+        await this.editorEl.loadContent(content, 'json', this.filePath);
       } else {
         let moduleData = this.type === 'md' ?
         this.createEditorElement(content) :
@@ -178,7 +178,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
     } else {
       this.initialContent = '';
       if (this.type === 'code') {
-        await this.editorEl.setData({ content, url: this.url, path: this.filePath });
+        await this.editorEl.loadContent(content, 'json', this.filePath);
       } else {
         const value = this.type === 'md' ? content : this.type === 'widget' ? '' : { url: this.url };
         if(this.editorEl?.setValue) this.editorEl.setValue(value);
@@ -259,7 +259,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
 
   private onCancel() {
     document.body.style.overflow = 'hidden auto';
-    if (this.editorEl) this.editorEl.onHide();
+    if (this.editorEl && 'onHide' in this.editorEl) this.editorEl.onHide();
     if (this.btnSave.enabled) {
       this.mdAlert.showModal()
     } else {
