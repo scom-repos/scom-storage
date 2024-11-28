@@ -15,6 +15,8 @@ import { formatBytes } from '../data';
 import { FileType, IIPFSData } from '../interface';
 import { ScomIPFSPath } from './path';
 import { backgroundStyle, transitionStyle } from './index.css';
+import translations from '../translations.json';
+
 const Theme = Styles.Theme.ThemeVars;
 
 type callbackType = (data: IIPFSData) => Promise<IIPFSData>;
@@ -146,7 +148,7 @@ export class ScomIPFSFolder extends Module {
         this.pnlSearch.width = '2rem';
         this.pnlPath.visible = true;
         this.inputSearch.value = '';
-        const defaultTitle = this.type === 'dir' ? 'All Folders' : 'All Files';
+        const defaultTitle = this.type === 'dir' ? '$all_folders' : '$all_files';
         this.lblTitle.caption = this.title || defaultTitle;
         this.renderList();
     }
@@ -285,6 +287,7 @@ export class ScomIPFSFolder extends Module {
     }
 
     init() {
+        this.i18n.init({...translations});
         super.init();
         this.onFetchData = this.getAttribute('onFetchData', true) || this.onFetchData;
         this.onClose = this.getAttribute('onClose', true) || this.onClose;
@@ -368,7 +371,7 @@ export class ScomIPFSFolder extends Module {
                 >
                     <i-label
                         id="lblTitle"
-                        caption='All Folders'
+                        caption='$all_folders'
                         font={{ weight: 600, size: '1.25rem', color: Theme.colors.primary.contrastText }}
                     ></i-label>
                 </i-panel>
@@ -393,7 +396,7 @@ export class ScomIPFSFolder extends Module {
                             cursor='pointer'
                             onClick={this.onSort}
                         >
-                            <i-label caption='Name' font={{ size: '0.875rem', weight: 500 }}></i-label>
+                            <i-label caption='$name' font={{ size: '0.875rem', weight: 500 }}></i-label>
                             <i-icon id="iconSort" name="angle-up" width={'0.75rem'} height={'0.75rem'} fill={Theme.text.primary}></i-icon>
                         </i-hstack>
                         <i-panel

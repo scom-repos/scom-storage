@@ -376,7 +376,95 @@ define("@scom/scom-storage/components/path.tsx", ["require", "exports", "@ijstec
     ], ScomIPFSPath);
     exports.ScomIPFSPath = ScomIPFSPath;
 });
-define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.css.ts"], function (require, exports, components_4, data_1, index_css_2) {
+define("@scom/scom-storage/translations.json.ts", ["require", "exports"], function (require, exports) {
+    "use strict";
+    Object.defineProperty(exports, "__esModule", { value: true });
+    ///<amd-module name='@scom/scom-storage/translations.json.ts'/> 
+    exports.default = {
+        "en": {
+            "new_folder": "New folder",
+            "rename": "Rename",
+            "delete": "Delete",
+            "edit": "Edit",
+            "select": "Select",
+            "back_to_upload": "Back to Upload",
+            "upload_files_to": "Upload files to",
+            "cancel": "Cancel",
+            "save": "Save",
+            "do_you_want_to_discard_changes": "Do you want to discard changes?",
+            "upload": "Upload",
+            "all_folders": "All Folders",
+            "all_files": "All Files",
+            "name": "Name",
+            "type": "Type",
+            "size": "Size",
+            "file_preview": "File Preview",
+            "all": "All",
+            "success": "Success",
+            "fail": "Fail",
+            "failed": "Failed",
+            "uploading": "Uploading",
+            "confirm": "Confirm",
+            "processing_your_files": "Processing your files...",
+            "drag_and_drop_your_files_here": "Drag and drop your files here",
+            "or": "Or",
+            "browse_file": "Browse File",
+            "clear": "Clear",
+            "uploading_file_to_ipfs": "Uploading file(s) to IPFS...",
+            "upload_file_to_ipfs": "Upload file to IPFS",
+            "choose_file_to_upload_to_ipfs_network": "Choose file to upload to IPFS network",
+            "upload_more_files": "Upload more files",
+            "public_data": "Public Data",
+            "all_data_uploaded_to_ipfs_explorer_is_available_to_anyone_who_requests_it_using_the_correct_cid_do_not_store_any_private_or_sensitive_information_in_an_unencrypted_form_using_ipfs_explorer": "All data uploaded to IPFS Explorer is available to anyone who requests it using the correct CID. Do not store any private or sensitive information in an unencrypted form using IPFS Explorer.",
+            "permanent_data": "Permanent Data",
+            "deleting_files_from_the_ipfs_explorer_sites_files_page_will_remove_them_from_the_file_listing_for_your_account_but_that_doesnt_prevent_nodes_on_the_decentralized_storage_network_from_retaining_copies_of_the_data_indefinitely_do_not_use_ipfs_explorer_for_data_that_may_need_to_be_permanently_deleted_in_the_future": "Deleting files from the IPFS Explorer site’s Files page will remove them from the file listing for your account, but that doesn’t prevent nodes on the decentralized storage network from retaining copies of the data indefinitely. Do not use IPFS Explorer for data that may need to be permanently deleted in the future.",
+            "select_files": "Select Files",
+            "completed": "Completed"
+        },
+        "zh-hant": {},
+        "vi": {
+            "new_folder": "Tạo thư mục mới",
+            "rename": "Đổi tên",
+            "delete": "Xóa",
+            "edit": "Chỉnh sửa",
+            "select": "Chọn",
+            "back_to_upload": "Quay lại Tải lên",
+            "upload_files_to": "Tải tệp vào",
+            "cancel": "Hủy",
+            "save": "Lưu",
+            "do_you_want_to_discard_changes": "Bạn có muốn hủy thay đổi không?",
+            "upload": "Tải lên",
+            "all_folders": "Tất cả thư mục",
+            "all_files": "Tất cả tệp",
+            "name": "Tên",
+            "type": "Loại",
+            "size": "Kích thước",
+            "file_preview": "Xem trước tệp",
+            "all": "Tất cả",
+            "success": "Thành công",
+            "fail": "Thất bại",
+            "failed": "Thất bại",
+            "uploading": "Đang tải lên",
+            "confirm": "Xác nhận",
+            "processing_your_files": "Đang xử lý tệp của bạn...",
+            "drag_and_drop_your_files_here": "Kéo và thả tệp của bạn vào đây",
+            "or": "Hoặc",
+            "browse_file": "Duyệt tệp",
+            "clear": "Xóa",
+            "uploading_file_to_ipfs": "Đang tải tệp vào IPFS...",
+            "upload_file_to_ipfs": "Tải tệp vào IPFS",
+            "choose_file_to_upload_to_ipfs_network": "Chọn tệp để tải vào mạng IPFS",
+            "upload_more_files": "Tải nhiều tệp",
+            "public_data": "Dữ liệu công khai",
+            "all_data_uploaded_to_ipfs_explorer_is_available_to_anyone_who_requests_it_using_the_correct_cid_do_not_store_any_private_or_sensitive_information_in_an_unencrypted_form_using_ipfs_explorer": "Tất cả dữ liệu được tải lên IPFS Explorer đều có sẵn cho bất kỳ ai yêu cầu bằng cách sử dụng CID chính xác. Không lưu trữ bất kỳ thông tin cá nhân hoặc nhạy cảm nào dưới dạng không mã hóa khi sử dụng IPFS Explorer.",
+            "permanent_data": "Dữ liệu cố định",
+            "deleting_files_from_the_ipfs_explorer_sites_files_page_will_remove_them_from_the_file_listing_for_your_account_but_that_doesnt_prevent_nodes_on_the_decentralized_storage_network_from_retaining_copies_of_the_data_indefinitely_do_not_use_ipfs_explorer_for_data_that_may_need_to_be_permanently_deleted_in_the_future": "Xóa tệp từ trang Tệp của trang web IPFS Explorer sẽ xóa chúng khỏi danh sách tệp trong tài khoản của bạn, nhưng điều đó không ngăn các nút trên mạng lưu trữ phi tập trung giữ lại các bản sao dữ liệu vô thời hạn. Không sử dụng IPFS Explorer cho dữ liệu có thể cần bị xóa vĩnh viễn trong tương lai",
+            "select_files": "Chọn tệp",
+            "completed": "Hoàn thành"
+        }
+    };
+});
+define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/translations.json.ts"], function (require, exports, components_4, data_1, index_css_2, translations_json_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSFolder = void 0;
@@ -460,7 +548,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             this.pnlSearch.width = '2rem';
             this.pnlPath.visible = true;
             this.inputSearch.value = '';
-            const defaultTitle = this.type === 'dir' ? 'All Folders' : 'All Files';
+            const defaultTitle = this.type === 'dir' ? '$all_folders' : '$all_files';
             this.lblTitle.caption = this.title || defaultTitle;
             this.renderList();
         }
@@ -574,6 +662,7 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
             }, 500);
         }
         init() {
+            this.i18n.init({ ...translations_json_1.default });
             super.init();
             this.onFetchData = this.getAttribute('onFetchData', true) || this.onFetchData;
             this.onClose = this.getAttribute('onClose', true) || this.onClose;
@@ -591,11 +680,11 @@ define("@scom/scom-storage/components/folder.tsx", ["require", "exports", "@ijst
                         this.$render("i-input", { id: "inputSearch", height: "100%", width: '0px', background: { color: 'transparent' }, border: { style: 'none', radius: '0.5rem 0 0.5rem 0' }, onKeyUp: this.onHandleSearch, margin: { right: '2rem' } }),
                         this.$render("i-icon", { width: '2rem', height: '2rem', position: 'absolute', right: '0px', name: "search", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, stack: { grow: '0', shrink: '0' }, fill: Theme.colors.primary.contrastText, onClick: this.onSearchClicked }))),
                 this.$render("i-panel", { padding: { left: '1.25rem', right: '1.25rem' }, visible: false },
-                    this.$render("i-label", { id: "lblTitle", caption: 'All Folders', font: { weight: 600, size: '1.25rem', color: Theme.colors.primary.contrastText } })),
+                    this.$render("i-label", { id: "lblTitle", caption: '$all_folders', font: { weight: 600, size: '1.25rem', color: Theme.colors.primary.contrastText } })),
                 this.$render("i-vstack", { width: '100%', border: { radius: '1.25rem 1.25rem 0 0' }, padding: { top: '1.25rem', bottom: '1.25rem', left: '1.25rem', right: '1.25rem' }, margin: { bottom: '-1px' }, background: { color: Theme.background.main }, stack: { grow: '1' } },
                     this.$render("i-hstack", { verticalAlignment: 'center', horizontalAlignment: 'space-between', gap: '0.5rem', margin: { bottom: '1rem' } },
                         this.$render("i-hstack", { verticalAlignment: 'center', horizontalAlignment: 'space-between', gap: "0.5rem", cursor: 'pointer', onClick: this.onSort },
-                            this.$render("i-label", { caption: 'Name', font: { size: '0.875rem', weight: 500 } }),
+                            this.$render("i-label", { caption: '$name', font: { size: '0.875rem', weight: 500 } }),
                             this.$render("i-icon", { id: "iconSort", name: "angle-up", width: '0.75rem', height: '0.75rem', fill: Theme.text.primary })),
                         this.$render("i-panel", { cursor: 'pointer', opacity: 0.5, hover: { opacity: 1 }, onClick: this.onChangeMode },
                             this.$render("i-icon", { id: "iconList", name: "th-large", width: '1rem', height: '1rem', fill: Theme.text.primary }))),
@@ -888,7 +977,7 @@ define("@scom/scom-storage/utils.ts", ["require", "exports", "@ijstech/component
     };
     exports.isFileExists = isFileExists;
 });
-define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/assets.ts", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/utils.ts"], function (require, exports, components_7, assets_2, index_css_3, utils_1) {
+define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/assets.ts", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/utils.ts", "@scom/scom-storage/translations.json.ts"], function (require, exports, components_7, assets_2, index_css_3, utils_1, translations_json_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSUploadModal = void 0;
@@ -903,22 +992,22 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
     const BUTTON_FILTERS = [
         {
             id: 'btnAll',
-            caption: 'All',
+            caption: '$all',
             status: FILE_STATUS.LISTED
         },
         {
             id: 'btnSuccess',
-            caption: 'Success',
+            caption: '$success',
             status: FILE_STATUS.SUCCESS
         },
         {
             id: 'btnFail',
-            caption: 'Fail',
+            caption: '$fail',
             status: FILE_STATUS.FAILED
         },
         {
             id: 'btnUploading',
-            caption: 'Uploading',
+            caption: '$uploading',
             status: FILE_STATUS.UPLOADING
         }
     ];
@@ -971,9 +1060,9 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             this.updateUI();
         }
         updateUI() {
-            this.lblTitle.caption = this.mulitiple ? "Upload more files" : "Upload file";
+            this.lblTitle.caption = this.mulitiple ? "$upload_more_files" : "$upload_file_to_ipfs";
             this.fileUploader.multiple = this.mulitiple;
-            this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : "Confirm";
+            this.btnUpload.caption = this.mulitiple ? "$upload_file_to_ipfs" : "$confirm";
             this.pnlPagination.visible = this.mulitiple;
         }
         show(path, files) {
@@ -995,7 +1084,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             console.log('onBeforeDrop: ', target);
             this.fileUploader.enabled = false;
             this.imgFile.url = assets_2.default.fullPath("img/loading-icon.svg");
-            this.lblDrag.caption = 'Processing your files...';
+            this.lblDrag.caption = '$processing_your_files';
         }
         onBeforeUpload(target, file) {
             return new Promise((resolve, reject) => {
@@ -1029,10 +1118,10 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                     btn.classList.remove('filter-btn-active');
                 }
                 if (v.status === FILE_STATUS.LISTED) {
-                    btn.caption = `All (${this.fileListData.length})`;
+                    btn.caption = `${this.i18n.get('$all')} (${this.fileListData.length})`;
                 }
                 else {
-                    btn.caption = `${v.caption} (${this.fileListData.filter((i) => i.status === v.status).length})`;
+                    btn.caption = `${this.i18n.get(v.caption)} (${this.fileListData.filter((i) => i.status === v.status).length})`;
                 }
             });
         }
@@ -1040,10 +1129,10 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             this.updateFilterBar();
             this.pnlFilterActions.clearInnerHTML();
             if (this.currentFilterStatus === FILE_STATUS.UPLOADING) {
-                this.pnlFilterActions.appendChild(this.$render("i-button", { caption: "Cancel", onClick: this.onCancel.bind(this) }));
+                this.pnlFilterActions.appendChild(this.$render("i-button", { caption: "$cancel", onClick: this.onCancel.bind(this) }));
             }
             else {
-                this.pnlFilterActions.appendChild(this.$render("i-button", { caption: "Clear", onClick: this.onClear.bind(this) }));
+                this.pnlFilterActions.appendChild(this.$render("i-button", { caption: "$clear", onClick: this.onClear.bind(this) }));
             }
         }
         async renderFileList() {
@@ -1085,15 +1174,15 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                     iconOptions.name = 'check';
                     iconOptions.background.color = Theme.colors.success.main;
                     iconOptions.visible = true;
-                    uploadStatus = 'Completed';
+                    uploadStatus = '$completed';
                     break;
                 case FILE_STATUS.FAILED:
                     iconOptions.name = 'times';
                     iconOptions.background.color = Theme.colors.error.main;
                     iconOptions.visible = true;
-                    uploadStatus = 'Failed';
+                    uploadStatus = '$failed';
                 case FILE_STATUS.UPLOADING:
-                    uploadStatus = 'Uploading';
+                    uploadStatus = '$uploading';
             }
             parent.appendChild(this.$render("i-hstack", { id: `status-${idx}`, verticalAlignment: "center", gap: "0.5rem" },
                 this.$render("i-label", { caption: uploadStatus }),
@@ -1236,7 +1325,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             });
         }
         updateBtnCaption() {
-            this.lblDrag.caption = this.isSmallWidth ? 'Select Files' : 'Drag and drop your files here';
+            this.lblDrag.caption = this.isSmallWidth ? '$select_files' : '$drag_and_drop_your_files_here';
         }
         onRemove(source, file) { }
         onRemoveFile(index) {
@@ -1254,7 +1343,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             return new Promise(async (resolve, reject) => {
                 if (!this.fileListData.length || !this.manager)
                     reject();
-                this.btnUpload.caption = 'Uploading file(s) to IPFS...';
+                this.btnUpload.caption = '$uploading_file_to_ipfs';
                 this.btnUpload.enabled = false;
                 this.isForcedCancelled = false;
                 this.btnBrowseFile.enabled = false;
@@ -1317,7 +1406,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                 this.renderFilterBar();
                 this.renderFileList();
                 this.renderPagination();
-                this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : 'Confirm';
+                this.btnUpload.caption = this.mulitiple ? '$upload_file_to_ipfs' : '$confirm';
                 this.btnUpload.enabled = true;
                 this.btnBrowseFile.enabled = true;
                 this.fileUploader.enabled = true;
@@ -1331,7 +1420,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
         reset() {
             this.pnlFileList.clearInnerHTML();
             this.pnlPagination.clearInnerHTML();
-            this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : "Confirm";
+            this.btnUpload.caption = this.mulitiple ? '$upload_file_to_ipfs' : "$confirm";
             this.btnUpload.enabled = true;
             this.btnBrowseFile.enabled = true;
             this.fileUploader.enabled = true;
@@ -1352,6 +1441,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
             }
         }
         async init() {
+            this.i18n.init({ ...translations_json_2.default });
             super.init();
             this.classList.add(index_css_3.uploadModalStyle);
             this.rootCid = this.getAttribute('rootCid', true);
@@ -1372,29 +1462,29 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                         }
                     }
                 ] },
-                this.$render("i-label", { id: "lblTitle", class: "heading", caption: "Upload more files" }),
-                this.$render("i-label", { class: "label", caption: "Choose file to upload to IPFS network" }),
+                this.$render("i-label", { id: "lblTitle", class: "heading", caption: "$upload_more_files" }),
+                this.$render("i-label", { class: "label", caption: "$choose_file_to_upload_to_ipfs_network" }),
                 this.$render("i-panel", { class: "file-uploader-dropzone", maxHeight: "calc(100% - 4.5rem)" },
                     this.$render("i-panel", { class: "droparea" },
                         this.$render("i-upload", { id: "fileUploader", multiple: true, draggable: true, onBeforeDrop: this.onBeforeDrop, onUploading: this.onBeforeUpload, onChanged: this.onChangeFile, onRemoved: this.onRemove }),
                         this.$render("i-image", { id: "imgFile", width: 60, height: 60, class: "icon", url: assets_2.default.fullPath('img/file-icon.png') }),
-                        this.$render("i-label", { id: "lblDrag", caption: "Drag and drop your files here" })),
+                        this.$render("i-label", { id: "lblDrag", caption: "$drag_and_drop_your_files_here" })),
                     this.$render("i-stack", { id: "pnlBrowse", direction: "vertical", alignItems: "center", justifyContent: "center", margin: { top: '-1rem' }, visible: false },
-                        this.$render("i-label", { class: "label", caption: "Or" }),
-                        this.$render("i-button", { id: "btnBrowseFile", caption: "Browse File", boxShadow: "none", background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, onClick: this.browseFile })),
+                        this.$render("i-label", { class: "label", caption: "$or" }),
+                        this.$render("i-button", { id: "btnBrowseFile", caption: "$browse_file", boxShadow: "none", background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, onClick: this.browseFile })),
                     this.$render("i-panel", { id: "pnlStatusFilter", class: "status-filter", visible: false },
                         this.$render("i-panel", { class: "filter-bar" }, BUTTON_FILTERS.map(v => this.$render("i-button", { id: v.id, class: `filter-btn ${v.status === FILE_STATUS.LISTED ? 'filter-btn-active' : ''}`, caption: `${v.caption} (0)`, onClick: () => this.onChangeCurrentFilterStatus(v.status) }))),
                         this.$render("i-panel", { id: "pnlFilterActions", class: "filter-actions", margin: { left: 'auto' } })),
                     this.$render("i-vstack", { id: "pnlFileList", class: "filelist", gap: "0.5rem" }),
                     this.$render("i-panel", { id: "pnlPagination", class: "pagination" }),
-                    this.$render("i-button", { id: "btnUpload", class: "upload-btn", caption: "Upload files to IPFS", boxShadow: "none", background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, visible: false, onClick: this.onUpload })),
+                    this.$render("i-button", { id: "btnUpload", class: "upload-btn", caption: "$upload_files_to_ipfs", boxShadow: "none", background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, visible: false, onClick: this.onUpload })),
                 this.$render("i-panel", { id: "pnlNote" },
                     this.$render("i-panel", { class: "note" },
-                        this.$render("i-label", { class: "head", caption: "Public Data" }),
-                        this.$render("i-label", { class: "desc", caption: "All data uploaded to IPFS Explorer is available to anyone who requests it using the correct CID. Do not store any private or sensitive information in an unencrypted form using IPFS Explorer." })),
+                        this.$render("i-label", { class: "head", caption: "$public_data" }),
+                        this.$render("i-label", { class: "desc", caption: "$all_data_uploaded_to_ipfs_explorer_is_available_to_anyone_who_requests_it_using_the_correct_cid_do_not_store_any_private_or_sensitive_information_in_an_unencrypted_form_using_ipfs_explorer" })),
                     this.$render("i-panel", { class: "note" },
-                        this.$render("i-label", { class: "head", caption: "Permanent Data" }),
-                        this.$render("i-label", { class: "desc", caption: "Deleting files from the IPFS Explorer site\u2019s Files page will remove them from the file listing for your account, but that doesn\u2019t prevent nodes on the decentralized storage network from retaining copies of the data indefinitely. Do not use IPFS Explorer for data that may need to be permanently deleted in the future." })))));
+                        this.$render("i-label", { class: "head", caption: "$permanent_data" }),
+                        this.$render("i-label", { class: "desc", caption: "$deleting_files_from_the_ipfs_explorer_sites_files_page_will_remove_them_from_the_file_listing_for_your_account_but_that_doesnt_prevent_nodes_on_the_decentralized_storage_network_from_retaining_copies_of_the_data_indefinitely_do_not_use_ipfs_explorer_for_data_that_may_need_to_be_permanently_deleted_in_the_future" })))));
         }
     };
     ScomIPFSUploadModal = __decorate([
@@ -1453,7 +1543,7 @@ define("@scom/scom-storage/components/loadingSpinner.tsx", ["require", "exports"
     ], LoadingSpinner);
     exports.LoadingSpinner = LoadingSpinner;
 });
-define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/components/loadingSpinner.tsx", "@scom/scom-storage/data.ts"], function (require, exports, components_9, utils_2, index_css_4, loadingSpinner_1, data_2) {
+define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/components/loadingSpinner.tsx", "@scom/scom-storage/data.ts", "@scom/scom-storage/translations.json.ts"], function (require, exports, components_9, utils_2, index_css_4, loadingSpinner_1, data_2, translations_json_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSEditor = void 0;
@@ -1686,6 +1776,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
                 this.onClose();
         }
         init() {
+            this.i18n.init({ ...translations_json_3.default });
             super.init();
             this.onClose = this.getAttribute('onClose', true) || this.onClose;
             this.onChanged = this.getAttribute('onChanged', true) || this.onChanged;
@@ -1696,12 +1787,12 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
         render() {
             return (this.$render("i-vstack", { maxHeight: '100%', width: '100%', height: `100%`, overflow: 'hidden', gap: "0.75rem" },
                 this.$render("i-hstack", { id: "btnActions", verticalAlignment: 'center', horizontalAlignment: 'end', width: '100%', stack: { shrink: '0' }, gap: "0.5rem", visible: false, padding: { left: '1rem', right: '1rem', top: '0.75rem' } },
-                    this.$render("i-button", { id: "btnCancel", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: 'transparent' }, font: { color: Theme.text.primary }, icon: { name: 'times', width: '0.875rem', height: '0.875rem', fill: Theme.text.primary }, caption: 'Cancel', onClick: this.onCancel }),
-                    this.$render("i-button", { id: "btnSave", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, icon: { name: 'save', width: '0.875rem', height: '0.875rem', fill: Theme.colors.primary.contrastText }, caption: 'Save', enabled: false, onClick: this.onSubmit })),
+                    this.$render("i-button", { id: "btnCancel", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: 'transparent' }, font: { color: Theme.text.primary }, icon: { name: 'times', width: '0.875rem', height: '0.875rem', fill: Theme.text.primary }, caption: '$cancel', onClick: this.onCancel }),
+                    this.$render("i-button", { id: "btnSave", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, icon: { name: 'save', width: '0.875rem', height: '0.875rem', fill: Theme.colors.primary.contrastText }, caption: '$save', enabled: false, onClick: this.onSubmit })),
                 this.$render("i-panel", { width: '100%', stack: { grow: '1' }, overflow: { y: 'auto', x: 'hidden' } },
                     this.$render("i-vstack", { id: "pnlLoading", visible: false }),
                     this.$render("i-vstack", { id: "pnlEditor", width: '100%', height: '100%', position: 'relative', padding: { left: '1rem', right: '1rem' }, class: index_css_4.addressPanelStyle })),
-                this.$render("i-alert", { id: "mdAlert", title: '', status: 'confirm', content: 'Do you want to discard changes?', onConfirm: this.onAlertConfirm, onClose: () => this.mdAlert.closeModal() })));
+                this.$render("i-alert", { id: "mdAlert", title: '', status: 'confirm', content: '$do_you_want_to_discard_changes', onConfirm: this.onAlertConfirm, onClose: () => this.mdAlert.closeModal() })));
         }
     };
     ScomIPFSEditor = __decorate([
@@ -1709,7 +1800,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
     ], ScomIPFSEditor);
     exports.ScomIPFSEditor = ScomIPFSEditor;
 });
-define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/loadingSpinner.tsx"], function (require, exports, components_10, index_css_5, data_3, utils_3, loadingSpinner_2) {
+define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/loadingSpinner.tsx", "@scom/scom-storage/translations.json.ts"], function (require, exports, components_10, index_css_5, data_3, utils_3, loadingSpinner_2, translations_json_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSPreview = void 0;
@@ -2060,6 +2151,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             catch { }
         }
         init() {
+            this.i18n.init({ ...translations_json_4.default });
             super.init();
             this.onClose = this.getAttribute('onClose', true) || this.onClose;
             this.onCloseEditor = this.getAttribute('onCloseEditor', true) || this.onCloseEditor;
@@ -2084,7 +2176,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                         ] },
                         this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
                             this.$render("i-icon", { name: "file-alt", width: '0.875rem', height: '0.875rem', stack: { shrink: '0' }, opacity: 0.7 }),
-                            this.$render("i-label", { caption: 'File Preview', font: { size: '1rem' } })),
+                            this.$render("i-label", { caption: "$file_preview", font: { size: '1rem' } })),
                         this.$render("i-icon", { id: "iconClose", name: "times", width: '0.875rem', height: '0.875rem', stack: { shrink: '0' }, opacity: 0.7, cursor: 'pointer', onClick: this.closePreview })),
                     this.$render("i-hstack", { id: "pnlEdit", verticalAlignment: 'center', horizontalAlignment: 'end', visible: false, padding: { top: '1rem' } },
                         this.$render("i-button", { padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, border: { radius: '0.25rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: 'transparent' }, icon: { name: 'pencil-alt', width: '1rem', height: '1rem', fill: Theme.text.primary }, onClick: this.onEditClicked })),
@@ -2122,7 +2214,7 @@ define("@scom/scom-storage/components/index.ts", ["require", "exports", "@scom/s
 define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_11) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.selectedRowStyle = exports.dragAreaStyle = exports.previewModalStyle = exports.iconButtonStyled = exports.defaultColors = void 0;
+    exports.customMDStyles = exports.selectedRowStyle = exports.dragAreaStyle = exports.previewModalStyle = exports.iconButtonStyled = exports.defaultColors = void 0;
     const Theme = components_11.Styles.Theme.ThemeVars;
     exports.defaultColors = {
         light: {
@@ -2228,8 +2320,12 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
             }
         }
     });
+    exports.customMDStyles = components_11.Styles.style({
+        position: 'fixed !important',
+        $nest: {}
+    });
 });
-define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts", "@scom/scom-storage/utils.ts"], function (require, exports, components_12, data_4, index_1, file_1, index_css_6, utils_4) {
+define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts", "@scom/scom-storage/utils.ts", "@scom/scom-storage/translations.json.ts"], function (require, exports, components_12, data_4, index_1, file_1, index_css_6, utils_4, translations_json_5) {
     "use strict";
     var ScomStorage_1;
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -2257,7 +2353,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     fieldName: 'checkbox'
                 },
                 {
-                    title: 'Name',
+                    title: '$name',
                     fieldName: 'name',
                     onRenderCell: (source, columnData, rowData) => {
                         switch (rowData.type) {
@@ -2277,7 +2373,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     },
                 },
                 {
-                    title: 'Type',
+                    title: '$type',
                     fieldName: 'type',
                     onRenderCell: (source, columnData, rowData) => {
                         switch (rowData.type) {
@@ -2291,7 +2387,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     },
                 },
                 {
-                    title: 'Size',
+                    title: '$size',
                     fieldName: 'size',
                     onRenderCell: (source, columnData, rowData) => {
                         return (0, data_4.formatBytes)(columnData);
@@ -2855,7 +2951,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 showBackdrop: true,
                 closeOnBackdropClick: false,
                 closeIcon: { name: 'times', fill: Theme.text.primary, position: 'absolute', top: '1rem', right: '1rem', zIndex: 2 },
-                zIndex: 1000,
+                zIndex: 9999,
                 padding: {},
                 maxHeight: '100vh',
                 overflow: { y: 'auto' },
@@ -2868,7 +2964,8 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                             maxHeight: '100vh'
                         }
                     }
-                ]
+                ],
+                class: index_css_6.customMDStyles
             });
             this.uploadModal.refresh = modal.refresh.bind(modal);
             if (window.matchMedia('(max-width: 767px)').matches) {
@@ -2894,9 +2991,9 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 popupPlacement: 'bottomRight'
             });
             const itemActions = new components_12.VStack(undefined, { gap: 8, border: { radius: 8 } });
-            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'folder-plus', width: 12, height: 12 }, caption: "New folder", class: index_css_6.iconButtonStyled, onClick: () => this.onAddNewFolder() }));
-            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'edit', width: 12, height: 12 }, caption: "Rename", class: index_css_6.iconButtonStyled, onClick: () => this.onRenameFolder() }));
-            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'trash', width: 12, height: 12 }, caption: "Delete", class: index_css_6.iconButtonStyled, onClick: () => this.onDeleteFolder() }));
+            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'folder-plus', width: 12, height: 12 }, caption: "$new_folder", class: index_css_6.iconButtonStyled, onClick: () => this.onAddNewFolder() }));
+            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'edit', width: 12, height: 12 }, caption: "$rename", class: index_css_6.iconButtonStyled, onClick: () => this.onRenameFolder() }));
+            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'trash', width: 12, height: 12 }, caption: "$delete", class: index_css_6.iconButtonStyled, onClick: () => this.onDeleteFolder() }));
             this.mdActions.item = itemActions;
             document.body.appendChild(this.mdActions);
         }
@@ -2998,7 +3095,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             else {
                 fileNode = await this.manager.getFileNode(this.currentItem.tag.path);
             }
-            const folderName = await this.getNewName(isRoot ? fileNode : fileNode.parent, 'New folder');
+            const folderName = await this.getNewName(isRoot ? fileNode : fileNode.parent, this.i18n.get('$new_folder'));
             await this.manager.addFolder(fileNode, folderName);
             await this.manager.applyUpdates();
             await this.onFilesUploaded();
@@ -3090,7 +3187,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     border: { radius: 0 },
                     overflow: 'auto',
                     class: index_css_6.previewModalStyle,
-                    title: 'File Preview',
+                    title: '$file_preview',
                     closeIcon: {
                         name: 'times',
                         width: '1rem', height: '1rem'
@@ -3382,6 +3479,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.iconBack.visible = false;
         }
         init() {
+            this.i18n.init({ ...translations_json_5.default });
             const transportEndpoint = this.getAttribute('transportEndpoint', true) || this._data?.transportEndpoint || window.location.origin;
             const signer = this.getAttribute('signer', true) || this._data?.signer || null;
             this._signer = signer;
@@ -3415,6 +3513,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.pnlFileTable.addEventListener('dragleave', this.handleOnDragLeave);
             this.pnlFileTable.addEventListener('drop', this.handleOnDrop);
             this.initModalActions();
+            this.fileTable.updateLocale(this.i18n);
         }
         render() {
             return (this.$render("i-vstack", { width: '100%', height: '100%', overflow: 'hidden' },
@@ -3472,7 +3571,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                                     cursor: 'pointer'
                                                 }, onCellClick: this.onCellClick, onDblClick: this.onCellDblClick })),
                                         this.$render("i-panel", { id: "pnlUploadTo", width: "fit-content", class: "text-center", padding: { top: '0.75rem', bottom: '0.75rem', left: '1.5rem', right: '1.5rem' }, margin: { left: 'auto', right: 'auto' }, border: { radius: 6 }, background: { color: '#0288d1' }, lineHeight: 1.5, position: "absolute", bottom: "1.5rem", left: 0, right: 0, visible: false },
-                                            this.$render("i-label", { caption: "Upload files to", font: { size: '15px', color: '#fff' } }),
+                                            this.$render("i-label", { caption: "$upload_files_to", font: { size: '15px', color: '#fff' } }),
                                             this.$render("i-hstack", { horizontalAlignment: "center", verticalAlignment: "center", gap: "0.375rem" },
                                                 this.$render("i-icon", { name: "folder", width: '0.875rem', height: '0.875rem', display: "inline-flex", fill: '#fff' }),
                                                 this.$render("i-label", { id: "lblDestinationFolder", font: { size: '15px', color: '#fff' } }))))),
@@ -3490,9 +3589,9 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                             }
                         ] })),
                 this.$render("i-hstack", { id: "pnlFooter", horizontalAlignment: 'end', gap: "0.75rem", stack: { shrink: '0' }, padding: { top: '1rem', bottom: '1rem' }, visible: false },
-                    this.$render("i-button", { id: "btnSubmit", height: '2.25rem', padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true, size: '1rem' }, border: { radius: '0.25rem' }, caption: "Select", onClick: this.onOpenHandler }),
-                    this.$render("i-button", { id: "btnBack", height: '2.25rem', padding: { left: '1rem', right: '1rem' }, background: { color: 'transparent' }, font: { color: Theme.colors.primary.main, bold: true, size: '1rem' }, border: { width: 1, style: 'solid', color: Theme.colors.primary.main, radius: '0.25rem' }, caption: "Back to Upload", visible: false, onClick: this.handleBack }),
-                    this.$render("i-button", { id: "btnCancel", height: '2.25rem', padding: { left: '1rem', right: '1rem' }, background: { color: 'transparent' }, font: { color: Theme.colors.primary.main, bold: true, size: '1rem' }, border: { radius: '0.25rem' }, caption: "Cancel", onClick: this.onCancelHandler }))));
+                    this.$render("i-button", { id: "btnSubmit", height: '2.25rem', padding: { left: '1rem', right: '1rem' }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText, bold: true, size: '1rem' }, border: { radius: '0.25rem' }, caption: "$select", onClick: this.onOpenHandler }),
+                    this.$render("i-button", { id: "btnBack", height: '2.25rem', padding: { left: '1rem', right: '1rem' }, background: { color: 'transparent' }, font: { color: Theme.colors.primary.main, bold: true, size: '1rem' }, border: { width: 1, style: 'solid', color: Theme.colors.primary.main, radius: '0.25rem' }, caption: "$back_to_upload", visible: false, onClick: this.handleBack }),
+                    this.$render("i-button", { id: "btnCancel", height: '2.25rem', padding: { left: '1rem', right: '1rem' }, background: { color: 'transparent' }, font: { color: Theme.colors.primary.main, bold: true, size: '1rem' }, border: { radius: '0.25rem' }, caption: "$cancel", onClick: this.onCancelHandler }))));
         }
     };
     ScomStorage = ScomStorage_1 = __decorate([

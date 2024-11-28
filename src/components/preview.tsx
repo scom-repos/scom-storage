@@ -18,6 +18,8 @@ import { IIPFSData, IPreview, IStorageConfig } from '../interface';
 import { ScomIPFSEditor } from './editor';
 import { LoadingSpinner } from './loadingSpinner';
 import { IFileHandler } from '../file';
+import translations from '../translations.json';
+
 const Theme = Styles.Theme.ThemeVars
 
 type fileChangedCallback = (filePath: string, content: string) => void
@@ -431,6 +433,7 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
   }
 
   init() {
+    this.i18n.init({...translations});
     super.init()
     this.onClose = this.getAttribute('onClose', true) || this.onClose
     this.onCloseEditor = this.getAttribute('onCloseEditor', true) || this.onCloseEditor
@@ -474,7 +477,7 @@ export class ScomIPFSPreview extends Module implements IFileHandler {
               gap="0.5rem"
             >
               <i-icon name="file-alt" width={'0.875rem'} height={'0.875rem'} stack={{ shrink: '0' }} opacity={0.7}></i-icon>
-              <i-label caption={'File Preview'} font={{ size: '1rem' }}></i-label>
+              <i-label caption="$file_preview" font={{ size: '1rem' }}></i-label>
             </i-hstack>
             <i-icon
               id="iconClose"

@@ -95,6 +95,93 @@ declare module "@scom/scom-storage/components/path.tsx" {
         render(): any;
     }
 }
+/// <amd-module name="@scom/scom-storage/translations.json.ts" />
+declare module "@scom/scom-storage/translations.json.ts" {
+    const _default_1: {
+        en: {
+            new_folder: string;
+            rename: string;
+            delete: string;
+            edit: string;
+            select: string;
+            back_to_upload: string;
+            upload_files_to: string;
+            cancel: string;
+            save: string;
+            do_you_want_to_discard_changes: string;
+            upload: string;
+            all_folders: string;
+            all_files: string;
+            name: string;
+            type: string;
+            size: string;
+            file_preview: string;
+            all: string;
+            success: string;
+            fail: string;
+            failed: string;
+            uploading: string;
+            confirm: string;
+            processing_your_files: string;
+            drag_and_drop_your_files_here: string;
+            or: string;
+            browse_file: string;
+            clear: string;
+            uploading_file_to_ipfs: string;
+            upload_file_to_ipfs: string;
+            choose_file_to_upload_to_ipfs_network: string;
+            upload_more_files: string;
+            public_data: string;
+            all_data_uploaded_to_ipfs_explorer_is_available_to_anyone_who_requests_it_using_the_correct_cid_do_not_store_any_private_or_sensitive_information_in_an_unencrypted_form_using_ipfs_explorer: string;
+            permanent_data: string;
+            deleting_files_from_the_ipfs_explorer_sites_files_page_will_remove_them_from_the_file_listing_for_your_account_but_that_doesnt_prevent_nodes_on_the_decentralized_storage_network_from_retaining_copies_of_the_data_indefinitely_do_not_use_ipfs_explorer_for_data_that_may_need_to_be_permanently_deleted_in_the_future: string;
+            select_files: string;
+            completed: string;
+        };
+        "zh-hant": {};
+        vi: {
+            new_folder: string;
+            rename: string;
+            delete: string;
+            edit: string;
+            select: string;
+            back_to_upload: string;
+            upload_files_to: string;
+            cancel: string;
+            save: string;
+            do_you_want_to_discard_changes: string;
+            upload: string;
+            all_folders: string;
+            all_files: string;
+            name: string;
+            type: string;
+            size: string;
+            file_preview: string;
+            all: string;
+            success: string;
+            fail: string;
+            failed: string;
+            uploading: string;
+            confirm: string;
+            processing_your_files: string;
+            drag_and_drop_your_files_here: string;
+            or: string;
+            browse_file: string;
+            clear: string;
+            uploading_file_to_ipfs: string;
+            upload_file_to_ipfs: string;
+            choose_file_to_upload_to_ipfs_network: string;
+            upload_more_files: string;
+            public_data: string;
+            all_data_uploaded_to_ipfs_explorer_is_available_to_anyone_who_requests_it_using_the_correct_cid_do_not_store_any_private_or_sensitive_information_in_an_unencrypted_form_using_ipfs_explorer: string;
+            permanent_data: string;
+            deleting_files_from_the_ipfs_explorer_sites_files_page_will_remove_them_from_the_file_listing_for_your_account_but_that_doesnt_prevent_nodes_on_the_decentralized_storage_network_from_retaining_copies_of_the_data_indefinitely_do_not_use_ipfs_explorer_for_data_that_may_need_to_be_permanently_deleted_in_the_future: string;
+            select_files: string;
+            completed: string;
+        };
+    };
+    export default _default_1;
+}
 /// <amd-module name="@scom/scom-storage/components/folder.tsx" />
 declare module "@scom/scom-storage/components/folder.tsx" {
     import { Container, ControlElement, Module } from '@ijstech/components';
@@ -546,12 +633,13 @@ declare module "@scom/scom-storage/index.css.ts" {
             selectedBackground: string;
         };
     };
-    const _default_1: string;
-    export default _default_1;
+    const _default_2: string;
+    export default _default_2;
     export const iconButtonStyled: string;
     export const previewModalStyle: string;
     export const dragAreaStyle: string;
     export const selectedRowStyle: string;
+    export const customMDStyles: string;
 }
 /// <amd-module name="@scom/scom-storage" />
 declare module "@scom/scom-storage" {

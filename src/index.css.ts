@@ -111,3 +111,9 @@ export const selectedRowStyle = Styles.style({
         }
     }
 })
+
+export const customMDStyles = Styles.style({
+    position: 'fixed !important' as any,
+    $nest: {
+    }
+})

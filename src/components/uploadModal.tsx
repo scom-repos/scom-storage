@@ -19,8 +19,7 @@ import {
 import assets from '../assets';
 import { uploadModalStyle } from './index.css';
 import { isFileExists } from '../utils';
-
-declare var require: any;
+import translations from '../translations.json';
 
 const Theme = Styles.Theme.ThemeVars;
 
@@ -34,22 +33,22 @@ enum FILE_STATUS {
 const BUTTON_FILTERS = [
     {
         id: 'btnAll',
-        caption: 'All',
+        caption: '$all',
         status: FILE_STATUS.LISTED
     },
     {
         id: 'btnSuccess',
-        caption: 'Success',
+        caption: '$success',
         status: FILE_STATUS.SUCCESS
     },
     {
         id: 'btnFail',
-        caption: 'Fail',
+        caption: '$fail',
         status: FILE_STATUS.FAILED
     },
     {
         id: 'btnUploading',
-        caption: 'Uploading',
+        caption: '$uploading',
         status: FILE_STATUS.UPLOADING
     }
 ]
@@ -177,9 +176,9 @@ export class ScomIPFSUploadModal extends Module {
     }
 
     private updateUI() {
-        this.lblTitle.caption = this.mulitiple ? "Upload more files" : "Upload file";
+        this.lblTitle.caption = this.mulitiple ? "$upload_more_files" : "$upload_file_to_ipfs";
         this.fileUploader.multiple = this.mulitiple;
-        this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : "Confirm";
+        this.btnUpload.caption = this.mulitiple ? "$upload_file_to_ipfs" : "$confirm";
         this.pnlPagination.visible = this.mulitiple;
     }
 
@@ -204,7 +203,7 @@ export class ScomIPFSUploadModal extends Module {
         console.log('onBeforeDrop: ', target);
         this.fileUploader.enabled = false;
         this.imgFile.url = assets.fullPath("img/loading-icon.svg");
-        this.lblDrag.caption = 'Processing your files...';
+        this.lblDrag.caption = '$processing_your_files';
     }
 
     private onBeforeUpload(target: Upload, file: File): Promise<boolean> {
@@ -242,9 +241,9 @@ export class ScomIPFSUploadModal extends Module {
                 btn.classList.remove('filter-btn-active');
             }
             if (v.status === FILE_STATUS.LISTED) {
-                btn.caption = `All (${this.fileListData.length})`;
+                btn.caption = `${this.i18n.get('$all')} (${this.fileListData.length})`;
             } else {
-                btn.caption = `${v.caption} (${this.fileListData.filter((i) => i.status === v.status).length})`;
+                btn.caption = `${this.i18n.get(v.caption)} (${this.fileListData.filter((i) => i.status === v.status).length})`;
             }
         });
     }
@@ -255,11 +254,11 @@ export class ScomIPFSUploadModal extends Module {
         this.pnlFilterActions.clearInnerHTML();
         if (this.currentFilterStatus === FILE_STATUS.UPLOADING) {
             this.pnlFilterActions.appendChild(
-                <i-button caption="Cancel" onClick={this.onCancel.bind(this)}></i-button>
+                <i-button caption="$cancel" onClick={this.onCancel.bind(this)}></i-button>
             );
         } else {
             this.pnlFilterActions.appendChild(
-                <i-button caption="Clear" onClick={this.onClear.bind(this)}></i-button>
+                <i-button caption="$clear" onClick={this.onClear.bind(this)}></i-button>
             );
         }
     }
@@ -360,15 +359,15 @@ export class ScomIPFSUploadModal extends Module {
                 iconOptions.name = 'check';
                 iconOptions.background.color = Theme.colors.success.main;
                 iconOptions.visible = true;
-                uploadStatus = 'Completed';
+                uploadStatus = '$completed';
                 break;
             case FILE_STATUS.FAILED:
                 iconOptions.name = 'times';
                 iconOptions.background.color = Theme.colors.error.main;
                 iconOptions.visible = true;
-                uploadStatus = 'Failed';
+                uploadStatus = '$failed';
             case FILE_STATUS.UPLOADING:
-                uploadStatus = 'Uploading';
+                uploadStatus = '$uploading';
         }
         parent.appendChild(
             <i-hstack id={`status-${idx}`} verticalAlignment="center" gap="0.5rem">
@@ -547,7 +546,7 @@ export class ScomIPFSUploadModal extends Module {
     }
 
     private updateBtnCaption() {
-        this.lblDrag.caption = this.isSmallWidth ? 'Select Files' : 'Drag and drop your files here';
+        this.lblDrag.caption = this.isSmallWidth ? '$select_files' : '$drag_and_drop_your_files_here';
     }
 
     private onRemove(source: Control, file?: File) { }
@@ -568,7 +567,7 @@ export class ScomIPFSUploadModal extends Module {
     private async onUpload() {
         return new Promise(async (resolve, reject) => {
             if (!this.fileListData.length || !this.manager) reject();
-            this.btnUpload.caption = 'Uploading file(s) to IPFS...';
+            this.btnUpload.caption = '$uploading_file_to_ipfs';
             this.btnUpload.enabled = false;
             this.isForcedCancelled = false;
             this.btnBrowseFile.enabled = false;
@@ -633,7 +632,7 @@ export class ScomIPFSUploadModal extends Module {
             this.renderFilterBar();
             this.renderFileList();
             this.renderPagination();
-            this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : 'Confirm';
+            this.btnUpload.caption = this.mulitiple ? '$upload_file_to_ipfs' : '$confirm';
             this.btnUpload.enabled = true;
             this.btnBrowseFile.enabled = true;
             this.fileUploader.enabled = true;
@@ -648,7 +647,7 @@ export class ScomIPFSUploadModal extends Module {
     reset() {
         this.pnlFileList.clearInnerHTML();
         this.pnlPagination.clearInnerHTML();
-        this.btnUpload.caption = this.mulitiple ? 'Upload file to IPFS' : "Confirm";
+        this.btnUpload.caption = this.mulitiple ? '$upload_file_to_ipfs' : "$confirm";
         this.btnUpload.enabled = true;
         this.btnBrowseFile.enabled = true;
         this.fileUploader.enabled = true;
@@ -670,6 +669,7 @@ export class ScomIPFSUploadModal extends Module {
     }
 
     async init() {
+        this.i18n.init({...translations});
         super.init();
         this.classList.add(uploadModalStyle);
         this.rootCid = this.getAttribute('rootCid', true);
@@ -696,8 +696,8 @@ export class ScomIPFSUploadModal extends Module {
                     }
                 ]}
             >
-                <i-label id="lblTitle" class="heading" caption="Upload more files"></i-label>
-                <i-label class="label" caption="Choose file to upload to IPFS network"></i-label>
+                <i-label id="lblTitle" class="heading" caption="$upload_more_files"></i-label>
+                <i-label class="label" caption="$choose_file_to_upload_to_ipfs_network"></i-label>
                 <i-panel class="file-uploader-dropzone" maxHeight="calc(100% - 4.5rem)">
                     <i-panel class="droparea">
                         <i-upload
@@ -716,13 +716,13 @@ export class ScomIPFSUploadModal extends Module {
                             class="icon"
                             url={assets.fullPath('img/file-icon.png')}
                         ></i-image>
-                        <i-label id="lblDrag" caption="Drag and drop your files here"></i-label>
+                        <i-label id="lblDrag" caption="$drag_and_drop_your_files_here"></i-label>
                     </i-panel>
                     <i-stack id="pnlBrowse" direction="vertical" alignItems="center" justifyContent="center" margin={{ top: '-1rem' }} visible={false}>
-                        <i-label class="label" caption="Or"></i-label>
+                        <i-label class="label" caption="$or"></i-label>
                         <i-button
                             id="btnBrowseFile"
-                            caption="Browse File"
+                            caption="$browse_file"
                             boxShadow="none"
                             background={{ color: Theme.colors.primary.main }}
                             font={{ color: Theme.colors.primary.contrastText }}
@@ -748,7 +748,7 @@ export class ScomIPFSUploadModal extends Module {
                     <i-button
                         id="btnUpload"
                         class="upload-btn"
-                        caption="Upload files to IPFS"
+                        caption="$upload_files_to_ipfs"
                         boxShadow="none"
                         background={{ color: Theme.colors.primary.main }}
                         font={{ color: Theme.colors.primary.contrastText }}
@@ -759,12 +759,12 @@ export class ScomIPFSUploadModal extends Module {
                 </i-panel>
                 <i-panel id="pnlNote">
                     <i-panel class="note">
-                        <i-label class="head" caption="Public Data"></i-label>
-                        <i-label class="desc" caption="All data uploaded to IPFS Explorer is available to anyone who requests it using the correct CID. Do not store any private or sensitive information in an unencrypted form using IPFS Explorer."></i-label>
+                        <i-label class="head" caption="$public_data"></i-label>
+                        <i-label class="desc" caption="$all_data_uploaded_to_ipfs_explorer_is_available_to_anyone_who_requests_it_using_the_correct_cid_do_not_store_any_private_or_sensitive_information_in_an_unencrypted_form_using_ipfs_explorer"></i-label>
                     </i-panel>
                     <i-panel class="note">
-                        <i-label class="head" caption="Permanent Data"></i-label>
-                        <i-label class="desc" caption="Deleting files from the IPFS Explorer site’s Files page will remove them from the file listing for your account, but that doesn’t prevent nodes on the decentralized storage network from retaining copies of the data indefinitely. Do not use IPFS Explorer for data that may need to be permanently deleted in the future."></i-label>
+                        <i-label class="head" caption="$permanent_data"></i-label>
+                        <i-label class="desc" caption="$deleting_files_from_the_ipfs_explorer_sites_files_page_will_remove_them_from_the_file_listing_for_your_account_but_that_doesnt_prevent_nodes_on_the_decentralized_storage_network_from_retaining_copies_of_the_data_indefinitely_do_not_use_ipfs_explorer_for_data_that_may_need_to_be_permanently_deleted_in_the_future"></i-label>
                     </i-panel>
                 </i-panel>
             </i-panel>
