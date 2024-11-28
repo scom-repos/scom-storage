@@ -1,5 +1,4 @@
 import {
-    CarouselSlider,
     Container,
     ControlElement,
     customElements,
@@ -10,7 +9,7 @@ import {
 } from '@ijstech/components';
 import { IIPFSData, IPreview } from '../interface';
 import { ScomIPFSFolder } from './folder';
-import { backgroundStyle } from './index.css';
+
 const Theme = Styles.Theme.ThemeVars;
 
 type previewCallback = (data: IPreview) => void

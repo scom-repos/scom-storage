@@ -16,6 +16,7 @@ import { IFileHandler } from '../file';
 import { EditorType, IEditor, IIPFSData, IStorageConfig } from '../interface';
 import { LoadingSpinner } from './loadingSpinner';
 import { getFileContent } from '../data';
+import translations from '../translations.json';
 
 const Theme = Styles.Theme.ThemeVars
 
@@ -278,6 +279,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
   }
 
   init() {
+    this.i18n.init({...translations});
     super.init()
     this.onClose = this.getAttribute('onClose', true) || this.onClose
     this.onChanged = this.getAttribute('onChanged', true) || this.onChanged
@@ -310,7 +312,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
             background={{color: 'transparent'}}
             font={{color: Theme.text.primary}}
             icon={{name: 'times', width: '0.875rem', height: '0.875rem', fill: Theme.text.primary}}
-            caption='Cancel'
+            caption='$cancel'
             onClick={this.onCancel}
           ></i-button>
            <i-button
@@ -320,7 +322,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
             background={{color: Theme.colors.primary.main}}
             font={{color: Theme.colors.primary.contrastText}}
             icon={{name: 'save', width: '0.875rem', height: '0.875rem', fill: Theme.colors.primary.contrastText}}
-            caption='Save'
+            caption='$save'
             enabled={false}
             onClick={this.onSubmit}
           ></i-button>
@@ -339,7 +341,7 @@ export class ScomIPFSEditor extends Module implements IFileHandler {
           id="mdAlert"
           title=''
           status='confirm'
-          content='Do you want to discard changes?'
+          content='$do_you_want_to_discard_changes'
           onConfirm={this.onAlertConfirm}
           onClose={() => this.mdAlert.closeModal()}
         ></i-alert>

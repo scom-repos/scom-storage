@@ -24,8 +24,9 @@ import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
 import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview, LoadingSpinner, ScomIPFSEditor } from './components/index';
 import { Editor, IFileHandler } from './file';
-import customStyles, { defaultColors, dragAreaStyle, iconButtonStyled, previewModalStyle, selectedRowStyle } from './index.css';
+import customStyles, { defaultColors, dragAreaStyle, iconButtonStyled, previewModalStyle, selectedRowStyle, customMDStyles } from './index.css';
 import { isFileExists } from './utils';
+import translations from './translations.json';
 
 export { IFileHandler, IIPFSData };
 
@@ -114,7 +115,7 @@ export class ScomStorage extends Module {
             fieldName: 'checkbox'
         },
         {
-            title: 'Name',
+            title: '$name',
             fieldName: 'name',
             onRenderCell: (source: Control, columnData: any, rowData: any) => {
                 switch (rowData.type) {
@@ -142,7 +143,7 @@ export class ScomStorage extends Module {
             },
         },
         {
-            title: 'Type',
+            title: '$type',
             fieldName: 'type',
             onRenderCell: (source: Control, columnData: any, rowData: any) => {
                 switch (rowData.type) {
@@ -156,7 +157,7 @@ export class ScomStorage extends Module {
             },
         },
         {
-            title: 'Size',
+            title: '$size',
             fieldName: 'size',
             onRenderCell: (source: Control, columnData: any, rowData: any) => {
                 return formatBytes(columnData);
@@ -749,7 +750,7 @@ export class ScomStorage extends Module {
             showBackdrop: true,
             closeOnBackdropClick: false,
             closeIcon: { name: 'times', fill: Theme.text.primary, position: 'absolute', top: '1rem', right: '1rem', zIndex: 2 },
-            zIndex: 1000,
+            zIndex: 9999,
             padding: {},
             maxHeight: '100vh',
             overflow: { y: 'auto' },
@@ -762,7 +763,8 @@ export class ScomStorage extends Module {
                         maxHeight: '100vh'
                     }
                 }
-            ]
+            ],
+            class: customMDStyles
         });
         this.uploadModal.refresh = modal.refresh.bind(modal);
         if (window.matchMedia('(max-width: 767px)').matches) {
@@ -786,9 +788,9 @@ export class ScomStorage extends Module {
             popupPlacement: 'bottomRight'
         });
         const itemActions = new VStack(undefined, { gap: 8, border: { radius: 8 } });
-        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'folder-plus', width: 12, height: 12 }} caption="New folder" class={iconButtonStyled} onClick={() => this.onAddNewFolder()} />);
-        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'edit', width: 12, height: 12 }} caption="Rename" class={iconButtonStyled} onClick={() => this.onRenameFolder()} />);
-        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'trash', width: 12, height: 12 }} caption="Delete" class={iconButtonStyled} onClick={() => this.onDeleteFolder()} />);
+        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'folder-plus', width: 12, height: 12 }} caption="$new_folder" class={iconButtonStyled} onClick={() => this.onAddNewFolder()} />);
+        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'edit', width: 12, height: 12 }} caption="$rename" class={iconButtonStyled} onClick={() => this.onRenameFolder()} />);
+        itemActions.appendChild(<i-button background={{ color: 'transparent' }} boxShadow="none" icon={{ name: 'trash', width: 12, height: 12 }} caption="$delete" class={iconButtonStyled} onClick={() => this.onDeleteFolder()} />);
         this.mdActions.item = itemActions;
         document.body.appendChild(this.mdActions);
     }
@@ -896,7 +898,7 @@ export class ScomStorage extends Module {
         } else {
             fileNode = await this.manager.getFileNode(this.currentItem.tag.path);
         }
-        const folderName = await this.getNewName(isRoot ? fileNode : fileNode.parent, 'New folder');
+        const folderName = await this.getNewName(isRoot ? fileNode : fileNode.parent, this.i18n.get('$new_folder'));
         await this.manager.addFolder(fileNode, folderName);
         await this.manager.applyUpdates();
         await this.onFilesUploaded();
@@ -987,7 +989,7 @@ export class ScomStorage extends Module {
                 border: { radius: 0 },
                 overflow: 'auto',
                 class: previewModalStyle,
-                title: 'File Preview',
+                title: '$file_preview',
                 closeIcon: {
                     name: 'times',
                     width: '1rem', height: '1rem'
@@ -1286,6 +1288,7 @@ export class ScomStorage extends Module {
     }
 
     init() {
+        this.i18n.init({...translations});
         const transportEndpoint = this.getAttribute('transportEndpoint', true) || this._data?.transportEndpoint || window.location.origin;
         const signer = this.getAttribute('signer', true) || this._data?.signer || null;
         this._signer = signer;
@@ -1318,6 +1321,7 @@ export class ScomStorage extends Module {
         this.pnlFileTable.addEventListener('dragleave', this.handleOnDragLeave);
         this.pnlFileTable.addEventListener('drop', this.handleOnDrop);
         this.initModalActions();
+        this.fileTable.updateLocale(this.i18n)
     }
 
     render() {
@@ -1481,7 +1485,7 @@ export class ScomStorage extends Module {
                                             right={0}
                                             visible={false}
                                         >
-                                            <i-label caption="Upload files to" font={{ size: '15px', color: '#fff' }}></i-label>
+                                            <i-label caption="$upload_files_to" font={{ size: '15px', color: '#fff' }}></i-label>
                                             <i-hstack horizontalAlignment="center" verticalAlignment="center" gap="0.375rem">
                                                 <i-icon name="folder" width={'0.875rem'} height={'0.875rem'} display="inline-flex" fill='#fff'></i-icon>
                                                 <i-label id="lblDestinationFolder" font={{ size: '15px', color: '#fff' }}></i-label>
@@ -1554,7 +1558,7 @@ export class ScomStorage extends Module {
                         background={{ color: Theme.colors.primary.main }}
                         font={{ color: Theme.colors.primary.contrastText, bold: true, size: '1rem' }}
                         border={{ radius: '0.25rem' }}
-                        caption="Select"
+                        caption="$select"
                         onClick={this.onOpenHandler}
                     ></i-button>
                     <i-button
@@ -1564,7 +1568,7 @@ export class ScomStorage extends Module {
                         background={{ color: 'transparent' }}
                         font={{ color: Theme.colors.primary.main, bold: true, size: '1rem' }}
                         border={{ width: 1, style: 'solid', color: Theme.colors.primary.main, radius: '0.25rem' }}
-                        caption="Back to Upload"
+                        caption="$back_to_upload"
                         visible={false}
                         onClick={this.handleBack}
                     ></i-button>
@@ -1575,7 +1579,7 @@ export class ScomStorage extends Module {
                         background={{ color: 'transparent' }}
                         font={{ color: Theme.colors.primary.main, bold: true, size: '1rem' }}
                         border={{ radius: '0.25rem' }}
-                        caption="Cancel"
+                        caption="$cancel"
                         onClick={this.onCancelHandler}
                     ></i-button>
                 </i-hstack>
