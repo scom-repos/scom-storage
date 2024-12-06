@@ -482,7 +482,7 @@ define("@scom/scom-storage/translations.json.ts", ["require", "exports"], functi
             "failed": "Thất bại",
             "file_preview": "Xem trước tệp",
             "name": "Tên",
-            "new_folder": "Tạo thư mục mới",
+            "new_folder": "Thư mục mới",
             "or": "Hoặc",
             "permanent_data": "Dữ liệu cố định",
             "processing_your_files": "Đang xử lý tệp của bạn...",
@@ -1493,7 +1493,7 @@ define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "
                 this.mulitiple = mulitiple;
         }
         render() {
-            return (this.$render("i-panel", { height: "100%", overflow: "hidden", padding: { top: '3.125rem', bottom: '3.125rem', left: '8.125rem', right: '8.125rem' }, border: { radius: '0.375rem' }, mediaQueries: [
+            return (this.$render("i-panel", { height: "100%", overflow: { y: 'auto' }, padding: { top: '3.125rem', bottom: '3.125rem', left: '8.125rem', right: '8.125rem' }, border: { radius: '0.375rem' }, mediaQueries: [
                     {
                         maxWidth: '767px',
                         properties: {
@@ -3557,7 +3557,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         render() {
             return (this.$render("i-vstack", { width: '100%', height: '100%', overflow: 'hidden' },
                 this.$render("i-icon", { id: "iconBack", width: "1rem", height: "1rem", position: "absolute", name: "arrow-left", top: 10, zIndex: 1, cursor: "pointer", visible: false, onClick: this.handleBack }),
-                this.$render("i-panel", { id: "pnlUpload", visible: false }),
+                this.$render("i-panel", { id: "pnlUpload", visible: false, overflow: { y: 'auto' } }),
                 this.$render("i-panel", { id: "pnlStorage", height: '100%', width: '100%', stack: { grow: '1' }, overflow: { y: 'auto' } },
                     this.$render("i-vstack", { id: "pnlLoading", visible: false }),
                     this.$render("i-scom-ipfs--mobile-home", { id: "mobileHome", width: '100%', minHeight: '100vh', display: 'block', background: { color: Theme.background.main }, onPreview: this.previewFile.bind(this), transportEndpoint: this.transportEndpoint, signer: this.signer, visible: false, mediaQueries: [
@@ -3582,12 +3582,12 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                                 this.$render("i-vstack", { id: 'ieSidebar', resizer: true, dock: "left", height: '100%', overflow: { y: 'auto', x: 'hidden' }, minWidth: '10rem', width: '15rem', border: { right: { width: '1px', style: 'solid', color: Theme.divider } } },
                                     this.$render("i-tree-view", { id: "uploadedFileTree", class: "file-manager-tree uploaded", stack: { grow: '1' }, maxHeight: '100%', overflow: 'auto', editable: true, actionButtons: [
                                             {
-                                                caption: `<i-icon name="ellipsis-h" width=${14} height=${14} class="inline-flex"></i-icon>`,
+                                                icon: { name: 'ellipsis-h', width: 14, height: 14, display: 'inline-flex' },
                                                 tag: 'actions',
                                                 class: 'btn-actions'
                                             },
                                             {
-                                                caption: `<i-icon name="folder-plus" width=${14} height=${14} class="inline-flex"></i-icon>`,
+                                                icon: { name: 'folder-plus', width: 14, height: 14, display: 'inline-flex' },
                                                 tag: 'folder',
                                                 class: 'btn-folder'
                                             }

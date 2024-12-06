@@ -1342,7 +1342,7 @@ export class ScomStorage extends Module {
                     visible={false}
                     onClick={this.handleBack}
                 ></i-icon>
-                <i-panel id="pnlUpload" visible={false}></i-panel>
+                <i-panel id="pnlUpload" visible={false} overflow={{y: 'auto'}}></i-panel>
                 <i-panel
                     id="pnlStorage"
                     height={'100%'} width={'100%'}
@@ -1411,12 +1411,12 @@ export class ScomStorage extends Module {
                                         editable
                                         actionButtons={[
                                             {
-                                                caption: `<i-icon name="ellipsis-h" width=${14} height=${14} class="inline-flex"></i-icon>`,
+                                                icon: {name: 'ellipsis-h', width: 14, height: 14, display: 'inline-flex'},
                                                 tag: 'actions',
                                                 class: 'btn-actions'
                                             },
                                             {
-                                                caption: `<i-icon name="folder-plus" width=${14} height=${14} class="inline-flex"></i-icon>`,
+                                                icon: {name: 'folder-plus', width: 14, height: 14, display: 'inline-flex'},
                                                 tag: 'folder',
                                                 class: 'btn-folder'
                                             }
