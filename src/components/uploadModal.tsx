@@ -684,7 +684,7 @@ export class ScomIPFSUploadModal extends Module {
         return (
             <i-panel
                 height="100%"
-                overflow="hidden"
+                overflow={{y: 'auto'}}
                 padding={{ top: '3.125rem', bottom: '3.125rem', left: '8.125rem', right: '8.125rem' }}
                 border={{ radius: '0.375rem' }}
                 mediaQueries={[

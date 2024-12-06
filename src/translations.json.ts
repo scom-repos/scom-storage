@@ -100,7 +100,7 @@ export default {
     "failed": "Thất bại",
     "file_preview": "Xem trước tệp",
     "name": "Tên",
-    "new_folder": "Tạo thư mục mới",
+    "new_folder": "Thư mục mới",
     "or": "Hoặc",
     "permanent_data": "Dữ liệu cố định",
     "processing_your_files": "Đang xử lý tệp của bạn...",
