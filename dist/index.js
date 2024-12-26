@@ -53,7 +53,7 @@ define("@scom/scom-storage/assets.ts", ["require", "exports", "@ijstech/componen
 define("@scom/scom-storage/components/index.css.ts", ["require", "exports", "@ijstech/components", "@scom/scom-storage/assets.ts"], function (require, exports, components_2, assets_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.fullScreenStyle = exports.uploadModalStyle = exports.customLinkStyle = exports.addressPanelStyle = exports.transitionStyle = exports.backgroundStyle = void 0;
+    exports.fullScreenStyle = exports.customLinkStyle = exports.addressPanelStyle = exports.transitionStyle = exports.backgroundStyle = void 0;
     const Theme = components_2.Styles.Theme.ThemeVars;
     exports.backgroundStyle = components_2.Styles.style({
         backgroundColor: Theme.divider,
@@ -89,177 +89,6 @@ define("@scom/scom-storage/components/index.css.ts", ["require", "exports", "@ij
                 maxWidth: '100%'
             }
         }
-    });
-    exports.uploadModalStyle = components_2.Styles.style({
-        $nest: {
-            '.heading': {
-                display: 'block',
-                fontSize: 'clamp(1rem, 0.875rem + 0.625vw, 1.625rem)',
-                color: Theme.colors.primary.dark,
-                marginBottom: '0.5rem',
-                fontWeight: 700,
-                lineHeight: 1.2,
-                textAlign: 'center',
-            },
-            '.label': {
-                display: 'block',
-                marginBottom: '0.5rem',
-                color: Theme.text.primary,
-                textAlign: 'center',
-            },
-            '.file-uploader-dropzone': {
-                display: 'flex',
-                flexDirection: 'column',
-                gridRowGap: '2rem',
-                rowGap: '1.5rem',
-                marginBottom: '2.5rem',
-                marginTop: '2rem',
-                $nest: {
-                    '.droparea': {
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexDirection: 'column',
-                        gridRowGap: '1rem',
-                        rowGap: '1rem',
-                        padding: '1.875rem 0',
-                        background: 'rgba(255,255,255,.1)',
-                        border: `1px dashed ${Theme.colors.primary.light}`,
-                        borderRadius: '0.625rem',
-                        cursor: 'pointer',
-                    },
-                    'i-upload': {
-                        position: 'absolute',
-                        top: 0,
-                        opacity: 0,
-                        minHeight: 'auto',
-                        minWidth: 'auto',
-                        margin: 0,
-                        zIndex: 1,
-                        $nest: {
-                            '.i-upload_preview-img': {
-                                display: 'none!important',
-                            },
-                        },
-                    },
-                    '.filelist': {
-                        marginBottom: '0.5rem',
-                        $nest: {
-                            '@media screen and (max-width: 767px)': {
-                                flex: '1',
-                                overflowY: 'auto'
-                            },
-                            '.file': {
-                                border: `1px solid ${Theme.divider}`,
-                                borderRadius: '0.5rem',
-                                $nest: {
-                                    '&:hover': {
-                                        border: `1px solid ${Theme.colors.primary.main}`,
-                                    }
-                                }
-                            },
-                        },
-                    },
-                    '.pagination': {
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '5px',
-                        $nest: {
-                            '@media screen and (max-width: 767px)': {
-                                display: 'none'
-                            },
-                            'i-button': {
-                                width: '24px',
-                                height: '24px',
-                                borderRadius: '50%',
-                                fontSize: '11px',
-                                fontWeight: 700,
-                                color: Theme.colors.primary.dark,
-                                backgroundColor: 'transparent',
-                                border: `1px solid ${Theme.colors.primary.dark}`,
-                                boxShadow: 'none',
-                                gap: 'unset',
-                                userSelect: 'none',
-                                $nest: {
-                                    '&.active': {
-                                        color: Theme.colors.primary.contrastText,
-                                        backgroundColor: Theme.colors.primary.dark,
-                                    },
-                                    '&.dots': {
-                                        borderColor: 'transparent',
-                                    },
-                                    'i-icon': {
-                                        height: '10px!important',
-                                        width: '12px!important',
-                                        fill: `${Theme.colors.primary.dark}!important`,
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-            '.status-filter': {
-                display: 'flex',
-                justifyContent: 'space-between',
-                $nest: {
-                    '.filter-bar': {
-                        display: 'flex',
-                        gap: '10px',
-                        $nest: {
-                            '@media screen and (max-width: 767px)': {
-                                display: 'none'
-                            },
-                            '.filter-btn': {
-                                fontSize: '14px',
-                                background: 'transparent',
-                                color: Theme.text.secondary,
-                                boxShadow: 'none',
-                            },
-                            '.filter-btn.filter-btn-active': {
-                                fontWeight: 'bold',
-                                color: Theme.colors.primary.dark,
-                            },
-                        },
-                    },
-                    '.filter-actions': {
-                        $nest: {
-                            'i-button': {
-                                background: Theme.colors.primary.light,
-                                color: Theme.colors.primary.contrastText,
-                                padding: '5px 10px',
-                                fontSize: '14px',
-                                boxShadow: 'none',
-                            },
-                        },
-                    },
-                },
-            },
-            '.note': {
-                display: 'flex',
-                flexDirection: 'column',
-                lineHeight: '1.4375rem',
-                paddingLeft: '1.25rem',
-                paddingRight: '0.25rem',
-                $nest: {
-                    '&:not(:last-child)': {
-                        marginBottom: '1.5rem',
-                    },
-                    '.head': {
-                        fontSize: '14px',
-                        fontWeight: 700,
-                        color: Theme.text.primary,
-                    },
-                    '.desc': {
-                        fontSize: '12px',
-                        fontWeight: 400,
-                        letterSpacing: 0,
-                        color: Theme.text.secondary,
-                    },
-                },
-            },
-        },
     });
     exports.fullScreenStyle = components_2.Styles.style({
         position: 'fixed',
@@ -1016,521 +845,6 @@ define("@scom/scom-storage/utils.ts", ["require", "exports", "@ijstech/component
     };
     exports.isFileExists = isFileExists;
 });
-define("@scom/scom-storage/components/uploadModal.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/assets.ts", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/utils.ts", "@scom/scom-storage/translations.json.ts"], function (require, exports, components_7, assets_2, index_css_3, utils_1, translations_json_2) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.ScomIPFSUploadModal = void 0;
-    const Theme = components_7.Styles.Theme.ThemeVars;
-    var FILE_STATUS;
-    (function (FILE_STATUS) {
-        FILE_STATUS[FILE_STATUS["LISTED"] = 0] = "LISTED";
-        FILE_STATUS[FILE_STATUS["SUCCESS"] = 1] = "SUCCESS";
-        FILE_STATUS[FILE_STATUS["FAILED"] = 2] = "FAILED";
-        FILE_STATUS[FILE_STATUS["UPLOADING"] = 3] = "UPLOADING";
-    })(FILE_STATUS || (FILE_STATUS = {}));
-    const BUTTON_FILTERS = [
-        {
-            id: 'btnAll',
-            caption: '$all',
-            status: FILE_STATUS.LISTED
-        },
-        {
-            id: 'btnSuccess',
-            caption: '$success',
-            status: FILE_STATUS.SUCCESS
-        },
-        {
-            id: 'btnFail',
-            caption: '$fail',
-            status: FILE_STATUS.FAILED
-        },
-        {
-            id: 'btnUploading',
-            caption: '$uploading',
-            status: FILE_STATUS.UPLOADING
-        }
-    ];
-    const ITEMS_PER_PAGE = 5;
-    ;
-    let ScomIPFSUploadModal = class ScomIPFSUploadModal extends components_7.Module {
-        constructor(parent, options) {
-            super(parent, options);
-            this.isForcedCancelled = false;
-            this.currentPage = 1;
-            this.currentFilterStatus = FILE_STATUS.LISTED;
-            this.files = [];
-            this.fileListData = [];
-            this._isBrowseButtonShown = false;
-            this._mulitiple = true;
-        }
-        get rootCid() {
-            return this._rootCid;
-        }
-        set rootCid(value) {
-            console.log('set rootCid: ', value);
-            this._rootCid = value;
-        }
-        get parentDir() {
-            return this._parentDir;
-        }
-        set parentDir(value) {
-            console.log('set parentDir: ', value);
-            this._parentDir = value;
-        }
-        get manager() {
-            return this._manager;
-        }
-        set manager(value) {
-            this._manager = value;
-        }
-        get isBrowseButtonShown() {
-            return this._isBrowseButtonShown;
-        }
-        set isBrowseButtonShown(value) {
-            this._isBrowseButtonShown = value;
-            if (this.pnlBrowse)
-                this.pnlBrowse.visible = value;
-        }
-        get mulitiple() {
-            return this._mulitiple;
-        }
-        set mulitiple(value) {
-            this._mulitiple = value;
-            this.updateUI();
-        }
-        updateUI() {
-            this.lblTitle.caption = this.mulitiple ? "$upload_more_files" : "$upload_file_to_ipfs";
-            this.fileUploader.multiple = this.mulitiple;
-            this.btnUpload.caption = this.mulitiple ? "$upload_file_to_ipfs" : "$confirm";
-            this.pnlPagination.visible = this.mulitiple;
-        }
-        show(path, files) {
-            this.folderPath = path;
-            this.updateBtnCaption();
-            if (files?.length) {
-                for (let i = 0; i < files.length; i++) {
-                    this.fileListData.push({ file: files[i], status: 0, percentage: 0 });
-                    this.files.push(files[i]);
-                }
-                this.renderFileList();
-                this.renderFilterBar();
-                this.renderPagination();
-                this.toggle(true);
-            }
-        }
-        refresh() { }
-        onBeforeDrop(target) {
-            console.log('onBeforeDrop: ', target);
-            this.fileUploader.enabled = false;
-            this.imgFile.url = assets_2.default.fullPath("img/loading-icon.svg");
-            this.lblDrag.caption = '$processing_your_files';
-        }
-        onBeforeUpload(target, file) {
-            return new Promise((resolve, reject) => {
-                resolve(true);
-            });
-        }
-        filteredFileListData() {
-            return this.currentFilterStatus === FILE_STATUS.LISTED
-                ? this.fileListData
-                : this.fileListData.filter((i) => i.status === this.currentFilterStatus);
-        }
-        numPages() {
-            return Math.ceil(this.filteredFileListData().length / ITEMS_PER_PAGE);
-        }
-        setCurrentPage(page) {
-            if (page >= 1 && page <= this.numPages())
-                this.currentPage = page;
-            this.renderFileList();
-            this.renderPagination();
-        }
-        get isSmallWidth() {
-            return !!window.matchMedia('(max-width: 767px)').matches;
-        }
-        updateFilterBar() {
-            BUTTON_FILTERS.forEach(v => {
-                const btn = this[v.id];
-                if (this.currentFilterStatus === v.status) {
-                    btn.classList.add('filter-btn-active');
-                }
-                else {
-                    btn.classList.remove('filter-btn-active');
-                }
-                if (v.status === FILE_STATUS.LISTED) {
-                    btn.caption = `${this.i18n.get('$all')} (${this.fileListData.length})`;
-                }
-                else {
-                    btn.caption = `${this.i18n.get(v.caption)} (${this.fileListData.filter((i) => i.status === v.status).length})`;
-                }
-            });
-        }
-        async renderFilterBar() {
-            this.updateFilterBar();
-            this.pnlFilterActions.clearInnerHTML();
-            if (this.currentFilterStatus === FILE_STATUS.UPLOADING) {
-                this.pnlFilterActions.appendChild(this.$render("i-button", { caption: "$cancel", onClick: this.onCancel.bind(this) }));
-            }
-            else {
-                this.pnlFilterActions.appendChild(this.$render("i-button", { caption: "$clear", onClick: this.onClear.bind(this) }));
-            }
-        }
-        async renderFileList() {
-            this.pnlFileList.clearInnerHTML();
-            const filteredFileListData = this.filteredFileListData();
-            const paginatedFilteredFileListData = this.isSmallWidth ? this.fileListData : [...filteredFileListData].slice((this.currentPage - 1) * ITEMS_PER_PAGE, ITEMS_PER_PAGE * this.currentPage);
-            const startIdx = this.isSmallWidth ? 0 : (this.currentPage - 1) * ITEMS_PER_PAGE;
-            for (let i = 0; i < paginatedFilteredFileListData.length; i++) {
-                const fileData = paginatedFilteredFileListData[i];
-                const pnlRow2 = (this.$render("i-hstack", { verticalAlignment: 'center', gap: "0.5rem" },
-                    this.$render("i-label", { maxWidth: "100%", caption: this.formatBytes(fileData.file.size || 0), font: { size: '0.75rem' }, textOverflow: "ellipsis", opacity: 0.75 })));
-                this.renderStatus(fileData.status, pnlRow2, startIdx + i);
-                this.pnlFileList.appendChild(this.$render("i-hstack", { class: `file file-${i} status-${fileData.status}`, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, stack: { shrink: '0', grow: '1' }, overflow: "hidden", gap: "1rem" },
-                    this.$render("i-icon", { width: "1.75rem", height: "1.75rem", name: "file", fill: Theme.colors.primary.main, border: { radius: '0.5rem', width: '1px', color: Theme.divider, style: 'solid' }, padding: { top: '0.35rem', bottom: '0.35rem', left: '0.35rem', right: '0.35rem' }, stack: { shrink: '0' } }),
-                    this.$render("i-vstack", { maxWidth: "100%", stack: { shrink: '1', grow: '1' }, gap: "0.25rem", overflow: "hidden" },
-                        this.$render("i-hstack", { horizontalAlignment: 'space-between', verticalAlignment: 'center', gap: "1rem" },
-                            this.$render("i-label", { maxWidth: "100%", caption: fileData.file.path || fileData.file.name, font: { weight: 600, size: '0.875rem' }, textOverflow: "ellipsis" }),
-                            this.$render("i-icon", { width: "0.875rem", height: "0.875rem", name: "times", fill: Theme.text.primary, cursor: "pointer", onClick: () => this.onRemoveFile(i) })),
-                        pnlRow2,
-                        this.$render("i-hstack", { id: `progress-${startIdx + i}`, verticalAlignment: 'center', gap: "0.75rem", visible: fileData.status === FILE_STATUS.UPLOADING },
-                            this.$render("i-progress", { height: "auto", percent: +fileData.percentage, strokeWidth: 10, stack: { grow: '1', shrink: '1', basis: '60%' }, border: { radius: '0.5rem' } }),
-                            this.$render("i-label", { caption: `${fileData.percentage}%`, font: { size: '0.75rem' }, stack: { grow: '1', shrink: '0' } })))));
-            }
-        }
-        formatBytes(bytes, decimals = 2) {
-            if (bytes === 0)
-                return '0 Bytes';
-            const k = 1024;
-            const dm = decimals < 0 ? 0 : decimals;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
-        }
-        renderStatus(status, parent, idx) {
-            let uploadStatus = "";
-            let iconOptions = { name: 'times', background: { color: Theme.text.primary }, visible: false };
-            switch (status) {
-                case FILE_STATUS.SUCCESS:
-                    iconOptions.name = 'check';
-                    iconOptions.background.color = Theme.colors.success.main;
-                    iconOptions.visible = true;
-                    uploadStatus = '$completed';
-                    break;
-                case FILE_STATUS.FAILED:
-                    iconOptions.name = 'times';
-                    iconOptions.background.color = Theme.colors.error.main;
-                    iconOptions.visible = true;
-                    uploadStatus = '$failed';
-                case FILE_STATUS.UPLOADING:
-                    uploadStatus = '$uploading';
-            }
-            parent.appendChild(this.$render("i-hstack", { id: `status-${idx}`, verticalAlignment: "center", gap: "0.5rem" },
-                this.$render("i-label", { caption: uploadStatus }),
-                this.$render("i-icon", { width: "0.875rem", height: "0.875rem", padding: { top: '0.125rem', bottom: '0.125rem', left: '0.125rem', right: '0.125rem' }, border: { radius: '50%' }, fill: Theme.colors.primary.contrastText, ...iconOptions })));
-        }
-        getPagination(currentIndex, totalPages) {
-            let current = currentIndex, last = totalPages, delta = 2, left = current - delta, right = current + delta + 1, range = [], rangeWithDots = [], l;
-            for (let i = 1; i <= last; i++) {
-                if (i == 1 || i == last || (i >= left && i < right)) {
-                    range.push(i);
-                }
-            }
-            for (let i of range) {
-                if (l) {
-                    if (i - l === 2) {
-                        rangeWithDots.push(l + 1);
-                    }
-                    else if (i - l !== 1) {
-                        rangeWithDots.push('...');
-                    }
-                }
-                rangeWithDots.push(i);
-                l = i;
-            }
-            return rangeWithDots;
-        }
-        async renderPagination() {
-            const numPages = this.numPages();
-            const rangeWithDots = this.getPagination(this.currentPage, numPages);
-            if (numPages >= 1) {
-                if (this.currentPage > numPages) {
-                    this.setCurrentPage(numPages);
-                }
-                else {
-                    this.pnlPagination.clearInnerHTML();
-                    const prevBtn = new components_7.Button(this.pnlPagination, {
-                        icon: { name: 'chevron-left' },
-                    });
-                    prevBtn.onClick = () => {
-                        this.setCurrentPage(this.currentPage - 1);
-                    };
-                    for (let i = 0; i < rangeWithDots.length; i++) {
-                        const pageBtn = new components_7.Button(this.pnlPagination, {
-                            class: this.currentPage === rangeWithDots[i] ? 'active' : '',
-                            caption: rangeWithDots[i].toString(),
-                        });
-                        if (rangeWithDots[i] === '...') {
-                            pageBtn.classList.add('dots');
-                        }
-                        else {
-                            pageBtn.onClick = () => {
-                                this.setCurrentPage(rangeWithDots[i]);
-                            };
-                        }
-                    }
-                    const nexBtn = new components_7.Button(this.pnlPagination, {
-                        icon: { name: 'chevron-right' },
-                    });
-                    nexBtn.onClick = () => {
-                        this.setCurrentPage(this.currentPage + 1);
-                    };
-                }
-            }
-            else {
-                this.pnlPagination.clearInnerHTML();
-            }
-        }
-        onChangeCurrentFilterStatus(status) {
-            this.currentFilterStatus = status;
-            this.renderFilterBar();
-            this.renderPagination();
-            this.renderFileList();
-        }
-        onClear() {
-            switch (this.currentFilterStatus) {
-                case FILE_STATUS.LISTED:
-                    this.fileListData =
-                        this.fileListData && this.fileListData.length
-                            ? this.fileListData.filter((fileData) => ![
-                                FILE_STATUS.LISTED,
-                                FILE_STATUS.SUCCESS,
-                                FILE_STATUS.FAILED,
-                            ].includes(fileData.status))
-                            : this.fileListData;
-                    break;
-                case FILE_STATUS.SUCCESS:
-                    this.fileListData =
-                        this.fileListData && this.fileListData.length
-                            ? this.fileListData.filter((fileData) => ![FILE_STATUS.SUCCESS].includes(fileData.status))
-                            : this.fileListData;
-                    break;
-                case FILE_STATUS.FAILED:
-                    this.fileListData =
-                        this.fileListData && this.fileListData.length
-                            ? this.fileListData.filter((fileData) => ![FILE_STATUS.FAILED].includes(fileData.status))
-                            : this.fileListData;
-                    break;
-            }
-            this.renderFilterBar();
-            this.renderFileList();
-            this.renderPagination();
-            if (!this.fileListData.length) {
-                this.toggle(false);
-            }
-            this.refresh();
-        }
-        onCancel() {
-            this.currentRequest.abort();
-            this.isForcedCancelled = true;
-            if (this.fileListData && this.fileListData.some(f => f.status === FILE_STATUS.UPLOADING)) {
-                this.fileListData = this.fileListData.map(f => {
-                    if (f.status === FILE_STATUS.UPLOADING) {
-                        return {
-                            ...f,
-                            status: FILE_STATUS.LISTED
-                        };
-                    }
-                    return f;
-                });
-            }
-        }
-        async onChangeFile(source, files) {
-            console.log('onChangeFile: ', files);
-            return new Promise(async (resolve, reject) => {
-                if (!files.length)
-                    reject();
-                this.fileUploader.enabled = true;
-                this.imgFile.url = assets_2.default.fullPath("img/file-icon.png");
-                this.updateBtnCaption();
-                for (let i = 0; i < files.length; i++) {
-                    this.fileListData.push({ file: files[i], status: 0, percentage: 0 });
-                    this.files.push(files[i]);
-                }
-                this.renderFileList();
-                this.renderFilterBar();
-                this.renderPagination();
-                this.toggle(true);
-                this.fileUploader.clear();
-                this.refresh();
-            });
-        }
-        updateBtnCaption() {
-            this.lblDrag.caption = this.isSmallWidth ? '$select_files' : '$drag_and_drop_your_files_here';
-        }
-        onRemove(source, file) { }
-        onRemoveFile(index) {
-            this.fileListData.splice(index, 1);
-            this.files.splice(index, 1);
-            this.renderFileList();
-            this.renderFilterBar();
-            this.renderPagination();
-            if (!this.fileListData.length) {
-                this.toggle(false);
-            }
-            this.refresh();
-        }
-        async onUpload() {
-            return new Promise(async (resolve, reject) => {
-                if (!this.fileListData.length || !this.manager)
-                    reject();
-                this.btnUpload.caption = '$uploading_file_to_ipfs';
-                this.btnUpload.enabled = false;
-                this.isForcedCancelled = false;
-                this.btnBrowseFile.enabled = false;
-                this.fileUploader.enabled = false;
-                try {
-                    let filePaths = [];
-                    for (let i = 0; i < this.fileListData.length; i++) {
-                        const file = this.fileListData[i];
-                        let filePath = this.folderPath ? `${this.folderPath}${file.file.path}` : file.file.path;
-                        const { isExists, newFilePath } = await (0, utils_1.isFileExists)(this.manager, filePath);
-                        if (isExists) {
-                            filePath = newFilePath;
-                        }
-                        filePaths.push(filePath);
-                        file.status = FILE_STATUS.UPLOADING;
-                        this.updateFilterBar();
-                        this.renderFileList();
-                        this.renderPagination();
-                        const statusWrapper = this.pnlFileList.querySelector(`#status-${i}`);
-                        if (statusWrapper) {
-                            statusWrapper.visible = false;
-                        }
-                        const progressWrapper = this.pnlFileList.querySelector(`#progress-${i}`);
-                        if (progressWrapper) {
-                            progressWrapper.visible = true;
-                        }
-                        await this.manager.addFile(filePath, file.file);
-                        file.percentage = 100;
-                        if (progressWrapper) {
-                            const progress = progressWrapper.firstElementChild;
-                            const label = progressWrapper.lastElementChild;
-                            if (progress)
-                                progress.percent = 100;
-                            if (label)
-                                label.caption = '100%';
-                        }
-                    }
-                    await this.manager.applyUpdates();
-                    for (const file of this.fileListData) {
-                        file.status = FILE_STATUS.SUCCESS;
-                    }
-                    let rootNode = await this.manager.getRootNode();
-                    if (this.onUploaded)
-                        this.onUploaded(this, rootNode.cid, filePaths);
-                }
-                catch (err) {
-                    console.log('onUpload ', err);
-                    if (this.fileListData && this.fileListData.length) {
-                        this.fileListData = this.fileListData.map(f => {
-                            if ([FILE_STATUS.LISTED, FILE_STATUS.UPLOADING].includes(f.status)) {
-                                return {
-                                    ...f,
-                                    status: FILE_STATUS.FAILED
-                                };
-                            }
-                            return f;
-                        });
-                    }
-                }
-                this.renderFilterBar();
-                this.renderFileList();
-                this.renderPagination();
-                this.btnUpload.caption = this.mulitiple ? '$upload_file_to_ipfs' : '$confirm';
-                this.btnUpload.enabled = true;
-                this.btnBrowseFile.enabled = true;
-                this.fileUploader.enabled = true;
-                this.refresh();
-            });
-        }
-        browseFile() {
-            if (this.onBrowseFile)
-                this.onBrowseFile();
-        }
-        reset() {
-            this.pnlFileList.clearInnerHTML();
-            this.pnlPagination.clearInnerHTML();
-            this.btnUpload.caption = this.mulitiple ? '$upload_file_to_ipfs' : "$confirm";
-            this.btnUpload.enabled = true;
-            this.btnBrowseFile.enabled = true;
-            this.fileUploader.enabled = true;
-            this.fileListData = [];
-            this.files = [];
-            this.toggle(false);
-        }
-        toggle(showFileList) {
-            if (showFileList) {
-                this.pnlStatusFilter.visible = true;
-                this.btnUpload.visible = true;
-                this.pnlNote.visible = false;
-            }
-            else {
-                this.pnlStatusFilter.visible = false;
-                this.btnUpload.visible = false;
-                this.pnlNote.visible = true;
-            }
-        }
-        async init() {
-            this.i18n.init({ ...translations_json_2.default });
-            super.init();
-            this.classList.add(index_css_3.uploadModalStyle);
-            this.rootCid = this.getAttribute('rootCid', true);
-            this.parentDir = this.getAttribute('parentDir', true);
-            const isBrowseButtonShown = this.getAttribute('isBrowseButtonShown', true);
-            if (isBrowseButtonShown != null)
-                this.isBrowseButtonShown = isBrowseButtonShown;
-            const mulitiple = this.getAttribute('mulitiple', true);
-            if (mulitiple != null)
-                this.mulitiple = mulitiple;
-        }
-        render() {
-            return (this.$render("i-panel", { height: "100%", overflow: { y: 'auto' }, padding: { top: '3.125rem', bottom: '3.125rem', left: '8.125rem', right: '8.125rem' }, border: { radius: '0.375rem' }, mediaQueries: [
-                    {
-                        maxWidth: '767px',
-                        properties: {
-                            padding: { top: '1.5rem', bottom: '1.5rem', left: '1.5rem', right: '1.5rem' }
-                        }
-                    }
-                ] },
-                this.$render("i-label", { id: "lblTitle", class: "heading", caption: "$upload_more_files" }),
-                this.$render("i-label", { class: "label", caption: "$choose_file_to_upload_to_ipfs_network" }),
-                this.$render("i-panel", { class: "file-uploader-dropzone", maxHeight: "calc(100% - 4.5rem)" },
-                    this.$render("i-panel", { class: "droparea" },
-                        this.$render("i-upload", { id: "fileUploader", multiple: true, draggable: true, onBeforeDrop: this.onBeforeDrop, onUploading: this.onBeforeUpload, onChanged: this.onChangeFile, onRemoved: this.onRemove }),
-                        this.$render("i-image", { id: "imgFile", width: 60, height: 60, class: "icon", url: assets_2.default.fullPath('img/file-icon.png') }),
-                        this.$render("i-label", { id: "lblDrag", caption: "$drag_and_drop_your_files_here" })),
-                    this.$render("i-stack", { id: "pnlBrowse", direction: "vertical", alignItems: "center", justifyContent: "center", margin: { top: '-1rem' }, visible: false },
-                        this.$render("i-label", { class: "label", caption: "$or" }),
-                        this.$render("i-button", { id: "btnBrowseFile", caption: "$browse_file", boxShadow: "none", background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, onClick: this.browseFile })),
-                    this.$render("i-panel", { id: "pnlStatusFilter", class: "status-filter", visible: false },
-                        this.$render("i-panel", { class: "filter-bar" }, BUTTON_FILTERS.map(v => this.$render("i-button", { id: v.id, class: `filter-btn ${v.status === FILE_STATUS.LISTED ? 'filter-btn-active' : ''}`, caption: `${v.caption} (0)`, onClick: () => this.onChangeCurrentFilterStatus(v.status) }))),
-                        this.$render("i-panel", { id: "pnlFilterActions", class: "filter-actions", margin: { left: 'auto' } })),
-                    this.$render("i-vstack", { id: "pnlFileList", class: "filelist", gap: "0.5rem" }),
-                    this.$render("i-panel", { id: "pnlPagination", class: "pagination" }),
-                    this.$render("i-button", { id: "btnUpload", class: "upload-btn", caption: "$upload_files_to_ipfs", boxShadow: "none", background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, visible: false, onClick: this.onUpload })),
-                this.$render("i-panel", { id: "pnlNote" },
-                    this.$render("i-panel", { class: "note" },
-                        this.$render("i-label", { class: "head", caption: "$public_data" }),
-                        this.$render("i-label", { class: "desc", caption: "$all_data_uploaded_to_ipfs_explorer_is_available_to_anyone_who_requests_it_using_the_correct_cid_do_not_store_any_private_or_sensitive_information_in_an_unencrypted_form_using_ipfs_explorer" })),
-                    this.$render("i-panel", { class: "note" },
-                        this.$render("i-label", { class: "head", caption: "$permanent_data" }),
-                        this.$render("i-label", { class: "desc", caption: "$deleting_files_from_the_ipfs_explorer_sites_files_page_will_remove_them_from_the_file_listing_for_your_account_but_that_doesnt_prevent_nodes_on_the_decentralized_storage_network_from_retaining_copies_of_the_data_indefinitely_do_not_use_ipfs_explorer_for_data_that_may_need_to_be_permanently_deleted_in_the_future" })))));
-        }
-    };
-    ScomIPFSUploadModal = __decorate([
-        (0, components_7.customElements)('i-scom-ipfs--upload-modal')
-    ], ScomIPFSUploadModal);
-    exports.ScomIPFSUploadModal = ScomIPFSUploadModal;
-});
 define("@scom/scom-storage/file.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
@@ -1548,12 +862,12 @@ define("@scom/scom-storage/file.ts", ["require", "exports"], function (require, 
     }
     exports.Viewer = Viewer;
 });
-define("@scom/scom-storage/components/loadingSpinner.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_8) {
+define("@scom/scom-storage/components/loadingSpinner.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_7) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.LoadingSpinner = void 0;
-    const Theme = components_8.Styles.Theme.ThemeVars;
-    let LoadingSpinner = class LoadingSpinner extends components_8.Module {
+    const Theme = components_7.Styles.Theme.ThemeVars;
+    let LoadingSpinner = class LoadingSpinner extends components_7.Module {
         async init() {
             await super.init();
         }
@@ -1578,16 +892,16 @@ define("@scom/scom-storage/components/loadingSpinner.tsx", ["require", "exports"
         }
     };
     LoadingSpinner = __decorate([
-        (0, components_8.customElements)('scom-storage--loading-spinner')
+        (0, components_7.customElements)('scom-storage--loading-spinner')
     ], LoadingSpinner);
     exports.LoadingSpinner = LoadingSpinner;
 });
-define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/components/loadingSpinner.tsx", "@scom/scom-storage/data.ts", "@scom/scom-storage/translations.json.ts"], function (require, exports, components_9, utils_2, index_css_4, loadingSpinner_1, data_2, translations_json_3) {
+define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/components/loadingSpinner.tsx", "@scom/scom-storage/data.ts", "@scom/scom-storage/translations.json.ts"], function (require, exports, components_8, utils_1, index_css_3, loadingSpinner_1, data_2, translations_json_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSEditor = void 0;
-    const Theme = components_9.Styles.Theme.ThemeVars;
-    let ScomIPFSEditor = class ScomIPFSEditor extends components_9.Module {
+    const Theme = components_8.Styles.Theme.ThemeVars;
+    let ScomIPFSEditor = class ScomIPFSEditor extends components_8.Module {
         constructor(parent, options) {
             super(parent, options);
             this._data = {
@@ -1693,7 +1007,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
                         this.type === 'widget' ?
                             this.createPackageBuilderElement(this._data?.config || {}) :
                             this.createDesignerElement(this.url);
-                    this.editorEl = await (0, utils_2.getEmbedElement)(moduleData, this.pnlEditor);
+                    this.editorEl = await (0, utils_1.getEmbedElement)(moduleData, this.pnlEditor);
                 }
                 this.initialContent = this.editorEl.value || '';
                 if (this.type === 'widget') {
@@ -1724,11 +1038,11 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
             this.btnActions.visible = this.type !== 'widget';
             this.pnlEditor.padding = this.type === 'widget' ? { left: 0, right: 0 } : { left: '1rem', right: '1rem' };
             if (this.isFullScreen) {
-                this.classList.add(index_css_4.fullScreenStyle);
+                this.classList.add(index_css_3.fullScreenStyle);
                 document.body.style.overflow = 'hidden';
             }
             else {
-                this.classList.remove(index_css_4.fullScreenStyle);
+                this.classList.remove(index_css_3.fullScreenStyle);
             }
             this.hideLoadingSpinner();
         }
@@ -1815,7 +1129,7 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
                 this.onClose();
         }
         init() {
-            this.i18n.init({ ...translations_json_3.default });
+            this.i18n.init({ ...translations_json_2.default });
             super.init();
             this.onClose = this.getAttribute('onClose', true) || this.onClose;
             this.onChanged = this.getAttribute('onChanged', true) || this.onChanged;
@@ -1830,21 +1144,21 @@ define("@scom/scom-storage/components/editor.tsx", ["require", "exports", "@ijst
                     this.$render("i-button", { id: "btnSave", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.75rem', right: '0.75rem' }, border: { radius: '0.5rem', width: '1px', style: 'solid', color: Theme.divider }, background: { color: Theme.colors.primary.main }, font: { color: Theme.colors.primary.contrastText }, icon: { name: 'save', width: '0.875rem', height: '0.875rem', fill: Theme.colors.primary.contrastText }, caption: '$save', enabled: false, onClick: this.onSubmit })),
                 this.$render("i-panel", { width: '100%', stack: { grow: '1' }, overflow: { y: 'auto', x: 'hidden' } },
                     this.$render("i-vstack", { id: "pnlLoading", visible: false }),
-                    this.$render("i-vstack", { id: "pnlEditor", width: '100%', height: '100%', position: 'relative', padding: { left: '1rem', right: '1rem' }, class: index_css_4.addressPanelStyle })),
+                    this.$render("i-vstack", { id: "pnlEditor", width: '100%', height: '100%', position: 'relative', padding: { left: '1rem', right: '1rem' }, class: index_css_3.addressPanelStyle })),
                 this.$render("i-alert", { id: "mdAlert", title: '', status: 'confirm', content: '$do_you_want_to_discard_changes', onConfirm: this.onAlertConfirm, onClose: () => this.mdAlert.closeModal() })));
         }
     };
     ScomIPFSEditor = __decorate([
-        (0, components_9.customElements)('i-scom-ipfs--editor')
+        (0, components_8.customElements)('i-scom-ipfs--editor')
     ], ScomIPFSEditor);
     exports.ScomIPFSEditor = ScomIPFSEditor;
 });
-define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/loadingSpinner.tsx", "@scom/scom-storage/translations.json.ts"], function (require, exports, components_10, index_css_5, data_3, utils_3, loadingSpinner_2, translations_json_4) {
+define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-storage/components/index.css.ts", "@scom/scom-storage/data.ts", "@scom/scom-storage/utils.ts", "@scom/scom-storage/components/loadingSpinner.tsx", "@scom/scom-storage/translations.json.ts"], function (require, exports, components_9, index_css_4, data_3, utils_2, loadingSpinner_2, translations_json_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomIPFSPreview = void 0;
-    const Theme = components_10.Styles.Theme.ThemeVars;
-    let ScomIPFSPreview = class ScomIPFSPreview extends components_10.Module {
+    const Theme = components_9.Styles.Theme.ThemeVars;
+    let ScomIPFSPreview = class ScomIPFSPreview extends components_9.Module {
         constructor(parent, options) {
             super(parent, options);
             this._data = {
@@ -1945,7 +1259,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             this.lblName.caption = this._data?.name || '';
             this.lblSize.caption = (0, data_3.formatBytes)(this._data?.size || 0);
             if (this._data?.cid) {
-                this.lblCid.caption = components_10.FormatUtils.truncateWalletAddress(this._data.cid);
+                this.lblCid.caption = components_9.FormatUtils.truncateWalletAddress(this._data.cid);
             }
         }
         async previewFile(usePath) {
@@ -1954,7 +1268,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 this.showLoadingSpinner();
                 const moduleData = await this.getModuleFromExtension(usePath);
                 if (moduleData?.module) {
-                    const elm = await (0, utils_3.getEmbedElement)(moduleData, this.previewer);
+                    const elm = await (0, utils_2.getEmbedElement)(moduleData, this.previewer);
                     if (moduleData?.module === '@scom/scom-image' && usePath) {
                         elm.maxWidth = '50%';
                         elm.margin = { left: 'auto', right: 'auto' };
@@ -2177,7 +1491,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
         }
         async onCopyCid() {
             try {
-                await components_10.application.copyToClipboard(this._data.cid);
+                await components_9.application.copyToClipboard(this._data.cid);
                 this.imgCopy.name = "check";
                 this.imgCopy.fill = Theme.colors.success.main;
                 if (this.copyTimer)
@@ -2190,7 +1504,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
             catch { }
         }
         init() {
-            this.i18n.init({ ...translations_json_4.default });
+            this.i18n.init({ ...translations_json_3.default });
             super.init();
             this.onClose = this.getAttribute('onClose', true) || this.onClose;
             this.onCloseEditor = this.getAttribute('onCloseEditor', true) || this.onCloseEditor;
@@ -2201,7 +1515,7 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
                 this.setData(data);
         }
         render() {
-            return (this.$render("i-panel", { width: '100%', height: '100%', class: index_css_5.customLinkStyle },
+            return (this.$render("i-panel", { width: '100%', height: '100%', class: index_css_4.customLinkStyle },
                 this.$render("i-vstack", { id: "pnlLoading", height: '100%', width: '100%', visible: false, verticalAlignment: 'center', horizontalAlignment: 'center' }),
                 this.$render("i-vstack", { id: "previewerPanel", width: '100%', height: '100%', padding: { top: '1.25rem', bottom: '1.25rem', left: '1rem', right: '1rem' } },
                     this.$render("i-hstack", { width: '100%', height: 36, stack: { shrink: '0' }, verticalAlignment: 'center', horizontalAlignment: 'space-between', border: { bottom: { width: '1px', style: 'solid', color: Theme.divider } }, mediaQueries: [
@@ -2235,26 +1549,25 @@ define("@scom/scom-storage/components/preview.tsx", ["require", "exports", "@ijs
         }
     };
     ScomIPFSPreview = __decorate([
-        (0, components_10.customElements)('i-scom-ipfs--preview')
+        (0, components_9.customElements)('i-scom-ipfs--preview')
     ], ScomIPFSPreview);
     exports.ScomIPFSPreview = ScomIPFSPreview;
 });
-define("@scom/scom-storage/components/index.ts", ["require", "exports", "@scom/scom-storage/components/home.tsx", "@scom/scom-storage/components/path.tsx", "@scom/scom-storage/components/uploadModal.tsx", "@scom/scom-storage/components/editor.tsx", "@scom/scom-storage/components/preview.tsx", "@scom/scom-storage/components/loadingSpinner.tsx"], function (require, exports, home_1, path_1, uploadModal_1, editor_1, preview_1, loadingSpinner_3) {
+define("@scom/scom-storage/components/index.ts", ["require", "exports", "@scom/scom-storage/components/home.tsx", "@scom/scom-storage/components/path.tsx", "@scom/scom-storage/components/editor.tsx", "@scom/scom-storage/components/preview.tsx", "@scom/scom-storage/components/loadingSpinner.tsx"], function (require, exports, home_1, path_1, editor_1, preview_1, loadingSpinner_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.LoadingSpinner = exports.ScomIPFSPreview = exports.ScomIPFSEditor = exports.ScomIPFSUploadModal = exports.ScomIPFSPath = exports.ScomIPFSMobileHome = void 0;
+    exports.LoadingSpinner = exports.ScomIPFSPreview = exports.ScomIPFSEditor = exports.ScomIPFSPath = exports.ScomIPFSMobileHome = void 0;
     Object.defineProperty(exports, "ScomIPFSMobileHome", { enumerable: true, get: function () { return home_1.ScomIPFSMobileHome; } });
     Object.defineProperty(exports, "ScomIPFSPath", { enumerable: true, get: function () { return path_1.ScomIPFSPath; } });
-    Object.defineProperty(exports, "ScomIPFSUploadModal", { enumerable: true, get: function () { return uploadModal_1.ScomIPFSUploadModal; } });
     Object.defineProperty(exports, "ScomIPFSEditor", { enumerable: true, get: function () { return editor_1.ScomIPFSEditor; } });
     Object.defineProperty(exports, "ScomIPFSPreview", { enumerable: true, get: function () { return preview_1.ScomIPFSPreview; } });
     Object.defineProperty(exports, "LoadingSpinner", { enumerable: true, get: function () { return loadingSpinner_3.LoadingSpinner; } });
 });
-define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_11) {
+define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_10) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.customMDStyles = exports.selectedRowStyle = exports.dragAreaStyle = exports.previewModalStyle = exports.iconButtonStyled = exports.defaultColors = void 0;
-    const Theme = components_11.Styles.Theme.ThemeVars;
+    const Theme = components_10.Styles.Theme.ThemeVars;
     exports.defaultColors = {
         light: {
             primaryColor: '#3f51b5',
@@ -2287,7 +1600,7 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
             selectedBackground: '#0b3a53'
         }
     };
-    exports.default = components_11.Styles.style({
+    exports.default = components_10.Styles.style({
         $nest: {
             '.storage-meter-uploaded': {
                 backgroundSize: '410%',
@@ -2330,7 +1643,7 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
             }
         }
     });
-    exports.iconButtonStyled = components_11.Styles.style({
+    exports.iconButtonStyled = components_10.Styles.style({
         fontSize: '0.75rem',
         justifyContent: 'start',
         padding: '4px 8px',
@@ -2341,36 +1654,36 @@ define("@scom/scom-storage/index.css.ts", ["require", "exports", "@ijstech/compo
             }
         }
     });
-    exports.previewModalStyle = components_11.Styles.style({
+    exports.previewModalStyle = components_10.Styles.style({
         $nest: {
             '.i-modal_header': {
                 padding: '1rem'
             }
         }
     });
-    exports.dragAreaStyle = components_11.Styles.style({
+    exports.dragAreaStyle = components_10.Styles.style({
         border: `2px solid ${Theme.colors.info.dark}`,
         opacity: 0.7
     });
-    exports.selectedRowStyle = components_11.Styles.style({
+    exports.selectedRowStyle = components_10.Styles.style({
         $nest: {
             '& > .i-table-cell': {
                 background: `${Theme.action.focusBackground} !important`
             }
         }
     });
-    exports.customMDStyles = components_11.Styles.style({
+    exports.customMDStyles = components_10.Styles.style({
         position: 'fixed !important',
         $nest: {}
     });
 });
-define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts", "@scom/scom-storage/utils.ts", "@scom/scom-storage/translations.json.ts"], function (require, exports, components_12, data_4, index_1, file_1, index_css_6, utils_4, translations_json_5) {
+define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@scom/scom-storage/data.ts", "@scom/scom-storage/components/index.ts", "@scom/scom-storage/file.ts", "@scom/scom-storage/index.css.ts", "@scom/scom-storage/utils.ts", "@scom/scom-upload-modal", "@scom/scom-storage/translations.json.ts"], function (require, exports, components_11, data_4, index_1, file_1, index_css_5, utils_3, scom_upload_modal_1, translations_json_4) {
     "use strict";
     var ScomStorage_1;
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.ScomStorage = void 0;
-    const Theme = components_12.Styles.Theme.ThemeVars;
-    let ScomStorage = ScomStorage_1 = class ScomStorage extends components_12.Module {
+    const Theme = components_11.Styles.Theme.ThemeVars;
+    let ScomStorage = ScomStorage_1 = class ScomStorage extends components_11.Module {
         static getInstance() {
             if (!ScomStorage_1.instance) {
                 ScomStorage_1.instance = new ScomStorage_1();
@@ -2513,7 +1826,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         setConfig(config) {
             this._data = config;
             this._signer = config.signer;
-            this.manager = new components_12.IPFS.FileManager({
+            this.manager = new components_11.IPFS.FileManager({
                 endpoint: this._data.transportEndpoint,
                 signer: this._signer
             });
@@ -2775,7 +2088,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 else {
                     this.uploadModal.manager = this.manager;
                 }
-                this.uploadModal.show(this.isAssetRootNode ? `/_assets/uploads_${(0, components_12.moment)(new Date()).format('YYYYMMDD')}` : '');
+                this.uploadModal.show(this.isAssetRootNode ? `/_assets/uploads_${(0, components_11.moment)(new Date()).format('YYYYMMDD')}` : '');
             }
             this.rootCid = this.currentCid = rootNode?.cid;
             this.readOnly = !this.rootCid || (!this.isModal && !this.isUploadModal && (cid && cid !== this.rootCid));
@@ -2810,7 +2123,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             if (!ipfsData)
                 return;
             const parentNode = (({ links, ...o }) => o)(ipfsData);
-            parentNode.name = parentNode.name ? parentNode.name : components_12.FormatUtils.truncateWalletAddress(parentNode.cid);
+            parentNode.name = parentNode.name ? parentNode.name : components_11.FormatUtils.truncateWalletAddress(parentNode.cid);
             parentNode.path = parentNode.path || '';
             parentNode.root = true;
             if (ipfsData.links?.length) {
@@ -2980,7 +2293,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             if (this.readOnly || this.isUploadModal)
                 return;
             if (!this.uploadModal) {
-                this.uploadModal = new index_1.ScomIPFSUploadModal();
+                this.uploadModal = new scom_upload_modal_1.ScomUploadModal();
                 this.uploadModal.onUploaded = () => this.onFilesUploaded();
             }
             const modal = this.uploadModal.openModal({
@@ -3004,7 +2317,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                         }
                     }
                 ],
-                class: index_css_6.customMDStyles
+                class: index_css_5.customMDStyles
             });
             this.uploadModal.refresh = modal.refresh.bind(modal);
             if (window.matchMedia('(max-width: 767px)').matches) {
@@ -3022,17 +2335,17 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             modal.refresh();
         }
         async initModalActions() {
-            this.mdActions = await components_12.Modal.create({
+            this.mdActions = await components_11.Modal.create({
                 visible: false,
                 showBackdrop: false,
                 minWidth: '8rem',
                 height: 'auto',
                 popupPlacement: 'bottomRight'
             });
-            const itemActions = new components_12.VStack(undefined, { gap: 8, border: { radius: 8 } });
-            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'folder-plus', width: 12, height: 12 }, caption: "$new_folder", class: index_css_6.iconButtonStyled, onClick: () => this.onAddNewFolder() }));
-            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'edit', width: 12, height: 12 }, caption: "$rename", class: index_css_6.iconButtonStyled, onClick: () => this.onRenameFolder() }));
-            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'trash', width: 12, height: 12 }, caption: "$delete", class: index_css_6.iconButtonStyled, onClick: () => this.onDeleteFolder() }));
+            const itemActions = new components_11.VStack(undefined, { gap: 8, border: { radius: 8 } });
+            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'folder-plus', width: 12, height: 12 }, caption: "$new_folder", class: index_css_5.iconButtonStyled, onClick: () => this.onAddNewFolder() }));
+            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'edit', width: 12, height: 12 }, caption: "$rename", class: index_css_5.iconButtonStyled, onClick: () => this.onRenameFolder() }));
+            itemActions.appendChild(this.$render("i-button", { background: { color: 'transparent' }, boxShadow: "none", icon: { name: 'trash', width: 12, height: 12 }, caption: "$delete", class: index_css_5.iconButtonStyled, onClick: () => this.onDeleteFolder() }));
             this.mdActions.item = itemActions;
             document.body.appendChild(this.mdActions);
         }
@@ -3203,9 +2516,9 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             else {
                 this.currentFile = `${record.name}`;
                 if (this.selectedRow)
-                    this.selectedRow.classList.remove(index_css_6.selectedRowStyle);
+                    this.selectedRow.classList.remove(index_css_5.selectedRowStyle);
                 this.selectedRow = this.fileTable.querySelector(`tr[data-index="${rowIndex}"]`);
-                this.selectedRow.classList.add(index_css_6.selectedRowStyle);
+                this.selectedRow.classList.add(index_css_5.selectedRowStyle);
                 this.previewFile(record);
             }
         }
@@ -3225,7 +2538,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     padding: { top: 0, bottom: 0, left: 0, right: 0 },
                     border: { radius: 0 },
                     overflow: 'auto',
-                    class: index_css_6.previewModalStyle,
+                    class: index_css_5.previewModalStyle,
                     title: '$file_preview',
                     closeIcon: {
                         name: 'times',
@@ -3316,7 +2629,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 const rowData = tableColumn?.rowData;
                 if (rowData?.type === 'dir') {
                     folder.path = rowData.path;
-                    folder.name = rowData.name || components_12.FormatUtils.truncateWalletAddress(rowData.cid);
+                    folder.name = rowData.name || components_11.FormatUtils.truncateWalletAddress(rowData.cid);
                 }
             }
             if (!folder.path) {
@@ -3336,7 +2649,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 return;
             event.preventDefault();
             this.counter++;
-            this.pnlFileTable.classList.add(index_css_6.dragAreaStyle);
+            this.pnlFileTable.classList.add(index_css_5.dragAreaStyle);
         }
         handleOnDragOver(event) {
             if (this.readOnly)
@@ -3351,7 +2664,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 return;
             this.counter--;
             if (this.counter === 0) {
-                this.pnlFileTable.classList.remove(index_css_6.dragAreaStyle);
+                this.pnlFileTable.classList.remove(index_css_5.dragAreaStyle);
                 this.pnlUploadTo.visible = false;
             }
         }
@@ -3360,7 +2673,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                 return;
             event.preventDefault();
             this.counter = 0;
-            this.pnlFileTable.classList.remove(index_css_6.dragAreaStyle);
+            this.pnlFileTable.classList.remove(index_css_5.dragAreaStyle);
             this.pnlUploadTo.visible = false;
             const folder = this.getDestinationFolder(event);
             try {
@@ -3402,7 +2715,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
                     reading--;
                     const rawFile = file;
                     rawFile.path = entry.fullPath;
-                    rawFile.cid = await components_12.IPFS.hashFile(file);
+                    rawFile.cid = await components_11.IPFS.hashFile(file);
                     contents.push(rawFile);
                     if (reading === 0) {
                         resolve(contents);
@@ -3448,7 +2761,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
         renderUploadModal() {
             if (!this.uploadModal) {
-                this.uploadModal = new index_1.ScomIPFSUploadModal();
+                this.uploadModal = new scom_upload_modal_1.ScomUploadModal();
                 this.uploadModal.onUploaded = async (target, rootCid, filePaths) => {
                     this.onFilesUploaded();
                     if (!this.uploadMultiple && filePaths.length && this.onUploadedFile) {
@@ -3483,7 +2796,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             try {
                 for (const file of files) {
                     let filePath = file.path;
-                    const { isExists, newFilePath } = await (0, utils_4.isFileExists)(this.manager, filePath);
+                    const { isExists, newFilePath } = await (0, utils_3.isFileExists)(this.manager, filePath);
                     if (isExists) {
                         filePath = newFilePath;
                     }
@@ -3518,7 +2831,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.iconBack.visible = false;
         }
         init() {
-            this.i18n.init({ ...translations_json_5.default });
+            this.i18n.init({ ...translations_json_4.default });
             const transportEndpoint = this.getAttribute('transportEndpoint', true) || this._data?.transportEndpoint || window.location.origin;
             const signer = this.getAttribute('signer', true) || this._data?.signer || null;
             this._signer = signer;
@@ -3535,9 +2848,9 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
             this.onClosePreview = this.getAttribute('onClosePreview', true) || this.onClosePreview;
             this.onUploadedFile = this.getAttribute('onUploadedFile', true) || this.onUploadedFile;
             this.isFileShown = this.getAttribute('isFileShown', true);
-            this.classList.add(index_css_6.default);
-            this.setTag(index_css_6.defaultColors);
-            this.manager = new components_12.IPFS.FileManager({
+            this.classList.add(index_css_5.default);
+            this.setTag(index_css_5.defaultColors);
+            this.manager = new components_11.IPFS.FileManager({
                 endpoint: transportEndpoint,
                 signer: signer
             });
@@ -3634,7 +2947,7 @@ define("@scom/scom-storage", ["require", "exports", "@ijstech/components", "@sco
         }
     };
     ScomStorage = ScomStorage_1 = __decorate([
-        (0, components_12.customElements)('i-scom-storage')
+        (0, components_11.customElements)('i-scom-storage')
     ], ScomStorage);
     exports.ScomStorage = ScomStorage;
 });

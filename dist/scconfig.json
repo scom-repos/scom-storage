@@ -3,6 +3,7 @@
     "type": "widget",
     "version": "0.1.10",
     "dependencies": [
-        "@ijstech/components"
+        "@ijstech/components",
+        "@scom/scom-upload-modal"
     ]
 }

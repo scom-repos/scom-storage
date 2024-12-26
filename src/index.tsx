@@ -22,10 +22,11 @@ import {
 } from '@ijstech/components';
 import { IPreview, IIPFSData, IStorageConfig, ITableData } from './interface';
 import { formatBytes } from './data';
-import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSUploadModal, ScomIPFSPreview, LoadingSpinner, ScomIPFSEditor } from './components/index';
+import { ScomIPFSMobileHome, ScomIPFSPath, ScomIPFSPreview, LoadingSpinner, ScomIPFSEditor } from './components/index';
 import { Editor, IFileHandler } from './file';
 import customStyles, { defaultColors, dragAreaStyle, iconButtonStyled, previewModalStyle, selectedRowStyle, customMDStyles } from './index.css';
 import { isFileExists } from './utils';
+import { ScomUploadModal } from '@scom/scom-upload-modal';
 import translations from './translations.json';
 
 export { IFileHandler, IIPFSData };
@@ -77,7 +78,7 @@ export class ScomStorage extends Module {
     private mobileHome: ScomIPFSMobileHome;
     private iePreview: ScomIPFSPreview;
     private pnlPreview: Panel;
-    private uploadModal: ScomIPFSUploadModal;
+    private uploadModal: ScomUploadModal;
     private ieContent: Panel;
     private ieSidebar: Panel;
     private btnUpload: Button;
@@ -740,7 +741,7 @@ export class ScomStorage extends Module {
     private onOpenUploadModal(path?: string, files?: File[]) {
         if (this.readOnly || this.isUploadModal) return;
         if (!this.uploadModal) {
-            this.uploadModal = new ScomIPFSUploadModal();
+            this.uploadModal = new ScomUploadModal();
             this.uploadModal.onUploaded = () => this.onFilesUploaded();
         }
         const modal = this.uploadModal.openModal({
@@ -1218,8 +1219,8 @@ export class ScomStorage extends Module {
 
     private renderUploadModal() {
         if (!this.uploadModal) {
-            this.uploadModal = new ScomIPFSUploadModal();
-            this.uploadModal.onUploaded = async (target: ScomIPFSUploadModal, rootCid: string, filePaths: string[]) => {
+            this.uploadModal = new ScomUploadModal();
+            this.uploadModal.onUploaded = async (target: ScomUploadModal, rootCid: string, filePaths: string[]) => {
                 this.onFilesUploaded();
                 if (!this.uploadMultiple && filePaths.length && this.onUploadedFile) {
                     let parentCid;
