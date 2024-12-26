@@ -21,6 +21,7 @@
         "@types/node": "18.11.9"
     },
     "dependencies": {
-        "@scom/scom-signer": "^0.1.0"
+        "@scom/scom-signer": "^0.1.0",
+        "@scom/scom-upload-modal": "https://github.com/scom-repos/scom-upload-modal.git"
     }
 }

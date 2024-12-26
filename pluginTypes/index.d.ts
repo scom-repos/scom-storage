@@ -55,7 +55,6 @@ declare module "@scom/scom-storage/components/index.css.ts" {
     export const transitionStyle: string;
     export const addressPanelStyle: string;
     export const customLinkStyle: string;
-    export const uploadModalStyle: string;
     export const fullScreenStyle: string;
 }
 /// <amd-module name="@scom/scom-storage/components/path.tsx" />
@@ -350,112 +349,6 @@ declare module "@scom/scom-storage/utils.ts" {
         newFilePath: string;
     }>;
 }
-/// <amd-module name="@scom/scom-storage/components/uploadModal.tsx" />
-declare module "@scom/scom-storage/components/uploadModal.tsx" {
-    import { ControlElement, Module, Container } from '@ijstech/components';
-    interface ICidInfo {
-        cid: string;
-        links?: ICidInfo[];
-        name?: string;
-        size: number;
-        type?: 'dir' | 'file';
-    }
-    type UploadedCallback = (target: ScomIPFSUploadModal, rootCid: string, filePaths: string[]) => void;
-    interface ScomIPFSUploadModalElement extends ControlElement {
-        rootCid?: string;
-        mulitiple?: boolean;
-        parentDir?: Partial<ICidInfo>;
-        onUploaded?: UploadedCallback;
-        onBrowseFile?: () => void;
-    }
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['i-scom-ipfs--upload-modal']: ScomIPFSUploadModalElement;
-            }
-        }
-    }
-    export interface IIPFSItem {
-        cid: string;
-        name: string;
-        size: number;
-        type: 'dir' | 'file';
-        links?: IIPFSItem[];
-    }
-    export interface IUploadResult {
-        success: boolean;
-        error?: string;
-        data?: IIPFSItem;
-    }
-    export class ScomIPFSUploadModal extends Module {
-        private lblTitle;
-        private fileUploader;
-        private btnBrowseFile;
-        private imgFile;
-        private lblDrag;
-        private pnlBrowse;
-        private pnlStatusFilter;
-        private pnlFilterActions;
-        private pnlFileList;
-        private btnUpload;
-        private pnlNote;
-        private pnlPagination;
-        private _rootCid;
-        private _parentDir;
-        onUploaded: UploadedCallback;
-        onBrowseFile: () => void;
-        private isForcedCancelled;
-        private currentRequest;
-        private currentPage;
-        private currentFilterStatus;
-        private files;
-        private fileListData;
-        private _manager;
-        private folderPath;
-        private _isBrowseButtonShown;
-        private _mulitiple;
-        constructor(parent?: Container, options?: any);
-        get rootCid(): string;
-        set rootCid(value: string);
-        get parentDir(): Partial<ICidInfo>;
-        set parentDir(value: Partial<ICidInfo>);
-        get manager(): any;
-        set manager(value: any);
-        get isBrowseButtonShown(): boolean;
-        set isBrowseButtonShown(value: boolean);
-        get mulitiple(): boolean;
-        set mulitiple(value: boolean);
-        private updateUI;
-        show(path?: string, files?: File[]): void;
-        refresh(): void;
-        private onBeforeDrop;
-        private onBeforeUpload;
-        private filteredFileListData;
-        private numPages;
-        private setCurrentPage;
-        private get isSmallWidth();
-        private updateFilterBar;
-        private renderFilterBar;
-        private renderFileList;
-        private formatBytes;
-        private renderStatus;
-        private getPagination;
-        private renderPagination;
-        private onChangeCurrentFilterStatus;
-        private onClear;
-        private onCancel;
-        private onChangeFile;
-        private updateBtnCaption;
-        private onRemove;
-        private onRemoveFile;
-        private onUpload;
-        private browseFile;
-        reset(): void;
-        private toggle;
-        init(): Promise<void>;
-        render(): any;
-    }
-}
 /// <amd-module name="@scom/scom-storage/file.ts" />
 declare module "@scom/scom-storage/file.ts" {
     import { Control } from "@ijstech/components";
@@ -633,7 +526,6 @@ declare module "@scom/scom-storage/components/preview.tsx" {
 declare module "@scom/scom-storage/components/index.ts" {
     export { ScomIPFSMobileHome } from "@scom/scom-storage/components/home.tsx";
     export { ScomIPFSPath } from "@scom/scom-storage/components/path.tsx";
-    export { ScomIPFSUploadModal } from "@scom/scom-storage/components/uploadModal.tsx";
     export { ScomIPFSEditor } from "@scom/scom-storage/components/editor.tsx";
     export { ScomIPFSPreview } from "@scom/scom-storage/components/preview.tsx";
     export { LoadingSpinner } from "@scom/scom-storage/components/loadingSpinner.tsx";
