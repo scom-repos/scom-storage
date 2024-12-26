@@ -1,6 +1,6 @@
 {
     "name": "@scom/scom-storage",
-    "version": "0.1.10",
+    "version": "0.1.11",
     "main": "dist/index.js",
     "plugin": "dist",
     "pluginTypes": "pluginTypes/index.d.ts",
@@ -22,6 +22,6 @@
     },
     "dependencies": {
         "@scom/scom-signer": "^0.1.0",
-        "@scom/scom-upload-modal": "https://github.com/scom-repos/scom-upload-modal.git"
+        "@scom/scom-upload-modal": "^0.1.1"
     }
 }
